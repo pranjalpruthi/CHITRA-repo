@@ -1,0 +1,275 @@
+"use client";
+
+import * as d3 from "d3";
+import { SyntenyData, ChromosomeData } from "@/app/types";
+
+interface SyntenyRibbonProps {
+  link: SyntenyData;
+  sourceSpecies: string;
+  targetSpecies: string;
+  sourceY: number;
+  targetY: number;
+  xScale: d3.ScaleLinear<number, number>;
+  speciesColorScale: d3.ScaleOrdinal<string, string>;
+  referenceData: ChromosomeData[];
+  container: d3.Selection<any, unknown, null, undefined>;
+  onHover: (event: any, link: SyntenyData) => void;
+  onMove: (event: any) => void;
+  onLeave: () => void;
+  chromosomeSpacing: number;
+  chromosomeHeight: number;
+  onSelect: (link: SyntenyData, isSelected: boolean) => void;
+  isSelected?: boolean;
+  zoomBehaviorRef: React.RefObject<d3.ZoomBehavior<any, any>>;
+}
+
+const SYNTENY_COLORS = {
+  FORWARD: '#2563eb1a',
+  REVERSE: '#dc26261a',
+  BLOCK_FORWARD: '#2563eb',
+  BLOCK_REVERSE: '#dc2626',
+  STROKE_WIDTH: {
+    SMALL: 1.5,
+    MEDIUM: 2.5,
+    LARGE: 3.5
+  },
+  OPACITY: {
+    DEFAULT: 0.2,
+    HOVER: 0.6,
+    SELECTED: 0.8,
+    ACTIVE: 0.9
+  }
+} as const;
+
+export function renderSyntenyRibbon({
+  link,
+  sourceSpecies,
+  targetSpecies,
+  sourceY,
+  targetY,
+  xScale,
+  speciesColorScale,
+  referenceData,
+  container: g,
+  onHover,
+  onMove,
+  onLeave,
+  chromosomeSpacing,
+  chromosomeHeight,
+  onSelect,
+  isSelected = false,
+  zoomBehaviorRef,
+}: SyntenyRibbonProps) {
+  // Get chromosome positions
+  const getXPosition = (species: string, chr: string, pos: number) => {
+    const speciesChrs = referenceData.filter(d => d.species_name === species);
+    let xPos = 0;
+    for (const chromosome of speciesChrs) {
+      if (chromosome.chr_id === chr) {
+        const constrainedPos = Math.min(Math.max(pos, 0), chromosome.chr_size_bp);
+        return xPos + xScale(constrainedPos);
+      }
+      xPos += xScale(chromosome.chr_size_bp) + chromosomeSpacing * 2;
+    }
+    return 0;
+  };
+
+  // Calculate ribbon positions
+  const x1 = getXPosition(sourceSpecies, link.ref_chr, link.ref_start);
+  const x2 = getXPosition(targetSpecies, link.query_chr, link.query_start);
+
+  // Get chromosome sizes for width constraints
+  const sourceChromosome = referenceData.find(c => 
+    c.species_name === sourceSpecies && c.chr_id === link.ref_chr
+  );
+  const targetChromosome = referenceData.find(c => 
+    c.species_name === targetSpecies && c.chr_id === link.query_chr
+  );
+
+  // Calculate constrained widths
+  const width1 = sourceChromosome ? 
+    Math.min(
+      xScale(link.ref_end - link.ref_start),
+      xScale(sourceChromosome.chr_size_bp) - (x1 - getXPosition(sourceSpecies, link.ref_chr, 0))
+    ) : 0;
+
+  const width2 = targetChromosome ? 
+    Math.min(
+      xScale(link.query_end - link.query_start),
+      xScale(targetChromosome.chr_size_bp) - (x2 - getXPosition(targetSpecies, link.query_chr, 0))
+    ) : 0;
+
+  // Create a unique identifier for this synteny ribbon
+  const syntenyId = `synteny-${link.ref_chr}-${link.query_chr}-${link.ref_start}-${link.query_start}`;
+
+  // Create a group for the entire synteny visualization with initial selected state
+  const blockGroup = g.append("g")
+    .attr("class", `synteny-group ${isSelected ? 'selected' : ''}`)
+    .attr("data-synteny-id", syntenyId)
+    .attr("data-selected", isSelected ? "true" : "false");
+
+  // Source block
+  const sourceBlock = blockGroup.append("rect")
+    .attr("x", x1)
+    .attr("y", sourceY)
+    .attr("width", width1)
+    .attr("height", chromosomeHeight)
+    .attr("fill", link.query_strand === '+' ? SYNTENY_COLORS.FORWARD : SYNTENY_COLORS.REVERSE)
+    .attr("stroke", link.query_strand === '+' ? SYNTENY_COLORS.BLOCK_FORWARD : SYNTENY_COLORS.BLOCK_REVERSE)
+    .attr("stroke-width", 2)
+    .attr("class", "matching-block source")
+    .attr("opacity", 0.8);
+
+  // Target block
+  const targetBlock = blockGroup.append("rect")
+    .attr("x", x2)
+    .attr("y", targetY)
+    .attr("width", width2)
+    .attr("height", chromosomeHeight)
+    .attr("fill", link.query_strand === '+' ? SYNTENY_COLORS.FORWARD : SYNTENY_COLORS.REVERSE)
+    .attr("stroke", link.query_strand === '+' ? SYNTENY_COLORS.BLOCK_FORWARD : SYNTENY_COLORS.BLOCK_REVERSE)
+    .attr("stroke-width", 2)
+    .attr("class", "matching-block target")
+    .attr("opacity", 0.8);
+
+  // Create gradient for ribbon
+  const gradientId = `gradient-${link.ref_chr}-${link.query_chr}-${Math.random().toString(36).substr(2, 9)}`;
+  const gradient = g.append("defs")
+    .append("linearGradient")
+    .attr("id", gradientId)
+    .attr("gradientUnits", "userSpaceOnUse")
+    .attr("x1", x1)
+    .attr("y1", sourceY)
+    .attr("x2", x2)
+    .attr("y2", targetY);
+
+  gradient.append("stop")
+    .attr("offset", "0%")
+    .attr("stop-color", speciesColorScale(sourceSpecies));
+
+  gradient.append("stop")
+    .attr("offset", "100%")
+    .attr("stop-color", speciesColorScale(targetSpecies));
+
+  // Draw ribbon
+  const path = d3.path();
+  const sourceEdgeY = sourceY;
+  const targetEdgeY = targetY + chromosomeHeight;
+
+  path.moveTo(x1, sourceEdgeY);
+  path.bezierCurveTo(
+    x1, (sourceEdgeY + targetEdgeY) / 2,
+    x2, (sourceEdgeY + targetEdgeY) / 2,
+    x2, targetEdgeY
+  );
+  path.lineTo(x2 + width2, targetEdgeY);
+  path.bezierCurveTo(
+    x2 + width2, (sourceEdgeY + targetEdgeY) / 2,
+    x1 + width1, (sourceEdgeY + targetEdgeY) / 2,
+    x1 + width1, sourceEdgeY
+  );
+  path.closePath();
+
+  // Add ribbon with events
+  const ribbon = blockGroup.append("path")
+    .attr("d", path.toString())
+    .attr("fill", `url(#${gradientId})`)
+    .attr("opacity", isSelected ? SYNTENY_COLORS.OPACITY.SELECTED : SYNTENY_COLORS.OPACITY.DEFAULT)
+    .attr("class", `synteny-ribbon ${isSelected ? 'selected' : ''}`)
+    .attr("data-synteny-id", syntenyId)
+    .style("transition", "opacity 0.2s ease-in-out");
+
+  // Initial state setup - Set initial opacities based on selection state
+  const setElementStates = (selected: boolean) => {
+    ribbon
+      .attr("opacity", selected ? SYNTENY_COLORS.OPACITY.SELECTED : SYNTENY_COLORS.OPACITY.DEFAULT)
+      .classed("selected", selected)
+      .attr("data-selected", selected ? "true" : "false");
+
+    [sourceBlock, targetBlock].forEach(block => {
+      block
+        .attr("opacity", selected ? 1 : 0.8)
+        .classed("selected", selected)
+        .attr("data-selected", selected ? "true" : "false")
+        .attr("stroke-width", selected ? 3 : 2);
+    });
+
+    blockGroup
+      .attr("data-selected", selected ? "true" : "false")
+      .classed("selected", selected);
+  };
+
+  // Set initial states
+  setElementStates(isSelected);
+
+  const handleClick = (event: MouseEvent) => {
+    event.preventDefault();
+    event.stopPropagation();
+
+    const svg = d3.select(g.node().parentNode);
+    const zoomBehavior = zoomBehaviorRef.current;
+    const currentTransform = d3.zoomTransform(svg.node());
+
+    const newSelectedState = !isSelected;
+    
+    // Update all visual states
+    setElementStates(newSelectedState);
+
+    if (newSelectedState) {
+      blockGroup.raise();
+    }
+
+    // Preserve transform
+    if (zoomBehavior) {
+      svg
+        .transition()
+        .duration(0)
+        .call(zoomBehavior.transform, currentTransform);
+    }
+    
+    g.attr("transform", currentTransform.toString());
+    
+    onSelect(link, newSelectedState);
+  };
+
+  const handleGroupHover = () => {
+    const currentlySelected = blockGroup.attr("data-selected") === "true";
+    if (!currentlySelected) {
+      const svg = d3.select(g.node().parentNode);
+      const currentTransform = d3.zoomTransform(svg.node());
+
+      ribbon.attr("opacity", SYNTENY_COLORS.OPACITY.HOVER);
+      [sourceBlock, targetBlock].forEach(block => {
+        block
+          .attr("opacity", 1)
+          .attr("stroke-width", 3);
+      });
+
+      blockGroup.raise();
+      g.attr("transform", currentTransform.toString());
+    }
+  };
+
+  const handleGroupLeave = () => {
+    const currentlySelected = blockGroup.attr("data-selected") === "true";
+    setElementStates(currentlySelected); // Reuse the setElementStates function
+    onLeave();
+  };
+
+  // Attach events to all elements
+  const attachEvents = (element: d3.Selection<any, unknown, null, undefined>) => {
+    element
+      .on("mouseover.synteny", (event: MouseEvent) => {
+        handleGroupHover();
+        onHover(event, link);
+      })
+      .on("mouseout.synteny", handleGroupLeave)
+      .on("mousemove.synteny", onMove)
+      .on("click.synteny", handleClick);
+  };
+
+  // Attach events to all elements
+  [ribbon, sourceBlock, targetBlock].forEach(attachEvents);
+
+  return blockGroup;
+}
