@@ -5,7 +5,7 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { FileUploader, FileInput } from "@/components/extension/file-uploader";
-import { Download, Upload, FileSpreadsheet } from "lucide-react";
+import { Download, Upload, FileSpreadsheet, AlertCircle, HelpCircle } from "lucide-react";
 import { toast } from "sonner";
 import {
   Tooltip,
@@ -13,7 +13,6 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { AlertCircle } from "lucide-react";
 
 interface ProcessingStatus {
   stage: 'uploading' | 'parsing' | 'processing' | 'complete';
@@ -32,6 +31,54 @@ interface GeneAnnotation {
   name: string;
   GeneID: string;
 }
+
+const FeatureTableInfo = () => (
+  <TooltipProvider>
+    <Tooltip delayDuration={300}>
+      <TooltipTrigger asChild>
+        <Button variant="ghost" size="icon" className="h-6 w-6">
+          <HelpCircle className="h-4 w-4" />
+          <span className="sr-only">About Feature Table Converter</span>
+        </Button>
+      </TooltipTrigger>
+      <TooltipContent className="max-w-[350px] p-4 space-y-2">
+        <div className="space-y-2">
+          <h4 className="font-medium">Feature Table Converter</h4>
+          <p className="text-sm text-muted-foreground">
+            Convert NCBI Feature Tables into compatible annotation files for CHITRA visualization.
+          </p>
+          <div className="space-y-1 text-sm">
+            <p className="font-medium">How to use:</p>
+            <ol className="list-decimal list-inside space-y-1 text-muted-foreground">
+              <li>Download Feature Table from NCBI FTP:
+                <a 
+                  href="https://ftp.ncbi.nlm.nih.gov/genomes/refseq/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-primary hover:underline ml-1"
+                >
+                  ftp.ncbi.nlm.nih.gov
+                </a>
+              </li>
+              <li>Upload the .ft or .txt file</li>
+              <li>Get two files:
+                <ul className="list-disc list-inside ml-4 mt-1">
+                  <li>ref_chromosome_sizes.csv - Chromosome sizes</li>
+                  <li>ref_gene_annotations.csv - Gene annotations</li>
+                </ul>
+              </li>
+            </ol>
+          </div>
+          <p className="text-xs text-muted-foreground border-t pt-2">
+            Feature Tables contain comprehensive genomic data including genes, their locations, 
+            and other features. This converter extracts relevant information and formats it 
+            for visualization.
+          </p>
+        </div>
+      </TooltipContent>
+    </Tooltip>
+  </TooltipProvider>
+);
 
 export function FeatureTableConverter() {
   const [file, setFile] = useState<File | null>(null);
@@ -213,10 +260,13 @@ export function FeatureTableConverter() {
   return (
     <Card className="w-full">
       <CardHeader className="p-4">
-        <CardTitle className="text-sm font-medium flex items-center gap-2">
-          <FileSpreadsheet className="h-4 w-4" />
-          Feature Table Converter
-        </CardTitle>
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-sm font-medium flex items-center gap-2">
+            <FileSpreadsheet className="h-4 w-4" />
+            Feature Table Converter
+          </CardTitle>
+          <FeatureTableInfo />
+        </div>
       </CardHeader>
       <CardContent className="p-4 pt-0 space-y-4">
         <FileUploader

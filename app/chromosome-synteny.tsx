@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState, useCallback, RefObject } from "react";
 import * as d3 from "d3";
 import { Button } from "@/components/ui/button";
-import { ZoomIn, ZoomOut, RefreshCw, Maximize2, Minimize2, Save, ChevronDown, ChevronLeft, ChevronRight, ChevronUp, Circle } from "lucide-react";
+import { ZoomIn, ZoomOut, RefreshCw, Maximize2, Minimize2, Save, ChevronDown, ChevronLeft, ChevronRight, ChevronUp, Circle, ArrowUp, ArrowDown, ArrowUpDown } from "lucide-react";
 import { ChromosomeData, SyntenyData, ReferenceGenomeData } from "./types";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
@@ -762,54 +762,61 @@ export function ChromosomeSynteny({
       )}
     >
       {/* Controls Header */}
-      <div className="flex items-center justify-between p-2 border-b">
-        <div className="flex items-center gap-4">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-2 border-b gap-3 sm:gap-2">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 w-full sm:w-auto">
           {/* Alignment Filter Buttons */}
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
             <Button
               variant={alignmentFilter === 'all' ? 'default' : 'outline'}
               onClick={() => setAlignmentFilter('all')}
-              className="text-xs h-8"
+              className="text-xs h-8 flex-1 sm:flex-none gap-2"
               size="sm"
             >
-              All Alignments
+              <ArrowUpDown className="h-4 w-4" />
+              <span>All Alignments</span>
             </Button>
             <Button
               variant={alignmentFilter === 'forward' ? 'default' : 'outline'}
               onClick={() => setAlignmentFilter('forward')}
-              className="text-xs h-8"
+              className="text-xs h-8 flex-1 sm:flex-none gap-2"
               size="sm"
             >
-              Forward Only
+              <ArrowUp className="h-4 w-4" />
+              <span>Forward Only</span>
             </Button>
             <Button
               variant={alignmentFilter === 'reverse' ? 'default' : 'outline'}
               onClick={() => setAlignmentFilter('reverse')}
-              className="text-xs h-8"
+              className="text-xs h-8 flex-1 sm:flex-none gap-2"
               size="sm"
             >
-              Reverse Only
+              <ArrowDown className="h-4 w-4" />
+              <span>Reverse Only</span>
             </Button>
           </div>
 
-          {/* Annotations Switch */}
-          <div className="flex items-center gap-2">
-            <Switch
-              id="annotations-mode"
-              checked={showAnnotations}
-              onCheckedChange={setShowAnnotations}
-            />
-            <Label htmlFor="annotations-mode" className="text-sm">
-              Show Annotations
-            </Label>
-          </div>
+          {/* Bottom Controls Row */}
+          <div className="flex items-center justify-between w-full sm:w-auto gap-4">
+            {/* Annotations Switch */}
+            <div className="flex items-center gap-2">
+              <Switch
+                id="annotations-mode"
+                checked={showAnnotations}
+                onCheckedChange={setShowAnnotations}
+              />
+              <Label htmlFor="annotations-mode" className="text-sm whitespace-nowrap">
+                Show Annotations
+              </Label>
+            </div>
 
-          <Badge variant="secondary">
-            {Math.round(zoom * 100)}%
-          </Badge>
+            <Badge variant="secondary" className="whitespace-nowrap">
+              {Math.round(zoom * 100)}%
+            </Badge>
+          </div>
         </div>
         
-        <div className="flex items-center gap-2">
+        {/* Control Buttons */}
+        <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
           <Button
             variant="outline"
             size="sm"
@@ -817,44 +824,46 @@ export function ChromosomeSynteny({
             className="h-8 px-3 gap-2"
           >
             <Save className="h-4 w-4" />
-            Save SVG
+            <span className="hidden sm:inline">Save SVG</span>
           </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={onZoomOut}
-            className="h-8 w-8 p-0"
-          >
-            <ZoomOut className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={onReset}
-            className="h-8 w-8 p-0"
-          >
-            <RefreshCw className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={onZoomIn}
-            className="h-8 w-8 p-0"
-          >
-            <ZoomIn className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={onFullscreen}
-            className="h-8 w-8 p-0"
-          >
-            {isFullscreen ? (
-              <Minimize2 className="h-4 w-4" />
-            ) : (
-              <Maximize2 className="h-4 w-4" />
-            )}
-          </Button>
+          <div className="flex items-center gap-1">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onZoomOut}
+              className="h-8 w-8 p-0"
+            >
+              <ZoomOut className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onReset}
+              className="h-8 w-8 p-0"
+            >
+              <RefreshCw className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onZoomIn}
+              className="h-8 w-8 p-0"
+            >
+              <ZoomIn className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onFullscreen}
+              className="h-8 w-8 p-0"
+            >
+              {isFullscreen ? (
+                <Minimize2 className="h-4 w-4" />
+              ) : (
+                <Maximize2 className="h-4 w-4" />
+              )}
+            </Button>
+          </div>
         </div>
       </div>
 

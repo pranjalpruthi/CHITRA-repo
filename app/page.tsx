@@ -62,6 +62,12 @@ import { Label } from "@/components/ui/label"
 import { SyntenyTable } from "@/components/chromoviz/synteny-table";
 import PageWrapper from '@/components/wrapper/page-wrapper';
 import { ScrollArea } from "@/components/ui/scroll-area"
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible"
+import { ChevronDown } from "lucide-react"
 
 const parseCSVRow = (d: any): any => {
   return {
@@ -608,28 +614,26 @@ export default function ChromoViz() {
             animate={{ opacity: 1 }}
             transition={{ delay: 0.2 }}
             className={cn(
-              "flex items-center justify-between mb-4 p-4 rounded-lg",
+              "flex flex-col sm:flex-row items-center justify-between mb-4 p-4 rounded-lg gap-4",
               "bg-background/60 backdrop-blur-md border border-border/50"
             )}
           >
-            <div className="flex flex-col items-center w-full gap-2">
+            <div className="flex flex-col items-center sm:items-start w-full gap-2">
               <ShinyRotatingBorderButton className="!p-3">
-                <span className="text-3xl font-bold tracking-tight">CHITRA</span>
+                <span className="text-2xl sm:text-3xl font-bold tracking-tight">CHITRA</span>
               </ShinyRotatingBorderButton>
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2">
                 <Badge variant="secondary" className="text-xs">Genomics</Badge>
                 <Badge variant="secondary" className="text-xs">Visualization</Badge>
                 <Badge variant="secondary" className="text-xs">Interactive</Badge>
               </div>
             </div>
 
-            <p className="text-lg text-muted-foreground">
+            <p className="text-sm sm:text-lg text-center sm:text-right text-muted-foreground max-w-[300px] sm:max-w-none">
               CHromosome Interactive Tool for Rearrangement Analysis
             </p>
 
-
-
-            <div className="absolute right-4">
+            <div className="absolute right-4 top-4">
               <Button
                 variant="ghost"
                 size="icon"
@@ -639,9 +643,6 @@ export default function ChromoViz() {
                 <Moon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
               </Button>
             </div>
-
-
-
           </motion.div>
 
           {/* Main Content Grid */}
@@ -821,14 +822,84 @@ export default function ChromoViz() {
                         <SheetHeader>
                           <SheetTitle>Data Upload</SheetTitle>
                           <SheetDescription>
-                            Upload your data files or use the feature table converter
+                            Upload your data files or use the example files provided below
                           </SheetDescription>
                         </SheetHeader>
                         
                         <div className="mt-6 space-y-6">
+                          {/* Example Files Section */}
+                          <Collapsible className="space-y-2">
+                            <div className="flex items-center justify-between space-x-4">
+                              <h3 className="text-sm font-medium flex items-center gap-2">
+                                <FileSpreadsheet className="h-4 w-4" />
+                                Example Files
+                              </h3>
+                              <CollapsibleTrigger asChild>
+                                <Button variant="ghost" size="sm" className="w-9 p-0">
+                                  <ChevronDown className="h-4 w-4" />
+                                  <span className="sr-only">Toggle example files</span>
+                                </Button>
+                              </CollapsibleTrigger>
+                            </div>
+                            
+                            <CollapsibleContent className="space-y-2">
+                              <div className="rounded-md border px-4 py-3 font-mono text-sm">
+                                Download these example files to see the expected format
+                              </div>
+                              <div className="grid grid-cols-1 gap-2">
+                                {[
+                                  {
+                                    name: 'synteny_data.csv',
+                                    description: 'Contains synteny block information',
+                                    path: '/synteny_data.csv'
+                                  },
+                                  {
+                                    name: 'species_data.csv',
+                                    description: 'Contains species chromosome information',
+                                    path: '/species_data.csv'
+                                  },
+                                  {
+                                    name: 'ref_chromosome_sizes.csv',
+                                    description: 'Reference genome chromosome sizes',
+                                    path: '/ref_chromosome_sizes.csv'
+                                  },
+                                  {
+                                    name: 'ref_gene_annotations.csv',
+                                    description: 'Gene annotations for reference genome (optional)',
+                                    path: '/ref_gene_annotations.csv'
+                                  }
+                                ].map((file) => (
+                                  <div
+                                    key={file.name}
+                                    className="flex items-center justify-between p-2 rounded-lg border bg-muted/50"
+                                  >
+                                    <div className="flex flex-col gap-1">
+                                      <span className="text-sm font-medium">{file.name}</span>
+                                      <span className="text-xs text-muted-foreground">
+                                        {file.description}
+                                      </span>
+                                    </div>
+                                    <a
+                                      href={file.path}
+                                      download
+                                      className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground h-8 w-8"
+                                    >
+                                      <ArrowRight className="h-4 w-4" />
+                                    </a>
+                                  </div>
+                                ))}
+                              </div>
+                            </CollapsibleContent>
+                          </Collapsible>
+
+                          <Separator />
+
                           {/* Required Files Section */}
                           <div className="space-y-4">
-                            <h3 className="text-sm font-medium">Required Files</h3>
+                            <h3 className="text-sm font-medium flex items-center gap-2">
+                              <Upload className="h-4 w-4" />
+                              Required Files
+                            </h3>
                             <div className="space-y-2">
                               <CSVUploader type="synteny" onDataLoad={handleSyntenyData} />
                               <CSVUploader type="species" onDataLoad={handleSpeciesData} />
@@ -840,7 +911,10 @@ export default function ChromoViz() {
 
                           {/* Optional Files Section */}
                           <div className="space-y-4">
-                            <h3 className="text-sm font-medium">Optional Files</h3>
+                            <h3 className="text-sm font-medium flex items-center gap-2">
+                              <Upload className="h-4 w-4" />
+                              Optional Files
+                            </h3>
                             <CSVUploader 
                               type="annotations" 
                               onDataLoad={(data) => {
@@ -857,7 +931,10 @@ export default function ChromoViz() {
 
                           {/* Feature Table Converter Section */}
                           <div className="space-y-4">
-                            <h3 className="text-sm font-medium">Feature Table Converter</h3>
+                            <h3 className="text-sm font-medium flex items-center gap-2">
+                              <FileSpreadsheet className="h-4 w-4" />
+                              Feature Table Converter
+                            </h3>
                             <FeatureTableConverter />
                           </div>
                         </div>
