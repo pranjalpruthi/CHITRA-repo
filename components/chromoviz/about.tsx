@@ -5,6 +5,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { Github, Twitter, Linkedin, Globe, BookOpen, GraduationCap } from "lucide-react";
 import Link from "next/link";
+import { motion } from "framer-motion";
+import { cn } from "@/lib/utils";
 
 interface TeamMember {
   name: string;
@@ -26,7 +28,7 @@ const team: TeamMember[] = [
     name: "Pranjal Pruthi",
     role: "Core Web Developer & Research Scientist",
     bio: "Research Scientist at CSIR-IGIB: Exploring the frontiers of genomics | Skilled in IT, Full Stack Web development, Database Administration and Bioinformatics, Building innovative and user-friendly platforms",
-    avatar: "/avatars/pranjal.jpg", // Add your avatar image
+    avatar: "bg-gradient-to-br from-purple-500 to-pink-500",
     links: {
       github: "https://github.com/pranjalpruthi",
       linkedin: "https://www.linkedin.com/in/pranjal-pruthi/",
@@ -38,15 +40,54 @@ const team: TeamMember[] = [
     name: "Dr. Jitendra Narayan",
     role: "Principal Investigator",
     bio: "Specializing in Comparative Genomics, Genome Evolution, Adaptation, Chromosome Rearrangements, HGT, Repeats",
-    avatar: "/avatars/jitendra.jpg", // Add PI's avatar image
+    avatar: "bg-gradient-to-br from-blue-500 to-green-500",
     links: {
       website: "https://bioinformaticsonline.com/profile/admin",
       scholar: "https://scholar.google.co.uk/citations?user=ySm4BzcAAAAJ&hl=en",
       researchgate: "https://www.researchgate.net/profile/Jitendra-Narayan-3",
       twitter: "https://x.com/jnarayan81"
     }
+  },
+  {
+    name: "Preeti Agarwal",
+    role: "Documentation -PhD & Senior Research Fellow",
+    bio: "Institute of Genomics and Integrative Biology | IGIB · Genome Informatics and Structural Biology Research Area (IGIB) | Bioinformatics and Big Data analysis #Pro in SSR analysis",
+    avatar: "bg-gradient-to-br from-rose-400 to-orange-500",
+    links: {
+      researchgate: "https://www.researchgate.net/profile/Preeti-Agarwal",
+      scholar: "https://scholar.google.com"
+    }
+  },
+  {
+    name: "Ajay Bhatia",
+    role: "Data Analyst - PhD & Senior Research Fellow",
+    bio: "PhD Student at Jitendra lab, Institute of Genomics and Integrative Biology | IGIB · Genome Informatics and Structural Biology Research Area (IGIB)",
+    avatar: "bg-gradient-to-br from-cyan-500 to-blue-500",
+    links: {
+      researchgate: "https://www.researchgate.net/profile/Ajay-Bhatia",
+      scholar: "https://scholar.google.com"
+    }
   }
 ];
+
+const fadeIn = {
+  hidden: { opacity: 0, y: 20 },
+  visible: { 
+    opacity: 1, 
+    y: 0,
+    transition: { duration: 0.6 }
+  }
+};
+
+const staggerContainer = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1
+    }
+  }
+};
 
 export function AboutSheet({ children }: { children?: React.ReactNode }) {
   return (
@@ -55,103 +96,119 @@ export function AboutSheet({ children }: { children?: React.ReactNode }) {
         {children || <Button variant="ghost" className="hover:bg-accent/50 h-9">About</Button>}
       </SheetTrigger>
       <SheetContent className="w-full sm:max-w-2xl overflow-y-auto">
-        <SheetHeader className="space-y-4">
-          <SheetTitle className="text-2xl">About CHITRA</SheetTitle>
-          <SheetDescription>
-            CHITRA (CHromosome Interactive Tool for Rearrangement Analysis) is a powerful tool designed for visualizing and analyzing chromosomal data.
-          </SheetDescription>
-        </SheetHeader>
-        
-        <div className="mt-6 space-y-6">
-          {/* Project Description */}
-          <div>
-            <h3 className="text-lg font-semibold mb-2">Project Overview</h3>
-            <p className="text-muted-foreground">
-              A comprehensive suite of features for exploring chromosomal rearrangements and synteny blocks, making it an invaluable resource for researchers and scientists.
-            </p>
-          </div>
-
-          <Separator />
-
-          {/* Team Section */}
-          <div>
-            <h3 className="text-lg font-semibold mb-4">Our Team</h3>
-            <div className="space-y-6">
-              {team.map((member) => (
-                <div key={member.name} className="flex items-start space-x-4">
-                  <Avatar className="h-12 w-12">
-                    <AvatarImage src={member.avatar} alt={member.name} />
-                    <AvatarFallback>{member.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
-                  </Avatar>
-                  <div className="space-y-2">
-                    <div>
-                      <h4 className="text-sm font-semibold">{member.name}</h4>
-                      <p className="text-sm text-muted-foreground">{member.role}</p>
-                    </div>
-                    <p className="text-sm text-muted-foreground">{member.bio}</p>
-                    <div className="flex space-x-2">
-                      {member.links.github && (
-                        <Link href={member.links.github} target="_blank" className="text-muted-foreground hover:text-primary">
-                          <Github className="h-4 w-4" />
-                        </Link>
-                      )}
-                      {member.links.twitter && (
-                        <Link href={member.links.twitter} target="_blank" className="text-muted-foreground hover:text-primary">
-                          <Twitter className="h-4 w-4" />
-                        </Link>
-                      )}
-                      {member.links.linkedin && (
-                        <Link href={member.links.linkedin} target="_blank" className="text-muted-foreground hover:text-primary">
-                          <Linkedin className="h-4 w-4" />
-                        </Link>
-                      )}
-                      {member.links.website && (
-                        <Link href={member.links.website} target="_blank" className="text-muted-foreground hover:text-primary">
-                          <Globe className="h-4 w-4" />
-                        </Link>
-                      )}
-                      {member.links.scholar && (
-                        <Link href={member.links.scholar} target="_blank" className="text-muted-foreground hover:text-primary">
-                          <GraduationCap className="h-4 w-4" />
-                        </Link>
-                      )}
-                      {member.links.researchgate && (
-                        <Link href={member.links.researchgate} target="_blank" className="text-muted-foreground hover:text-primary">
-                          <BookOpen className="h-4 w-4" />
-                        </Link>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <Separator />
-
-          {/* Funding & Institution */}
-          <div>
-            <h3 className="text-lg font-semibold mb-2">Funding & Institution</h3>
-            <div className="space-y-2">
-              <p className="text-sm text-muted-foreground">
-                This project is funded by the Rockefeller Foundation.
+        <motion.div
+          initial="hidden"
+          animate="visible"
+          variants={staggerContainer}
+        >
+          <motion.div variants={fadeIn}>
+            <SheetHeader className="space-y-4">
+              <SheetTitle className="text-2xl">About CHITRA</SheetTitle>
+              <SheetDescription>
+                CHITRA (CHromosome Interactive Tool for Rearrangement Analysis) is a powerful tool designed for visualizing and analyzing chromosomal data.
+              </SheetDescription>
+            </SheetHeader>
+          </motion.div>
+          
+          <div className="mt-6 space-y-6">
+            <motion.div variants={fadeIn}>
+              {/* Project Description */}
+              <h3 className="text-lg font-semibold mb-2">Project Overview</h3>
+              <p className="text-muted-foreground">
+                A comprehensive suite of features for exploring chromosomal rearrangements and synteny blocks, making it an invaluable resource for researchers and scientists.
               </p>
-              <p className="text-sm text-muted-foreground">
-                Hosted at CSIR Institute of Genomics and Integrative Biology (CSIR-IGIB), Delhi, India.
-              </p>
-            </div>
-          </div>
+            </motion.div>
 
-          <Separator />
+            <Separator />
 
-          {/* Citation */}
-          <div>
-            <h3 className="text-lg font-semibold mb-2">Citation</h3>
-            <code className="block text-sm bg-muted p-4 rounded-md">
-              Pruthi, P., & Narayan, J. (2024). CHITRA: CHromosome Interactive Tool for Rearrangement Analysis. CSIR-IGIB.
-            </code>
+            {/* Team Section */}
+            <motion.div variants={fadeIn}>
+              <h3 className="text-lg font-semibold mb-4">Our Team</h3>
+              <motion.div 
+                className="space-y-6"
+                variants={staggerContainer}
+              >
+                {team.map((member) => (
+                  <motion.div
+                    key={member.name}
+                    variants={fadeIn}
+                    className="flex items-start space-x-4"
+                  >
+                    <Avatar className={cn("h-12 w-12", member.avatar)}>
+                      <AvatarFallback className="text-white">
+                        {member.name.split(' ').map(n => n[0]).join('')}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="space-y-2">
+                      <div>
+                        <h4 className="text-sm font-semibold">{member.name}</h4>
+                        <p className="text-sm text-muted-foreground">{member.role}</p>
+                      </div>
+                      <p className="text-sm text-muted-foreground">{member.bio}</p>
+                      <div className="flex space-x-2">
+                        {member.links.github && (
+                          <Link href={member.links.github} target="_blank" className="text-muted-foreground hover:text-primary">
+                            <Github className="h-4 w-4" />
+                          </Link>
+                        )}
+                        {member.links.twitter && (
+                          <Link href={member.links.twitter} target="_blank" className="text-muted-foreground hover:text-primary">
+                            <Twitter className="h-4 w-4" />
+                          </Link>
+                        )}
+                        {member.links.linkedin && (
+                          <Link href={member.links.linkedin} target="_blank" className="text-muted-foreground hover:text-primary">
+                            <Linkedin className="h-4 w-4" />
+                          </Link>
+                        )}
+                        {member.links.website && (
+                          <Link href={member.links.website} target="_blank" className="text-muted-foreground hover:text-primary">
+                            <Globe className="h-4 w-4" />
+                          </Link>
+                        )}
+                        {member.links.scholar && (
+                          <Link href={member.links.scholar} target="_blank" className="text-muted-foreground hover:text-primary">
+                            <GraduationCap className="h-4 w-4" />
+                          </Link>
+                        )}
+                        {member.links.researchgate && (
+                          <Link href={member.links.researchgate} target="_blank" className="text-muted-foreground hover:text-primary">
+                            <BookOpen className="h-4 w-4" />
+                          </Link>
+                        )}
+                      </div>
+                    </div>
+                  </motion.div>
+                ))}
+              </motion.div>
+            </motion.div>
+
+            <Separator />
+
+            {/* Funding & Institution */}
+            <motion.div variants={fadeIn}>
+              <h3 className="text-lg font-semibold mb-2">Funding & Institution</h3>
+              <div className="space-y-2">
+                <p className="text-sm text-muted-foreground">
+                  This project is funded by the Rockefeller Foundation.
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  Hosted at CSIR Institute of Genomics and Integrative Biology (CSIR-IGIB), Delhi, India.
+                </p>
+              </div>
+            </motion.div>
+
+            <Separator />
+
+            {/* Citation */}
+            <motion.div variants={fadeIn}>
+              <h3 className="text-lg font-semibold mb-2">Citation</h3>
+              <code className="block text-sm bg-muted p-4 rounded-md">
+                Pruthi, P., & Narayan, J. (2024). CHITRA: CHromosome Interactive Tool for Rearrangement Analysis. CSIR-IGIB.
+              </code>
+            </motion.div>
           </div>
-        </div>
+        </motion.div>
       </SheetContent>
     </Sheet>
   );

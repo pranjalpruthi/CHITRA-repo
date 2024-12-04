@@ -9,7 +9,8 @@ import {
     LayoutDashboard, 
     Menu, 
     LineChart,
-    Info
+    Info,
+    BookOpen
 } from "lucide-react";
 import { NavigationMenu, NavigationMenuContent, NavigationMenuItem, NavigationMenuLink, NavigationMenuList, NavigationMenuTrigger } from "@/components/ui/navigation-menu";
 import config from "@/config";
@@ -18,6 +19,7 @@ import { useAuth } from "@clerk/nextjs";
 import { ShinyRotatingBorderButton } from "@/components/ui/shiny-rotating-border-button";
 import { usePathname } from 'next/navigation';
 import { AboutSheet } from "@/components/chromoviz/about";
+import { GuideSheet } from "@/components/chromoviz/guide";
 
 const components: { title: string; href: string; description: string }[] = [
     {
@@ -32,11 +34,11 @@ const components: { title: string; href: string; description: string }[] = [
     },
 ];
 
-// Mobile navigation items
 const mobileNavItems = [
     { icon: Home, label: 'Home', href: '/' },
     { icon: LineChart, label: 'ChromoViz', href: '/chromoviz' },
     { icon: Info, label: 'About', component: AboutSheet },
+    { icon: BookOpen, label: 'Guide', component: GuideSheet }
 ];
 
 function NavBarContent({ userId }: { userId?: string | null }) {
@@ -94,17 +96,15 @@ function NavBarContent({ userId }: { userId?: string | null }) {
                                 </Link>
                             </NavigationMenuItem>
                             <NavigationMenuItem>
-                                <Link href="/chromoviz" legacyBehavior passHref>
-                                    <Button variant="ghost" className="hover:bg-accent/50 h-9">ChromoViz</Button>
-                                </Link>
-                            </NavigationMenuItem>
-                            <NavigationMenuItem>
                                 <Link href="/c2" legacyBehavior passHref>
                                     <Button variant="ghost" className="hover:bg-accent/50 h-9">C2</Button>
                                 </Link>
                             </NavigationMenuItem>
                             <NavigationMenuItem>
                                 <AboutSheet />
+                            </NavigationMenuItem>
+                            <NavigationMenuItem>
+                                <GuideSheet />
                             </NavigationMenuItem>
                         </NavigationMenuList>
                     </NavigationMenu>
@@ -126,7 +126,7 @@ function NavBarContent({ userId }: { userId?: string | null }) {
                         if (item.component) {
                             const Component = item.component;
                             return (
-                                <div key="about" className="flex flex-col items-center justify-center gap-1">
+                                <div key={item.label} className="flex flex-col items-center justify-center gap-1">
                                     <Component>
                                         <button className="flex flex-col items-center text-muted-foreground">
                                             <Icon className="h-5 w-5" />
