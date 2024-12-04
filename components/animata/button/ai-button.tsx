@@ -8,9 +8,10 @@ import { cn } from "@/lib/utils";
 interface AiButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   children: React.ReactNode;
   disabled?: boolean;
+  variant?: 'default' | 'simple';
 }
 
-const options: ISourceOptions = {
+const defaultOptions: ISourceOptions = {
   key: "star",
   name: "Star",
   particles: {
@@ -57,8 +58,8 @@ const options: ISourceOptions = {
     move: {
       enable: true,
       center: {
-        x: 120,
-        y: 45,
+        x: 100,
+        y: 35,
       },
     },
   },
@@ -88,8 +89,8 @@ const options: ISourceOptions = {
         },
       },
       position: {
-        x: 110,
-        y: 45,
+        x: 100,
+        y: 35,
       },
     },
   ],
@@ -105,14 +106,14 @@ const options: ISourceOptions = {
         delay: 0.5,
       },
       position: {
-        x: 110,
-        y: 45,
+        x: 100,
+        y: 35,
       },
     },
   ],
 };
 
-export default function AiButton({ children, className, disabled, ...props }: AiButtonProps) {
+export default function AiButton({ children, className, disabled, variant = 'default', ...props }: AiButtonProps) {
   const [particleState, setParticlesReady] = useState<"loaded" | "ready">();
   const [isHovering, setIsHovering] = useState(false);
 
@@ -125,15 +126,45 @@ export default function AiButton({ children, className, disabled, ...props }: Ai
   }, []);
 
   const modifiedOptions = useMemo(() => {
+    const options = { ...defaultOptions };
     options.autoPlay = isHovering && !disabled;
+    
+    if (variant === 'simple') {
+      options.particles = {
+        ...options.particles,
+        color: {
+          value: ["#22c55e", "#86efac", "#4ade80", "#bbf7d0", "#16a34a"]
+        }
+      };
+    } else {
+      options.particles = {
+        ...options.particles,
+        color: {
+          value: ["#7c3aed", "#bae6fd", "#a78bfa", "#93c5fd", "#0284c7", "#fafafa", "#38bdf8"]
+        }
+      };
+    }
+    
     return options;
-  }, [isHovering, disabled]);
+  }, [isHovering, disabled, variant]);
+
+  const gradientClasses = {
+    default: "from-blue-300/30 via-blue-500/30 via-40% to-purple-500/30",
+    simple: "from-green-300/30 via-green-500/30 via-40% to-emerald-500/30"
+  };
+
+  const innerGradientClasses = {
+    default: "from-blue-300 via-blue-500 via-40% to-purple-500",
+    simple: "from-green-300 via-green-500 via-40% to-emerald-500"
+  };
 
   return (
     <button
       className={cn(
-        "group relative rounded-full bg-gradient-to-r from-blue-300/30 via-blue-500/30 via-40% to-purple-500/30 p-1 text-white transition-transform hover:scale-110 active:scale-105",
+        "group relative rounded-md bg-gradient-to-r p-[1px] text-white transition-transform hover:scale-105 active:scale-102",
+        gradientClasses[variant],
         disabled && "opacity-50 cursor-not-allowed hover:scale-100",
+        "h-8",
         className
       )}
       onMouseEnter={() => setIsHovering(true)}
@@ -141,21 +172,24 @@ export default function AiButton({ children, className, disabled, ...props }: Ai
       disabled={disabled}
       {...props}
     >
-      <div className="relative flex items-center justify-center gap-2 rounded-full bg-gradient-to-r from-blue-300 via-blue-500 via-40% to-purple-500 px-4 py-2 text-white">
-        {!disabled && (
+      <div className={cn(
+        "relative flex h-full items-center justify-center gap-2 rounded-md bg-gradient-to-r px-3 text-white text-sm",
+        innerGradientClasses[variant]
+      )}>
+        {!disabled && variant === 'default' && (
           <>
-            <Sparkle className="size-6 -translate-y-0.5 animate-sparkle fill-white" />
+            <Sparkle className="size-4 -translate-y-0.5 animate-sparkle fill-white" />
             <Sparkle
               style={{ animationDelay: "1s" }}
-              className="absolute bottom-2.5 left-3.5 z-20 size-2 rotate-12 animate-sparkle fill-white"
+              className="absolute bottom-2 left-2.5 z-20 size-1.5 rotate-12 animate-sparkle fill-white"
             />
             <Sparkle
               style={{ animationDelay: "1.5s", animationDuration: "2.5s" }}
-              className="absolute left-5 top-2.5 size-1 -rotate-12 animate-sparkle fill-white"
+              className="absolute left-4 top-2 size-1 -rotate-12 animate-sparkle fill-white"
             />
             <Sparkle
               style={{ animationDelay: "0.5s", animationDuration: "2.5s" }}
-              className="absolute left-3 top-3 size-1.5 animate-sparkle fill-white"
+              className="absolute left-2 top-2 size-1 animate-sparkle fill-white"
             />
           </>
         )}

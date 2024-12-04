@@ -607,44 +607,6 @@ export default function ChromoViz() {
           animate={{ opacity: 1, y: 0 }}
           className="min-h-screen w-full max-w-[2000px] mx-auto"
         >
-
-          {/* Updated Header with ShinyRotatingBorderButton */}
-          <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.2 }}
-            className={cn(
-              "flex flex-col sm:flex-row items-center justify-between mb-4 p-4 rounded-lg gap-4",
-              "bg-background/60 backdrop-blur-md border border-border/50"
-            )}
-          >
-            <div className="flex flex-col items-center sm:items-start w-full gap-2">
-              <ShinyRotatingBorderButton className="!p-3">
-                <span className="text-2xl sm:text-3xl font-bold tracking-tight">CHITRA</span>
-              </ShinyRotatingBorderButton>
-              <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2">
-                <Badge variant="secondary" className="text-xs">Genomics</Badge>
-                <Badge variant="secondary" className="text-xs">Visualization</Badge>
-                <Badge variant="secondary" className="text-xs">Interactive</Badge>
-              </div>
-            </div>
-
-            <p className="text-sm sm:text-lg text-center sm:text-right text-muted-foreground max-w-[300px] sm:max-w-none">
-              CHromosome Interactive Tool for Rearrangement Analysis
-            </p>
-
-            <div className="absolute right-4 top-4">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-              >
-                <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-                <Moon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-              </Button>
-            </div>
-          </motion.div>
-
           {/* Main Content Grid */}
           <div className="grid grid-cols-12 gap-4">
             <motion.div 
@@ -653,18 +615,17 @@ export default function ChromoViz() {
               transition={{ delay: 0.4 }}
               className="col-span-12 space-y-3"
             >
-              {/* Controls Cards remain the same */}
-              <Card className="p-3">
+              {/* Controls Cards */}
+              <Card className="p-3 bg-gradient-to-b from-muted/50 to-background">
                 <CardHeader className="p-3 pb-2">
                   <div className="flex items-center justify-between">
-                    <CardTitle className="text-sm font-medium flex items-center gap-2">
-                      <Database className="h-4 w-4" />
-                      Data Controls
+                    <CardTitle className="text-sm font-medium">
+                      {/* Removed Database icon and "Data Controls" text */}
                     </CardTitle>
                   </div>
                 </CardHeader>
                 <CardContent className="p-3 pt-0">
-                  <div className="flex flex-wrap items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-3 pt-2">
                     {/* Filter Sheet */}
                     <Sheet>
                       <SheetTrigger asChild>
@@ -958,16 +919,15 @@ export default function ChromoViz() {
                       )}
                     </AiButton>
 
-                    <Button
+                    <AiButton 
                       onClick={loadExampleData}
                       disabled={isLoading}
-                      variant="secondary"
-                      size="sm"
-                      className="gap-2"
+                      className="sm:w-auto"
+                      variant="simple"
                     >
-                      <FileSpreadsheet className="h-4 w-4" />
+                      <FileSpreadsheet className="h-4 w-4 mr-2" />
                       Load Example
-                    </Button>
+                    </AiButton>
                   </div>
                 </CardContent>
               </Card>
