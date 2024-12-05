@@ -150,18 +150,19 @@ export default function AiButton({ children, className, disabled, variant = 'def
 
   const gradientClasses = {
     default: "from-blue-300/30 via-blue-500/30 via-40% to-purple-500/30",
-    simple: "from-green-300/30 via-green-500/30 via-40% to-emerald-500/30"
+    simple: "bg-black/90"
   };
 
   const innerGradientClasses = {
     default: "from-blue-300 via-blue-500 via-40% to-purple-500",
-    simple: "from-green-300 via-green-500 via-40% to-emerald-500"
+    simple: "bg-black"
   };
 
   return (
     <button
       className={cn(
-        "group relative rounded-md bg-gradient-to-r p-[1px] text-white transition-transform hover:scale-105 active:scale-102",
+        "group relative rounded-md p-[1px] text-white transition-transform hover:scale-105 active:scale-102",
+        variant === 'default' ? 'bg-gradient-to-r' : '',
         gradientClasses[variant],
         disabled && "opacity-50 cursor-not-allowed hover:scale-100",
         "h-8",
@@ -173,7 +174,8 @@ export default function AiButton({ children, className, disabled, variant = 'def
       {...props}
     >
       <div className={cn(
-        "relative flex h-full items-center justify-center gap-2 rounded-md bg-gradient-to-r px-3 text-white text-sm",
+        "relative flex h-full items-center justify-center gap-2 rounded-md px-3 text-white text-sm",
+        variant === 'default' ? 'bg-gradient-to-r' : '',
         innerGradientClasses[variant]
       )}>
         {!disabled && variant === 'default' && (

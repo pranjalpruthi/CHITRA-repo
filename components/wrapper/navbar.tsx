@@ -1,202 +1,123 @@
 "use client"
-import Link from 'next/link';
-import * as React from "react";
-import { Button } from "../ui/button";
-import { UserProfile } from "../user-profile";
-import ModeToggle from "../mode-toggle";
-import { 
-    Home,
-    LayoutDashboard, 
-    Menu, 
-    LineChart,
-    Info,
-    BookOpen
-} from "lucide-react";
-import { NavigationMenu, NavigationMenuContent, NavigationMenuItem, NavigationMenuLink, NavigationMenuList, NavigationMenuTrigger } from "@/components/ui/navigation-menu";
-import config from "@/config";
-import { cn } from "@/lib/utils";
-import { useAuth } from "@clerk/nextjs";
-import { ShinyRotatingBorderButton } from "@/components/ui/shiny-rotating-border-button";
-import { usePathname } from 'next/navigation';
-import { AboutSheet } from "@/components/chromoviz/about";
-import { GuideSheet } from "@/components/chromoviz/guide";
 
-const components: { title: string; href: string; description: string }[] = [
-    {
-        title: "Marketing Page",
-        href: "/marketing-page",
-        description: "Write some wavy here to get them to click.",
-    },
-    {
-        title: "ChromoViz",
-        href: "/chromoviz",
-        description: "Visualize your chromatic data with ChromoViz.",
-    },
-];
+import ModeToggle from '@/components/mode-toggle'
+import { UserProfile } from '@/components/user-profile'
+import config from '@/config'
+import { ChevronRight, HomeIcon, Info, BookOpen } from 'lucide-react'
+import Link from 'next/link'
+import { usePathname } from 'next/navigation'
+import clsx from 'clsx'
+import { useEffect, useState } from 'react'
+import { ShinyRotatingBorderButton } from "@/components/ui/shiny-rotating-border-button"
+import { AboutSheet } from "@/components/chromoviz/about"
+import { GuideSheet } from "@/components/chromoviz/guide"
+import { Button } from "@/components/ui/button"
+import { SharePopover } from "@/components/share-popover"
 
-const mobileNavItems = [
-    { icon: Home, label: 'Home', href: '/' },
-    { icon: LineChart, label: 'ChromoViz', href: '/chromoviz' },
-    { icon: Info, label: 'About', component: AboutSheet },
-    { icon: BookOpen, label: 'Guide', component: GuideSheet }
-];
-
-function NavBarContent({ userId }: { userId?: string | null }) {
-    const pathname = usePathname();
-
-    return (
-        <>
-            {/* Mobile Top Bar */}
-            <div className="min-[825px]:hidden fixed top-0 left-0 right-0 border-b bg-background/80 backdrop-blur-md supports-[backdrop-filter]:bg-background/60 z-50">
-                <div className="flex items-center justify-between px-4 h-14">
-                    <ShinyRotatingBorderButton className="!p-1 !px-2">
-                        <span className="text-sm font-bold tracking-tight">CHITRA</span>
-                    </ShinyRotatingBorderButton>
-                    <ModeToggle />
-                </div>
-            </div>
-
-            {/* Desktop Navbar */}
-            <div className="hidden min-[825px]:flex min-w-full fixed p-2 border-b z-10 backdrop-blur-md bg-background/60 supports-[backdrop-filter]:bg-background/60">
-                {/* Logo Section - Left */}
-                <div className="flex-none flex items-center gap-4 pl-4">
-                    <ShinyRotatingBorderButton className="!p-1.5 !px-3">
-                        <span className="text-lg font-bold tracking-tight">CHITRA</span>
-                    </ShinyRotatingBorderButton>
-                    <p className="text-sm text-muted-foreground hidden xl:block">
-                        CHromosome Interactive Tool for Rearrangement Analysis
-                    </p>
-                </div>
-
-                {/* Navigation Items - Center */}
-                <div className="flex-1 flex items-center justify-center">
-                    <NavigationMenu>
-                        <NavigationMenuList className="flex items-center gap-2">
-                            <NavigationMenuItem>
-                                <NavigationMenuTrigger className="bg-transparent hover:bg-accent/50 h-9">
-                                    Features
-                                </NavigationMenuTrigger>
-                                <NavigationMenuContent>
-                                    <ul className="flex flex-col w-[400px] gap-3 p-4 lg:w-[500px] bg-popover/80 backdrop-blur-sm">
-                                        {components.map((component) => (
-                                            <ListItem
-                                                key={component.title}
-                                                title={component.title}
-                                                href={component.href}
-                                            >
-                                                {component.description}
-                                            </ListItem>
-                                        ))}
-                                    </ul>
-                                </NavigationMenuContent>
-                            </NavigationMenuItem>
-                            <NavigationMenuItem>
-                                <Link href="/dashboard" legacyBehavior passHref>
-                                    <Button variant="ghost" className="hover:bg-accent/50 h-9">Dashboard</Button>
-                                </Link>
-                            </NavigationMenuItem>
-                            <NavigationMenuItem>
-                                <Link href="/c2" legacyBehavior passHref>
-                                    <Button variant="ghost" className="hover:bg-accent/50 h-9">C2</Button>
-                                </Link>
-                            </NavigationMenuItem>
-                            <NavigationMenuItem>
-                                <AboutSheet />
-                            </NavigationMenuItem>
-                            <NavigationMenuItem>
-                                <GuideSheet />
-                            </NavigationMenuItem>
-                        </NavigationMenuList>
-                    </NavigationMenu>
-                </div>
-
-                {/* User Profile and Theme Toggle - Right */}
-                <div className="flex-none flex items-center gap-2 pr-4">
-                    {userId && <UserProfile />}
-                    <ModeToggle />
-                </div>
-            </div>
-
-            {/* Mobile Bottom Navigation */}
-            <div className="min-[825px]:hidden fixed bottom-0 left-0 right-0 border-t bg-background/80 backdrop-blur-md supports-[backdrop-filter]:bg-background/60 z-50">
-                <nav className="flex justify-around items-center h-16 px-4">
-                    {mobileNavItems.map((item) => {
-                        const Icon = item.icon;
-                        const isActive = pathname === item.href;
-                        if (item.component) {
-                            const Component = item.component;
-                            return (
-                                <div key={item.label} className="flex flex-col items-center justify-center gap-1">
-                                    <Component>
-                                        <button className="flex flex-col items-center text-muted-foreground">
-                                            <Icon className="h-5 w-5" />
-                                            <span className="text-xs font-medium">
-                                                {item.label}
-                                            </span>
-                                        </button>
-                                    </Component>
-                                </div>
-                            );
-                        }
-                        return (
-                            <Link 
-                                key={item.href} 
-                                href={item.href}
-                                className="flex flex-col items-center justify-center gap-1"
-                            >
-                                <div className={cn(
-                                    "flex flex-col items-center transition-colors",
-                                    isActive ? "text-primary" : "text-muted-foreground"
-                                )}>
-                                    <Icon className="h-5 w-5" />
-                                    <span className="text-xs font-medium">
-                                        {item.label}
-                                    </span>
-                                </div>
-                            </Link>
-                        );
-                    })}
-                </nav>
-            </div>
-        </>
-    );
+function Breadcrumbs() {
+  const pathname = usePathname()
+  const paths = pathname.split('/').filter(Boolean)
+  
+  return (
+    <div className="flex items-center gap-1 text-sm text-gray-500">
+      <Link href="/" className="hover:text-gray-900 dark:hover:text-gray-50">
+        <HomeIcon className="h-4 w-4" />
+      </Link>
+      {paths.map((path, index) => {
+        const href = `/${paths.slice(0, index + 1).join('/')}`
+        const isLast = index === paths.length - 1
+        
+        return (
+          <div key={path} className="flex items-center">
+            <ChevronRight className="h-4 w-4 mx-1" />
+            <Link
+              href={href}
+              className={clsx(
+                "capitalize hover:text-gray-900 dark:hover:text-gray-50",
+                { "text-gray-900 dark:text-gray-50": isLast }
+              )}
+            >
+              {path}
+            </Link>
+          </div>
+        )
+      })}
+    </div>
+  )
 }
 
-const AuthenticatedNav = () => {
-    const { userId } = useAuth();
-    return <NavBarContent userId={userId} />;
-};
-
-// Main export that conditionally renders based on config
 export default function NavBar() {
-    if (config?.auth?.enabled) {
-        return <AuthenticatedNav />;
-    }
-    return <NavBarContent userId={null} />;
-}
+  const [isScrolled, setIsScrolled] = useState(false)
 
-const ListItem = React.forwardRef<
-    React.ElementRef<"a">,
-    React.ComponentPropsWithoutRef<"a">
->(({ className, title, children, ...props }, ref) => {
-    return (
-        <li>
-            <NavigationMenuLink asChild>
-                <a
-                    ref={ref}
-                    className={cn(
-                        "block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground",
-                        className
-                    )}
-                    {...props}
-                >
-                    <div className="text-sm font-medium leading-none">{title}</div>
-                    <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
-                        {children}
-                    </p>
-                </a>
-            </NavigationMenuLink>
-        </li>
-    );
-});
-ListItem.displayName = "ListItem";
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollTop = window.scrollY || document.documentElement.scrollTop
+      setIsScrolled(scrollTop > 10)
+    }
+
+    // Initial check
+    handleScroll()
+    
+    // Add event listener
+    window.addEventListener('scroll', handleScroll, { passive: true })
+    
+    // Cleanup
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
+
+  return (
+    <div className="sticky top-0 z-40">
+      <header 
+        className={clsx(
+          "w-full transition-all duration-200",
+          {
+            "border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 shadow-sm": isScrolled,
+            "bg-background": !isScrolled
+          }
+        )}
+      >
+        <div className="flex h-14 lg:h-[55px] items-center justify-between px-4 md:px-6 lg:px-8">
+          {/* Left side - Chitra, Info, Guide */}
+          <div className="flex items-center gap-2 md:ml-[52px]">
+            <ShinyRotatingBorderButton className="!p-1.5 !px-3">
+              <span className="text-sm font-bold tracking-tight">CHITRA</span>
+            </ShinyRotatingBorderButton>
+            <div className="hidden md:flex items-center gap-2">
+              <AboutSheet>
+                <Button variant="ghost" size="icon" className="h-8 w-8">
+                  <Info className="h-4 w-4" />
+                </Button>
+              </AboutSheet>
+              <GuideSheet>
+                <Button variant="ghost" size="icon" className="h-8 w-8">
+                  <BookOpen className="h-4 w-4" />
+                </Button>
+              </GuideSheet>
+            </div>
+          </div>
+
+          {/* Center - Full name */}
+          <div className="flex-1 hidden md:flex justify-center">
+            <p className="text-sm text-muted-foreground">
+              Chromosome Interactive Tool for Rearrangement Analysis
+            </p>
+          </div>
+
+          {/* Right side - Breadcrumbs, User Profile, Share, and Dark Mode */}
+          <div className="flex items-center gap-4">
+            <div className="hidden md:block">
+              <Breadcrumbs />
+            </div>
+            <div className="flex items-center gap-2">
+              {config?.auth?.enabled && <div className="hidden md:block"><UserProfile /></div>}
+              <div className="hidden md:block">
+                <SharePopover />
+              </div>
+              <ModeToggle />
+            </div>
+          </div>
+        </div>
+      </header>
+    </div>
+  )
+}

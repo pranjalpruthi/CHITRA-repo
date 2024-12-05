@@ -3,6 +3,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetTr
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
+import { Badge } from "@/components/ui/badge";
 import { Github, Twitter, Linkedin, Globe, BookOpen, GraduationCap } from "lucide-react";
 import Link from "next/link";
 import { motion } from "framer-motion";
@@ -123,12 +124,60 @@ export function AboutSheet({ children }: { children?: React.ReactNode }) {
 
             {/* Team Section */}
             <motion.div variants={fadeIn}>
-              <h3 className="text-lg font-semibold mb-4">Our Team</h3>
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold">Our Team</h3>
+                <Badge variant="secondary" className="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white border-0">
+                  Lab of Bioinformatics and Big Data
+                </Badge>
+              </div>
               <motion.div 
                 className="space-y-6"
                 variants={staggerContainer}
               >
-                {team.map((member) => (
+                {/* PI Section */}
+                <motion.div variants={fadeIn}>
+                  <div className="flex items-start space-x-4">
+                    <Avatar className={cn("h-12 w-12", team[1].avatar)}>
+                      <AvatarFallback className="text-white">
+                        {team[1].name.split(' ').map(n => n[0]).join('')}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="space-y-2">
+                      <div>
+                        <h4 className="text-sm font-semibold">{team[1].name}</h4>
+                        <p className="text-sm text-muted-foreground">{team[1].role}</p>
+                      </div>
+                      <p className="text-sm text-muted-foreground">{team[1].bio}</p>
+                      <div className="flex space-x-2">
+                        {team[1].links.website && (
+                          <Link href={team[1].links.website} target="_blank" className="text-muted-foreground hover:text-primary">
+                            <Globe className="h-4 w-4" />
+                          </Link>
+                        )}
+                        {team[1].links.scholar && (
+                          <Link href={team[1].links.scholar} target="_blank" className="text-muted-foreground hover:text-primary">
+                            <GraduationCap className="h-4 w-4" />
+                          </Link>
+                        )}
+                        {team[1].links.researchgate && (
+                          <Link href={team[1].links.researchgate} target="_blank" className="text-muted-foreground hover:text-primary">
+                            <BookOpen className="h-4 w-4" />
+                          </Link>
+                        )}
+                        {team[1].links.twitter && (
+                          <Link href={team[1].links.twitter} target="_blank" className="text-muted-foreground hover:text-primary">
+                            <Twitter className="h-4 w-4" />
+                          </Link>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+
+                <Separator className="my-4" />
+
+                {/* Team Members */}
+                {[team[0], team[2], team[3]].map((member) => (
                   <motion.div
                     key={member.name}
                     variants={fadeIn}

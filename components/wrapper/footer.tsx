@@ -1,13 +1,14 @@
 "use client"
 import Link from 'next/link';
-import { Github, Mail } from 'lucide-react';
+import { Github, Mail, Building2, GraduationCap } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
+import { Badge } from '@/components/ui/badge';
 
 export default function Footer() {
     return (
         <footer className="border-t dark:bg-black">
             <div className="mx-auto max-w-screen-xl px-4 py-8 mb-[4.5rem] min-[825px]:mb-8">
-                <div className="grid grid-cols-2 gap-8 sm:grid-cols-3">
+                <div className="grid grid-cols-2 gap-8 sm:grid-cols-4">
                     <div className="col-span-2 sm:col-span-1">
                         <div className="space-y-4">
                             <div>
@@ -81,6 +82,27 @@ export default function Footer() {
                             </ul>
                         </div>
                     </div>
+
+                    <div className="col-span-1">
+                        <div className="space-y-4">
+                            <h3 className="font-medium">Affiliations</h3>
+                            <ul className="space-y-3 text-sm">
+                                <li className="flex items-start gap-2">
+                                    <Building2 className="h-4 w-4 mt-0.5 text-muted-foreground" />
+                                    <div>
+                                        <p className="text-muted-foreground">CSIR Institute of Genomics and Integrative Biology (CSIR-IGIB)</p>
+                                        <Badge variant="secondary" className="mt-1 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white border-0">
+                                            Lab of Bioinformatics and Big Data
+                                        </Badge>
+                                    </div>
+                                </li>
+                                <li className="flex items-center gap-2">
+                                    <GraduationCap className="h-4 w-4 text-muted-foreground" />
+                                    <span className="text-muted-foreground">Funded by Rockefeller Foundation</span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
                 </div>
 
                 <div className="mt-8 pt-8">
@@ -91,13 +113,13 @@ export default function Footer() {
                         </p>
                         <ul className="flex flex-wrap gap-4 text-xs order-1 sm:order-2">
                             <li>
-                                <Link href="/terms" className="text-muted-foreground hover:text-foreground transition-colors">
-                                    Terms
+                                <Link href="/privacy" className="text-muted-foreground hover:text-foreground transition-colors">
+                                    Privacy Policy
                                 </Link>
                             </li>
                             <li>
-                                <Link href="/privacy" className="text-muted-foreground hover:text-foreground transition-colors">
-                                    Privacy
+                                <Link href="/terms" className="text-muted-foreground hover:text-foreground transition-colors">
+                                    Terms of Service
                                 </Link>
                             </li>
                         </ul>
@@ -105,5 +127,5 @@ export default function Footer() {
                 </div>
             </div>
         </footer>
-    )
+    );
 }
