@@ -1,4 +1,4 @@
-import Provider from '@/app/provider'
+// import Provider from '@/app/provider'
 import { ThemeProvider } from "@/components/theme-provider"
 import { Toaster } from "@/components/ui/sonner"
 import AuthWrapper from '@/components/wrapper/auth-wrapper'
@@ -51,7 +51,7 @@ export default function RootLayout({
           />
         </head>
         <body className={GeistSans.className}>
-          <Provider>
+          {/* <Provider> */}
             <ThemeProvider
               attribute="class"
               defaultTheme="system"
@@ -61,7 +61,7 @@ export default function RootLayout({
               {children}
               <Toaster />
             </ThemeProvider>
-          </Provider>
+          {/* </Provider> */}
           <Analytics />
         </body>
       </html>

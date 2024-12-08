@@ -20,6 +20,7 @@ import {
   Minimize2,
   Maximize2,
   ZoomOut,
+  BookOpen,
 } from "lucide-react";
 import * as d3 from 'd3';
 import { SyntenyData, ChromosomeData, ReferenceGenomeData, GeneAnnotation } from './types';
@@ -68,6 +69,9 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible"
 import { ChevronDown } from "lucide-react"
+import { FilterDrawer } from '@/components/chromoviz/filter-drawer';
+import { GuideSheet } from "@/components/chromoviz/guide";
+import { FloatingHUDBar } from "@/components/chromoviz/floating-hud-bar";
 
 const parseCSVRow = (d: any): any => {
   return {
@@ -287,23 +291,34 @@ export default function ChromoViz() {
       }
       options[d.species_name].push({
         label: d.chr_id,
-        value: d.chr_id,
+        value: `${d.species_name}:${d.chr_id}`, // Make value unique by including species
         species: d.species_name
       });
     });
 
     // Add reference genome chromosomes
     if (referenceGenomeData?.chromosomeSizes) {
-      const refSpecies = referenceData[0]?.species_name || 'Reference';
+      const refSpecies = 'Reference';
       options[refSpecies] = referenceGenomeData.chromosomeSizes.map(chr => ({
         label: chr.chromosome,
-        value: chr.chromosome,
+        value: `ref:${chr.chromosome}`, // Prefix reference chromosomes
         species: refSpecies
       }));
     }
 
     return options;
   }, [referenceData, referenceGenomeData]);
+
+  // Helper function to extract chromosome ID from combined value
+  const getChromosomeId = (value: string) => {
+    const parts = value.split(':');
+    return parts[parts.length - 1];
+  };
+
+  // Helper function to extract species from combined value
+  const getSpeciesFromValue = (value: string) => {
+    return value.split(':')[0];
+  };
 
   // Set initial selections when data is loaded
   useEffect(() => {
@@ -350,24 +365,30 @@ export default function ChromoViz() {
     return syntenyData[0].ref_species;
   }, [syntenyData]);
 
-  // Modified load data function to handle example data
-  const loadExampleData = async () => {
+  // Modify the loadExampleData function to handle optional files
+  const loadExampleData = async (path: string = '/example/set1') => {
     setIsLoading(true);
     setError(null);
     setIsUsingExample(true);
     try {
-      const [syntenyResponse, referenceResponse, refChromosomeSizes, geneAnnotations] = 
+      // First load required files
+      const [syntenyResponse, referenceResponse, refChromosomeSizes] = 
         await Promise.all([
-          d3.csv('/synteny_data.csv', parseCSVRow),
-          d3.csv('/species_data.csv', parseChromosomeRow),
-          d3.csv('/ref_chromosome_sizes.csv', parseChromosomeSizeRow),
-          d3.csv('/ref_gene_annotations.csv', parseGeneAnnotationRow)
+          d3.csv(`${path}/synteny_data.csv`, parseCSVRow),
+          d3.csv(`${path}/species_data.csv`, parseChromosomeRow),
+          d3.csv(`${path}/ref_chromosome_sizes.csv`, parseChromosomeSizeRow),
         ]);
 
-      console.log('Loaded gene annotations:', geneAnnotations); // Debug log
+      if (!syntenyResponse || !referenceResponse || !refChromosomeSizes) {
+        throw new Error('Failed to load required example data');
+      }
 
-      if (!syntenyResponse || !referenceResponse) {
-        throw new Error('Failed to load example data');
+      // Try to load gene annotations, but don't fail if missing
+      let geneAnnotations: GeneAnnotation[] = [];
+      try {
+        geneAnnotations = await d3.csv(`${path}/ref_gene_annotations.csv`, parseGeneAnnotationRow);
+      } catch (err) {
+        console.log('Gene annotations not available for this dataset');
       }
 
       setSyntenyData(syntenyResponse);
@@ -377,13 +398,8 @@ export default function ChromoViz() {
         geneAnnotations: geneAnnotations
       });
 
-      // Debug log after setting data
-      console.log('Reference genome data set:', {
-        chromosomeSizes: refChromosomeSizes,
-        geneAnnotations: geneAnnotations
-      });
     } catch (err) {
-      console.error('Error loading data:', err); // Debug log
+      console.error('Error loading data:', err);
       setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
       setIsLoading(false);
@@ -435,7 +451,7 @@ export default function ChromoViz() {
     const referenceChromosomes = referenceGenomeData.chromosomeSizes
       .filter(chr => 
         selectedChromosomes.length === 0 || 
-        selectedChromosomes.includes(chr.chromosome)
+        selectedChromosomes.includes(`ref:${chr.chromosome}`)
       )
       .map(chr => ({
         species_name: referenceSpecies,
@@ -463,7 +479,7 @@ export default function ChromoViz() {
     const filteredReference = [
       ...referenceData.filter(d => 
         (selectedSpecies.length === 0 || selectedSpecies.includes(d.species_name)) &&
-        (selectedChromosomes.length === 0 || selectedChromosomes.includes(d.chr_id)) &&
+        (selectedChromosomes.length === 0 || selectedChromosomes.includes(`${d.species_name}:${d.chr_id}`)) &&
         d.species_name !== referenceSpecies
       ),
       ...referenceChromosomes
@@ -480,7 +496,8 @@ export default function ChromoViz() {
     const filteredSynteny = syntenyData.filter(d =>
       (selectedSpecies.length === 0 || selectedSpecies.includes(d.query_name)) &&
       (selectedChromosomes.length === 0 || 
-        (selectedChromosomes.includes(d.ref_chr) || selectedChromosomes.includes(d.query_chr)))
+        (selectedChromosomes.includes(`ref:${d.ref_chr}`) || 
+         selectedChromosomes.includes(`${d.query_name}:${d.query_chr}`)))
     );
 
     return { 
@@ -591,7 +608,10 @@ export default function ChromoViz() {
     return (
       <div className="flex flex-col items-center justify-center min-h-[50vh] p-4">
         <div className="text-red-500 mb-4">{error}</div>
-        <Button onClick={loadExampleData} variant="outline">
+        <Button 
+          onClick={() => loadExampleData()} 
+          variant="outline"
+        >
           <RefreshCw className="mr-2 h-4 w-4" />
           Retry
         </Button>
@@ -601,7 +621,7 @@ export default function ChromoViz() {
 
   return (
     <PageWrapper>
-      <div className="w-full px-4 sm:px-6">
+      <div className="w-full px-4 sm:px-6 pb-20">
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -616,321 +636,31 @@ export default function ChromoViz() {
               className="col-span-12 space-y-3"
             >
               {/* Controls Cards */}
-              <Card className="p-3 bg-gradient-to-b from-muted/50 to-background">
-                <CardHeader className="p-3 pb-2">
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-sm font-medium">
-                      {/* Removed Database icon and "Data Controls" text */}
-                    </CardTitle>
-                  </div>
-                </CardHeader>
-                <CardContent className="p-3 pt-0">
-                  <div className="flex flex-wrap items-center gap-3 pt-2">
-                    {/* Filter Sheet */}
-                    <Sheet>
-                      <SheetTrigger asChild>
-                        <Button variant="outline" size="sm" className="gap-2">
-                          <Database className="h-4 w-4" />
-                          {selectedSpecies.length === speciesOptions.length && 
-                           selectedChromosomes.length === Object.values(chromosomeOptions).flat().length ? (
-                            <span className="flex items-center gap-2">
-                              All Data Shown
-                              <Badge variant="secondary" className="ml-1">
-                                {speciesOptions.length + Object.values(chromosomeOptions).flat().length} items
-                              </Badge>
-                            </span>
-                          ) : (
-                            <span className="flex items-center gap-2">
-                              Filtered View
-                              <Badge variant="default" className="ml-1">
-                                {selectedSpecies.length + selectedChromosomes.length} selected
-                              </Badge>
-                            </span>
-                          )}
-                        </Button>
-                      </SheetTrigger>
-                      <SheetContent 
-                        side="right" 
-                        className="w-full sm:max-w-md"
-                      >
-                        <SheetHeader>
-                          <SheetTitle>Data Filters</SheetTitle>
-                          <SheetDescription>
-                            Configure which species and chromosomes to display
-                          </SheetDescription>
-                        </SheetHeader>
-                        
-                        <ScrollArea className="h-[calc(100vh-12rem)] pr-4">
-                          <div className="mt-6 space-y-6">
-                            {/* Species Filter Section */}
-                            <FilterSection
-                              title="Species"
-                              count={selectedSpecies.length}
-                              total={speciesOptions.length}
-                              onClear={() => setSelectedSpecies([])}
-                            >
-                              <MultiSelect
-                                value={selectedSpecies}
-                                options={speciesOptions}
-                                onValueChange={setSelectedSpecies}
-                                placeholder="Filter by species..."
-                              />
-                            </FilterSection>
-
-                            <Separator className="my-4" />
-
-                            {/* Chromosomes Filter Section */}
-                            <FilterSection
-                              title="Chromosomes"
-                              count={selectedChromosomes.length}
-                              total={Object.values(chromosomeOptions).flat().length}
-                              onClear={() => setSelectedChromosomes([])}
-                            >
-                              <div className="space-y-4">
-                                {Object.entries(chromosomeOptions).map(([species, chromosomes]) => {
-                                  // Only show species that are selected (or all if none selected)
-                                  if (selectedSpecies.length > 0 && !selectedSpecies.includes(species)) {
-                                    return null;
-                                  }
-
-                                  const selectedCount = selectedChromosomes.filter(chr => 
-                                    chromosomes.some(opt => opt.value === chr)
-                                  ).length;
-
-                                  return (
-                                    <motion.div
-                                      key={species}
-                                      initial={{ opacity: 0, y: 5 }}
-                                      animate={{ opacity: 1, y: 0 }}
-                                      exit={{ opacity: 0, y: -5 }}
-                                      className="space-y-2"
-                                    >
-                                      <div className="flex items-center justify-between">
-                                        <div className="flex items-center gap-2">
-                                          <Label className="text-sm font-medium">
-                                            {species.replace('_', ' ')}
-                                          </Label>
-                                          <FilterBadge 
-                                            count={selectedCount} 
-                                            total={chromosomes.length} 
-                                          />
-                                        </div>
-                                        {selectedCount > 0 && (
-                                          <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            onClick={() => {
-                                              const otherChromosomes = selectedChromosomes.filter(chr => 
-                                                !chromosomes.some(opt => opt.value === chr)
-                                              );
-                                              setSelectedChromosomes(otherChromosomes);
-                                            }}
-                                            className="h-7 px-2 text-xs"
-                                          >
-                                            Clear
-                                          </Button>
-                                        )}
-                                      </div>
-                                      <MultiSelect
-                                        value={selectedChromosomes.filter(chr => 
-                                          chromosomes.some(opt => opt.value === chr)
-                                        )}
-                                        options={chromosomes}
-                                        onValueChange={(values) => {
-                                          const otherChromosomes = selectedChromosomes.filter(chr => 
-                                            !chromosomes.some(opt => opt.value === chr)
-                                          );
-                                          setSelectedChromosomes([...otherChromosomes, ...values]);
-                                        }}
-                                        placeholder={`Select chromosomes...`}
-                                      />
-                                    </motion.div>
-                                  );
-                                })}
-                              </div>
-                            </FilterSection>
-
-                            {/* Clear All Button */}
-                            {(selectedSpecies.length > 0 || selectedChromosomes.length > 0) && (
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => {
-                                  setSelectedSpecies([]);
-                                  setSelectedChromosomes([]);
-                                }}
-                                disabled={isLoading}
-                                className="w-full gap-2"
-                              >
-                                <X className="h-4 w-4" />
-                                Clear all filters
-                              </Button>
-                            )}
-                          </div>
-                        </ScrollArea>
-                      </SheetContent>
-                    </Sheet>
-
-                    {/* Data Upload Sheet */}
-                    <Sheet>
-                      <SheetTrigger asChild>
-                        <Button variant="outline" size="sm" className="gap-2">
-                          <Upload className="h-4 w-4" />
-                          Data Upload
-                        </Button>
-                      </SheetTrigger>
-                      <SheetContent className="w-full sm:max-w-md overflow-y-auto">
-                        <SheetHeader>
-                          <SheetTitle>Data Upload</SheetTitle>
-                          <SheetDescription>
-                            Upload your data files or use the example files provided below
-                          </SheetDescription>
-                        </SheetHeader>
-                        
-                        <div className="mt-6 space-y-6">
-                          {/* Example Files Section */}
-                          <Collapsible className="space-y-2">
-                            <div className="flex items-center justify-between space-x-4">
-                              <h3 className="text-sm font-medium flex items-center gap-2">
-                                <FileSpreadsheet className="h-4 w-4" />
-                                Example Files
-                              </h3>
-                              <CollapsibleTrigger asChild>
-                                <Button variant="ghost" size="sm" className="w-9 p-0">
-                                  <ChevronDown className="h-4 w-4" />
-                                  <span className="sr-only">Toggle example files</span>
-                                </Button>
-                              </CollapsibleTrigger>
-                            </div>
-                            
-                            <CollapsibleContent className="space-y-2">
-                              <div className="rounded-md border px-4 py-3 font-mono text-sm">
-                                Download these example files to see the expected format
-                              </div>
-                              <div className="grid grid-cols-1 gap-2">
-                                {[
-                                  {
-                                    name: 'synteny_data.csv',
-                                    description: 'Contains synteny block information',
-                                    path: '/synteny_data.csv'
-                                  },
-                                  {
-                                    name: 'species_data.csv',
-                                    description: 'Contains species chromosome information',
-                                    path: '/species_data.csv'
-                                  },
-                                  {
-                                    name: 'ref_chromosome_sizes.csv',
-                                    description: 'Reference genome chromosome sizes',
-                                    path: '/ref_chromosome_sizes.csv'
-                                  },
-                                  {
-                                    name: 'ref_gene_annotations.csv',
-                                    description: 'Gene annotations for reference genome (optional)',
-                                    path: '/ref_gene_annotations.csv'
-                                  }
-                                ].map((file) => (
-                                  <div
-                                    key={file.name}
-                                    className="flex items-center justify-between p-2 rounded-lg border bg-muted/50"
-                                  >
-                                    <div className="flex flex-col gap-1">
-                                      <span className="text-sm font-medium">{file.name}</span>
-                                      <span className="text-xs text-muted-foreground">
-                                        {file.description}
-                                      </span>
-                                    </div>
-                                    <a
-                                      href={file.path}
-                                      download
-                                      className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground h-8 w-8"
-                                    >
-                                      <ArrowRight className="h-4 w-4" />
-                                    </a>
-                                  </div>
-                                ))}
-                              </div>
-                            </CollapsibleContent>
-                          </Collapsible>
-
-                          <Separator />
-
-                          {/* Required Files Section */}
-                          <div className="space-y-4">
-                            <h3 className="text-sm font-medium flex items-center gap-2">
-                              <Upload className="h-4 w-4" />
-                              Required Files
-                            </h3>
-                            <div className="space-y-2">
-                              <CSVUploader type="synteny" onDataLoad={handleSyntenyData} />
-                              <CSVUploader type="species" onDataLoad={handleSpeciesData} />
-                              <CSVUploader type="reference" onDataLoad={handleChromosomeData} />
-                            </div>
-                          </div>
-
-                          <Separator />
-
-                          {/* Optional Files Section */}
-                          <div className="space-y-4">
-                            <h3 className="text-sm font-medium flex items-center gap-2">
-                              <Upload className="h-4 w-4" />
-                              Optional Files
-                            </h3>
-                            <CSVUploader 
-                              type="annotations" 
-                              onDataLoad={(data) => {
-                                setReferenceGenomeData(prev => prev ? {
-                                  chromosomeSizes: prev.chromosomeSizes,
-                                  geneAnnotations: data
-                                } : null);
-                              }} 
-                              required={false}
-                            />
-                          </div>
-
-                          <Separator />
-
-                          {/* Feature Table Converter Section */}
-                          <div className="space-y-4">
-                            <h3 className="text-sm font-medium flex items-center gap-2">
-                              <FileSpreadsheet className="h-4 w-4" />
-                              Feature Table Converter
-                            </h3>
-                            <FeatureTableConverter />
-                          </div>
-                        </div>
-                      </SheetContent>
-                    </Sheet>
-
-                    <AiButton 
-                      onClick={handleGenerateVisualization}
-                      disabled={!canGenerateVisualization || isLoading}
-                      className="sm:w-auto"
-                    >
-                      {isLoading ? (
-                        <>
-                          <RefreshCw className="mr-2 h-3 w-3 animate-spin" />
-                          Generating...
-                        </>
-                      ) : (
-                        <>
-                          Generate
-                        </>
-                      )}
-                    </AiButton>
-
-                    <AiButton 
-                      onClick={loadExampleData}
-                      disabled={isLoading}
-                      className="sm:w-auto"
-                      variant="simple"
-                    >
-                      <FileSpreadsheet className="h-4 w-4 mr-2" />
-                      Load Example
-                    </AiButton>
-                  </div>
-                </CardContent>
-              </Card>
+              <FloatingHUDBar
+                onGenerateVisualization={handleGenerateVisualization}
+                onLoadExample={loadExampleData}
+                canGenerateVisualization={canGenerateVisualization}
+                isLoading={isLoading}
+                selectedSpecies={selectedSpecies}
+                setSelectedSpecies={setSelectedSpecies}
+                selectedChromosomes={selectedChromosomes}
+                setSelectedChromosomes={setSelectedChromosomes}
+                speciesOptions={speciesOptions}
+                chromosomeOptions={chromosomeOptions}
+                referenceGenomeData={referenceGenomeData}
+                syntenyData={syntenyData}
+                onDataLoad={{
+                  synteny: handleSyntenyData,
+                  species: handleSpeciesData,
+                  reference: handleChromosomeData,
+                  annotations: (data) => {
+                    setReferenceGenomeData(prev => prev ? {
+                      chromosomeSizes: prev.chromosomeSizes,
+                      geneAnnotations: data
+                    } : null);
+                  }
+                }}
+              />
 
               {/* New Layout for Visualization and Details */}
               <div className="grid grid-cols-12 gap-4">
@@ -963,6 +693,7 @@ export default function ChromoViz() {
                           zoomBehaviorRef={zoomBehaviorRef}
                           showAnnotations={showAnnotations}
                           setShowAnnotations={setShowAnnotations}
+                          selectedChromosomes={selectedChromosomes}
                         />
                       </>
                     ) : (

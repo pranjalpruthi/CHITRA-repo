@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState, useCallback, RefObject } from "react";
 import * as d3 from "d3";
 import { Button } from "@/components/ui/button";
-import { ZoomIn, ZoomOut, RefreshCw, Maximize2, Minimize2, Save, ChevronDown, ChevronLeft, ChevronRight, ChevronUp, Circle, ArrowUp, ArrowDown, ArrowUpDown } from "lucide-react";
+import { ZoomIn, ZoomOut, RefreshCw, Maximize2, Minimize2, Save, ChevronDown, ChevronLeft, ChevronRight, ChevronUp, Circle, ArrowUp, ArrowDown, ArrowUpDown, ArrowLeftRight, ArrowRight, ArrowLeft } from "lucide-react";
 import { ChromosomeData, SyntenyData, ReferenceGenomeData } from "./types";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
@@ -22,6 +22,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
+import React from "react";
 
 // First, add these type definitions at the top
 type D3Selection = d3.Selection<SVGSVGElement, unknown, null, undefined>;
@@ -64,6 +65,7 @@ interface ChromosomeSyntenyProps {
   zoomBehaviorRef: React.MutableRefObject<any>;
   showAnnotations: boolean;
   setShowAnnotations: (show: boolean) => void;
+  selectedChromosomes: string[];
 }
 
 // Add biological constants
@@ -166,6 +168,55 @@ function GeneTooltip({ gene, x, y }: { gene: GeneAnnotation; x: number; y: numbe
   );
 }
 
+const AlignmentFilterButton = ({ 
+  filter, 
+  currentFilter, 
+  onClick, 
+  icon: Icon, 
+  label,
+  iconOnly = false
+}: { 
+  filter: 'all' | 'forward' | 'reverse';
+  currentFilter: 'all' | 'forward' | 'reverse';
+  onClick: (filter: 'all' | 'forward' | 'reverse') => void;
+  icon: any;
+  label: string;
+  iconOnly?: boolean;
+}) => {
+  return (
+    <button
+      onClick={() => onClick(filter)}
+      className={cn(
+        'group relative inline-flex h-8 items-center justify-center overflow-hidden rounded-md',
+        'bg-background border transition-all duration-200',
+        filter === currentFilter 
+          ? 'border-primary text-primary' 
+          : 'border-border hover:border-primary/50 text-muted-foreground',
+        iconOnly 
+          ? 'w-8' 
+          : filter === currentFilter 
+            ? 'w-24' 
+            : 'w-8 hover:w-24'
+      )}
+    >
+      {!iconOnly && (
+        <div className={cn(
+          'inline-flex whitespace-nowrap transition-all duration-200',
+          filter === currentFilter ? '-translate-x-2 opacity-100' : 'opacity-0 group-hover:-translate-x-2 group-hover:opacity-100'
+        )}>
+          {label}
+        </div>
+      )}
+      <div className={cn(
+        "transition-all duration-200",
+        iconOnly ? "static" : "absolute right-2"
+      )}>
+        <Icon className="h-4 w-4" />
+      </div>
+    </button>
+  );
+};
+
 export function ChromosomeSynteny({
   referenceData,
   syntenyData,
@@ -186,6 +237,7 @@ export function ChromosomeSynteny({
   zoomBehaviorRef,
   showAnnotations,
   setShowAnnotations,
+  selectedChromosomes,
 }: ChromosomeSyntenyProps) {
   const [zoom, setZoom] = useState(1);
   const [tooltipInfo, setTooltipInfo] = useState<TooltipInfo | null>(null);
@@ -212,15 +264,36 @@ export function ChromosomeSynteny({
   const currentTransformRef = useRef<d3.ZoomTransform>(d3.zoomIdentity);
 
   const filterSyntenyData = (data: SyntenyData[]) => {
+    // First filter by selected chromosomes
+    let filteredData = data;
+    
+    // Get the selected reference chromosomes (without the 'ref:' prefix)
+    const selectedRefChrs = selectedChromosomes
+      .filter(chr => chr.startsWith('ref:'))
+      .map(chr => chr.replace('ref:', ''));
+
+    // If there are selected reference chromosomes, only show synteny for those
+    if (selectedRefChrs.length > 0) {
+      filteredData = filteredData.filter(link => 
+        selectedRefChrs.includes(link.ref_chr)
+      );
+    }
+
+    // Then apply strand filter
     switch (alignmentFilter) {
       case 'forward':
-        return data.filter(link => link.query_strand === '+');
+        return filteredData.filter(link => link.query_strand === '+');
       case 'reverse':
-        return data.filter(link => link.query_strand === '-');
+        return filteredData.filter(link => link.query_strand === '-');
       default:
-        return data;
+        return filteredData;
     }
   };
+
+  // Filter synteny data before rendering
+  const filteredSyntenyData = React.useMemo(() => {
+    return filterSyntenyData(syntenyData);
+  }, [syntenyData, selectedChromosomes, alignmentFilter]);
 
   const handleFullscreenChange = useCallback(() => {
     const isFullscreenNow = Boolean(document.fullscreenElement);
@@ -543,10 +616,10 @@ export function ChromosomeSynteny({
   }, [handlePan]);
 
   useEffect(() => {
-    if (!svgRef.current) return;
-
+    if (!svgRef.current || !containerRef.current) return;
+    
     const svg = d3.select(svgRef.current);
-    svg.selectAll("*").remove();
+    svg.selectAll('*').remove();
 
     const margin = { top: 60, right: 40, bottom: 60, left: 120 };
     const innerWidth = dimensions.width - margin.left - margin.right;
@@ -626,8 +699,8 @@ export function ChromosomeSynteny({
     });
 
     // Modified ribbon drawing code
-    const filteredSyntenyData = filterSyntenyData(syntenyData);
-    filteredSyntenyData.forEach(link => {
+    const filteredData = filteredSyntenyData;
+    filteredData.forEach(link => {
       const sourceSpecies = link.ref_species;
       const targetSpecies = link.query_name;
       
@@ -744,7 +817,7 @@ export function ChromosomeSynteny({
 
   }, [
     referenceData, 
-    syntenyData, 
+    filteredSyntenyData, 
     dimensions, 
     alignmentFilter, 
     selectedSynteny, 
@@ -761,70 +834,66 @@ export function ChromosomeSynteny({
         isFullscreen && "fixed inset-0 bg-background/95 backdrop-blur-sm z-50"
       )}
     >
-      {/* Controls Header */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-2 border-b gap-3 sm:gap-2">
+      {/* Header Controls */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        {/* Left Side Controls */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 w-full sm:w-auto">
           {/* Alignment Filter Buttons */}
-          <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
-            <Button
-              variant={alignmentFilter === 'all' ? 'default' : 'outline'}
-              onClick={() => setAlignmentFilter('all')}
-              className="text-xs h-8 flex-1 sm:flex-none gap-2"
-              size="sm"
-            >
-              <ArrowUpDown className="h-4 w-4" />
-              <span>All Alignments</span>
-            </Button>
-            <Button
-              variant={alignmentFilter === 'forward' ? 'default' : 'outline'}
-              onClick={() => setAlignmentFilter('forward')}
-              className="text-xs h-8 flex-1 sm:flex-none gap-2"
-              size="sm"
-            >
-              <ArrowUp className="h-4 w-4" />
-              <span>Forward Only</span>
-            </Button>
-            <Button
-              variant={alignmentFilter === 'reverse' ? 'default' : 'outline'}
-              onClick={() => setAlignmentFilter('reverse')}
-              className="text-xs h-8 flex-1 sm:flex-none gap-2"
-              size="sm"
-            >
-              <ArrowDown className="h-4 w-4" />
-              <span>Reverse Only</span>
-            </Button>
+          <div className="flex items-center gap-1.5">
+            <AlignmentFilterButton
+              filter="all"
+              currentFilter={alignmentFilter}
+              onClick={setAlignmentFilter}
+              icon={ArrowLeftRight}
+              label="All"
+              iconOnly={true}
+            />
+            <AlignmentFilterButton
+              filter="forward"
+              currentFilter={alignmentFilter}
+              onClick={setAlignmentFilter}
+              icon={ArrowRight}
+              label="Forward"
+            />
+            <AlignmentFilterButton
+              filter="reverse"
+              currentFilter={alignmentFilter}
+              onClick={setAlignmentFilter}
+              icon={ArrowLeft}
+              label="Reverse"
+            />
           </div>
 
           {/* Bottom Controls Row */}
-          <div className="flex items-center justify-between w-full sm:w-auto gap-4">
-            {/* Annotations Switch */}
-            <div className="flex items-center gap-2">
+          <div className="flex items-center gap-4 w-full sm:w-auto">
+            <div className="flex items-center gap-1.5">
               <Switch
                 id="annotations-mode"
                 checked={showAnnotations}
                 onCheckedChange={setShowAnnotations}
+                className="scale-75"
               />
-              <Label htmlFor="annotations-mode" className="text-sm whitespace-nowrap">
-                Show Annotations
+              <Label htmlFor="annotations-mode" className="text-xs text-muted-foreground whitespace-nowrap">
+                Annotations
               </Label>
             </div>
 
-            <Badge variant="secondary" className="whitespace-nowrap">
+            <Badge variant="secondary" className="text-xs whitespace-nowrap">
               {Math.round(zoom * 100)}%
             </Badge>
           </div>
         </div>
         
-        {/* Control Buttons */}
+        {/* Right Side Controls */}
         <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
           <Button
             variant="outline"
             size="sm"
             onClick={handleSaveAsSVG}
-            className="h-8 px-3 gap-2"
+            className="h-8 w-8 p-0"
+            title="Save as SVG"
           >
             <Save className="h-4 w-4" />
-            <span className="hidden sm:inline">Save SVG</span>
           </Button>
           <div className="flex items-center gap-1">
             <Button

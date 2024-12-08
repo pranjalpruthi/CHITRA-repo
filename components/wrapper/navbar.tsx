@@ -12,7 +12,7 @@ import { ShinyRotatingBorderButton } from "@/components/ui/shiny-rotating-border
 import { AboutSheet } from "@/components/chromoviz/about"
 import { GuideSheet } from "@/components/chromoviz/guide"
 import { Button } from "@/components/ui/button"
-import { SharePopover } from "@/components/share-popover"
+import { ShareDrawer } from "@/components/share-drawer"
 
 function Breadcrumbs() {
   const pathname = usePathname()
@@ -71,18 +71,28 @@ export default function NavBar() {
         className={clsx(
           "w-full transition-all duration-200",
           {
-            "border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 shadow-sm": isScrolled,
+            "border-b bg-background/80 backdrop-blur-xl supports-[backdrop-filter]:bg-background/60 shadow-sm": isScrolled,
             "bg-background": !isScrolled
           }
         )}
       >
         <div className="flex h-14 lg:h-[55px] items-center justify-between px-4 md:px-6 lg:px-8">
-          {/* Left side - Chitra, Info, Guide */}
-          <div className="flex items-center gap-2 md:ml-[52px]">
+          {/* Left side - Logo and Title */}
+          <div className="flex items-center gap-4">
             <ShinyRotatingBorderButton className="!p-1.5 !px-3">
               <span className="text-sm font-bold tracking-tight">CHITRA</span>
             </ShinyRotatingBorderButton>
-            <div className="hidden md:flex items-center gap-2">
+            <p className="text-sm text-muted-foreground hidden md:block">
+              Chromosome Interactive Tool for Rearrangement Analysis
+            </p>
+          </div>
+
+          {/* Right side - Breadcrumbs, Info, Guide, Share, User Profile, and Dark Mode */}
+          <div className="flex items-center gap-4">
+            <div className="hidden md:block">
+              <Breadcrumbs />
+            </div>
+            <div className="flex items-center gap-2">
               <AboutSheet>
                 <Button variant="ghost" size="icon" className="h-8 w-8">
                   <Info className="h-4 w-4" />
@@ -93,25 +103,9 @@ export default function NavBar() {
                   <BookOpen className="h-4 w-4" />
                 </Button>
               </GuideSheet>
-            </div>
-          </div>
-
-          {/* Center - Full name */}
-          <div className="flex-1 hidden md:flex justify-center">
-            <p className="text-sm text-muted-foreground">
-              Chromosome Interactive Tool for Rearrangement Analysis
-            </p>
-          </div>
-
-          {/* Right side - Breadcrumbs, User Profile, Share, and Dark Mode */}
-          <div className="flex items-center gap-4">
-            <div className="hidden md:block">
-              <Breadcrumbs />
-            </div>
-            <div className="flex items-center gap-2">
               {config?.auth?.enabled && <div className="hidden md:block"><UserProfile /></div>}
               <div className="hidden md:block">
-                <SharePopover />
+                <ShareDrawer />
               </div>
               <ModeToggle />
             </div>

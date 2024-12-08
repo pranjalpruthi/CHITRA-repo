@@ -368,13 +368,14 @@ export function DetailedSyntenyView({
 
     // Add reference label
     const refEndAngle = gapAngle + (refArcLength * refRelativeSize);
-    const refLabelX = (innerRadius + trackWidth + 65) * Math.cos(refEndAngle - Math.PI/2);
-    const refLabelY = (innerRadius + trackWidth + 65) * Math.sin(refEndAngle - Math.PI/2);
+    const refMidAngle = gapAngle + (refArcLength * refRelativeSize / 2);
+    const refLabelX = (innerRadius + trackWidth + 80) * Math.cos(refMidAngle - Math.PI/2);
+    const refLabelY = (innerRadius + trackWidth + 80) * Math.sin(refMidAngle - Math.PI/2);
     
     chromosomeLayer.append('text')
       .attr('class', 'chromosome-label')
       .attr('transform', `translate(${refLabelX}, ${refLabelY})`)
-      .attr('text-anchor', 'start')
+      .attr('text-anchor', refMidAngle > Math.PI ? 'end' : 'start')
       .attr('dominant-baseline', 'middle')
       .attr('fill', 'currentColor')
       .attr('font-size', '14px')
@@ -403,13 +404,14 @@ export function DetailedSyntenyView({
 
     // Add query label
     const queryStartAngle = Math.PI + gapAngle;
-    const queryLabelX = (innerRadius + trackWidth + 45) * Math.cos(queryStartAngle - Math.PI/2);
-    const queryLabelY = (innerRadius + trackWidth + 45) * Math.sin(queryStartAngle - Math.PI/2);
+    const queryMidAngle = queryStartAngle + (queryArcLength * queryRelativeSize / 2);
+    const queryLabelX = (innerRadius + trackWidth + 80) * Math.cos(queryMidAngle - Math.PI/2);
+    const queryLabelY = (innerRadius + trackWidth + 80) * Math.sin(queryMidAngle - Math.PI/2);
     
     chromosomeLayer.append('text')
       .attr('class', 'chromosome-label')
       .attr('transform', `translate(${queryLabelX}, ${queryLabelY})`)
-      .attr('text-anchor', 'end')
+      .attr('text-anchor', queryMidAngle > 2 * Math.PI || queryMidAngle < Math.PI ? 'start' : 'end')
       .attr('dominant-baseline', 'middle')
       .attr('fill', 'currentColor')
       .attr('font-size', '14px')

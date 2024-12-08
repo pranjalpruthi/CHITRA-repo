@@ -74,7 +74,7 @@ export function GuideSheet({ children }: { children?: React.ReactNode }) {
                     </Button>
                 )}
             </DrawerTrigger>
-            <DrawerContent className="fixed bottom-0 left-0 right-0 rounded-t-[10px] bg-background/80 backdrop-blur-md supports-[backdrop-filter]:bg-background/60">
+            <DrawerContent className="fixed bottom-0 left-0 right-0 rounded-t-[10px] bg-background/80 backdrop-blur-xl border-t shadow-lg">
                 <div className="mx-auto w-full max-w-none md:max-w-none px-4 pb-8">
                     {/* Handle - only show on mobile */}
                     <div className="sticky top-0 flex w-full items-center justify-center bg-transparent pt-4 md:hidden">
@@ -114,8 +114,8 @@ export function GuideSheet({ children }: { children?: React.ReactNode }) {
                                                 key={step.title}
                                                 variants={fadeIn}
                                                 className={cn(
-                                                    "space-y-3 rounded-lg border bg-card p-4",
-                                                    "hover:bg-accent/5 transition-colors"
+                                                    "space-y-3 rounded-lg border bg-card/50 p-4",
+                                                    "hover:bg-accent/10 transition-colors"
                                                 )}
                                             >
                                                 <div className="flex items-center gap-3">
@@ -154,7 +154,7 @@ export function GuideSheet({ children }: { children?: React.ReactNode }) {
                                             ].map((tip, i) => (
                                                 <div 
                                                     key={i} 
-                                                    className="rounded-lg border bg-card p-4 hover:bg-accent/5 transition-colors"
+                                                    className="rounded-lg border bg-card/50 p-4 hover:bg-accent/10 transition-colors"
                                                 >
                                                     <p className="text-sm text-muted-foreground">{tip}</p>
                                                 </div>
@@ -176,7 +176,7 @@ export function GuideSheet({ children }: { children?: React.ReactNode }) {
                                             ].map((resource, i) => (
                                                 <div 
                                                     key={i} 
-                                                    className="rounded-lg border bg-card p-4 hover:bg-accent/5 transition-colors"
+                                                    className="rounded-lg border bg-card/50 p-4 hover:bg-accent/10 transition-colors"
                                                 >
                                                     <h4 className="font-medium mb-1">{resource.title}</h4>
                                                     <p className="text-sm text-muted-foreground">{resource.desc}</p>

@@ -113,7 +113,7 @@ const defaultOptions: ISourceOptions = {
   ],
 };
 
-export default function AiButton({ children, className, disabled, variant = 'default', ...props }: AiButtonProps) {
+function AiButton({ children, className, disabled, variant = 'default', ...props }: AiButtonProps) {
   const [particleState, setParticlesReady] = useState<"loaded" | "ready">();
   const [isHovering, setIsHovering] = useState(false);
 
@@ -149,20 +149,19 @@ export default function AiButton({ children, className, disabled, variant = 'def
   }, [isHovering, disabled, variant]);
 
   const gradientClasses = {
-    default: "from-blue-300/30 via-blue-500/30 via-40% to-purple-500/30",
-    simple: "bg-black/90"
+    default: "bg-white/90 dark:bg-black/50 backdrop-blur-md border-[1px] border-indigo-200/50 dark:border-white/20",
+    simple: "bg-transparent"
   };
 
   const innerGradientClasses = {
-    default: "from-blue-300 via-blue-500 via-40% to-purple-500",
-    simple: "bg-black"
+    default: "bg-transparent text-gray-700 dark:text-white hover:bg-white/10 dark:hover:bg-white/5",
+    simple: "text-gray-700 dark:text-white hover:bg-white/10 dark:hover:bg-white/5"
   };
 
   return (
     <button
       className={cn(
-        "group relative rounded-md p-[1px] text-white transition-transform hover:scale-105 active:scale-102",
-        variant === 'default' ? 'bg-gradient-to-r' : '',
+        "group relative rounded-md transition-transform hover:scale-105 active:scale-102",
         gradientClasses[variant],
         disabled && "opacity-50 cursor-not-allowed hover:scale-100",
         "h-8",
@@ -174,27 +173,9 @@ export default function AiButton({ children, className, disabled, variant = 'def
       {...props}
     >
       <div className={cn(
-        "relative flex h-full items-center justify-center gap-2 rounded-md px-3 text-white text-sm",
-        variant === 'default' ? 'bg-gradient-to-r' : '',
+        "relative flex h-full items-center justify-center gap-2 rounded-md px-3 text-sm",
         innerGradientClasses[variant]
       )}>
-        {!disabled && variant === 'default' && (
-          <>
-            <Sparkle className="size-4 -translate-y-0.5 animate-sparkle fill-white" />
-            <Sparkle
-              style={{ animationDelay: "1s" }}
-              className="absolute bottom-2 left-2.5 z-20 size-1.5 rotate-12 animate-sparkle fill-white"
-            />
-            <Sparkle
-              style={{ animationDelay: "1.5s", animationDuration: "2.5s" }}
-              className="absolute left-4 top-2 size-1 -rotate-12 animate-sparkle fill-white"
-            />
-            <Sparkle
-              style={{ animationDelay: "0.5s", animationDuration: "2.5s" }}
-              className="absolute left-2 top-2 size-1 animate-sparkle fill-white"
-            />
-          </>
-        )}
         {children}
       </div>
       {!!particleState && !disabled && (
@@ -213,3 +194,5 @@ export default function AiButton({ children, className, disabled, variant = 'def
     </button>
   );
 }
+
+export default AiButton;
