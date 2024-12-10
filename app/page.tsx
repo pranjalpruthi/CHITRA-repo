@@ -21,6 +21,8 @@ import {
   Maximize2,
   ZoomOut,
   BookOpen,
+  FileText,
+  TableProperties,
 } from "lucide-react";
 import * as d3 from 'd3';
 import { SyntenyData, ChromosomeData, ReferenceGenomeData, GeneAnnotation } from './types';
@@ -72,6 +74,7 @@ import { ChevronDown } from "lucide-react"
 import { FilterDrawer } from '@/components/chromoviz/filter-drawer';
 import { GuideSheet } from "@/components/chromoviz/guide";
 import { FloatingHUDBar } from "@/components/chromoviz/floating-hud-bar";
+import { ExampleFilesDrawer } from "@/components/chromoviz/example-files-drawer";
 
 const parseCSVRow = (d: any): any => {
   return {
@@ -260,6 +263,9 @@ export default function ChromoViz() {
   const [error, setError] = useState<string | null>(null);
   const [referenceGenomeData, setReferenceGenomeData] = useState<ReferenceGenomeData | null>(null);
   const [isVerticalLayout, setIsVerticalLayout] = useState(false);
+  const [isFullScreen, setIsFullScreen] = useState(false);
+  const [containerHeight, setContainerHeight] = useState<number>(800);
+  const mainCardRef = useRef<HTMLDivElement>(null);
   
   // Initialize from localStorage
   useEffect(() => {
@@ -604,6 +610,36 @@ export default function ChromoViz() {
     setIsVerticalLayout(prev => !prev);
   };
 
+  const onDataLoad = {
+    synteny: handleSyntenyData,
+    species: handleSpeciesData,
+    reference: handleChromosomeData,
+    annotations: (data: any) => {
+      setReferenceGenomeData(prev => prev ? {
+        chromosomeSizes: prev.chromosomeSizes,
+        geneAnnotations: data
+      } : null);
+    }
+  };
+
+  // Add this useEffect to handle height adjustments
+  useEffect(() => {
+    if (!mainCardRef.current) return;
+
+    const resizeObserver = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        const height = entry.contentRect.height;
+        setContainerHeight(height);
+      }
+    });
+
+    resizeObserver.observe(mainCardRef.current);
+
+    return () => {
+      resizeObserver.disconnect();
+    };
+  }, []);
+
   if (error) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[50vh] p-4">
@@ -621,151 +657,283 @@ export default function ChromoViz() {
 
   return (
     <PageWrapper>
-      <div className="w-full px-4 sm:px-6 pb-20">
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="min-h-screen w-full max-w-[2000px] mx-auto"
-        >
-          {/* Main Content Grid */}
-          <div className="grid grid-cols-12 gap-4">
-            <motion.div 
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.4 }}
-              className="col-span-12 space-y-3"
-            >
-              {/* Controls Cards */}
-              <FloatingHUDBar
-                onGenerateVisualization={handleGenerateVisualization}
-                onLoadExample={loadExampleData}
-                canGenerateVisualization={canGenerateVisualization}
-                isLoading={isLoading}
-                selectedSpecies={selectedSpecies}
-                setSelectedSpecies={setSelectedSpecies}
-                selectedChromosomes={selectedChromosomes}
-                setSelectedChromosomes={setSelectedChromosomes}
-                speciesOptions={speciesOptions}
-                chromosomeOptions={chromosomeOptions}
-                referenceGenomeData={referenceGenomeData}
-                syntenyData={syntenyData}
-                onDataLoad={{
-                  synteny: handleSyntenyData,
-                  species: handleSpeciesData,
-                  reference: handleChromosomeData,
-                  annotations: (data) => {
-                    setReferenceGenomeData(prev => prev ? {
-                      chromosomeSizes: prev.chromosomeSizes,
-                      geneAnnotations: data
-                    } : null);
-                  }
-                }}
-              />
+      <div className={cn(
+        "relative w-full min-h-screen bg-background",
+        isFullScreen ? "fixed inset-0 z-50 backdrop-blur-md" : ""
+      )}>
+        <div className="w-full px-4 sm:px-6 pb-20">
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className={cn(
+              "min-h-screen w-full max-w-[2000px] mx-auto",
+              isFullScreen && "backdrop-blur-md"
+            )}
+          >
+            {/* Main Content Grid */}
+            <div className="grid grid-cols-12 gap-4">
+              <motion.div 
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.4 }}
+                className="col-span-12 space-y-3"
+              >
+                {/* Controls Cards */}
+                <FloatingHUDBar
+                  onGenerateVisualization={handleGenerateVisualization}
+                  onLoadExample={loadExampleData}
+                  canGenerateVisualization={canGenerateVisualization}
+                  isLoading={isLoading}
+                  selectedSpecies={selectedSpecies}
+                  setSelectedSpecies={setSelectedSpecies}
+                  selectedChromosomes={selectedChromosomes}
+                  setSelectedChromosomes={setSelectedChromosomes}
+                  speciesOptions={speciesOptions}
+                  chromosomeOptions={chromosomeOptions}
+                  referenceGenomeData={referenceGenomeData}
+                  syntenyData={syntenyData}
+                  onDataLoad={onDataLoad}
+                  isFullScreen={isFullScreen}
+                  onToggleFullScreen={() => setIsFullScreen(!isFullScreen)}
+                />
 
-              {/* New Layout for Visualization and Details */}
-              <div className="grid grid-cols-12 gap-4">
-                {/* Main Visualization Area */}
-                <div className="col-span-12 lg:col-span-8">
-                  <Card className="overflow-hidden h-[800px]">
-                    {isLoading ? (
-                      <div className="p-4">
-                        <Skeleton className="h-[700px] w-full" />
-                      </div>
-                    ) : syntenyData.length > 0 ? (
-                      <>
-                        <ChromosomeSynteny
-                          referenceData={filteredData.referenceData}
-                          syntenyData={filteredData.syntenyData}
-                          referenceGenomeData={referenceGenomeData}
-                          selectedSynteny={selectedSynteny}
-                          onSyntenySelect={handleSyntenySelection}
-                          width={1400}
-                          height={800}
-                          alignmentFilter={alignmentFilter}
-                          setAlignmentFilter={setAlignmentFilter}
-                          onZoomIn={handleZoomIn}
-                          onZoomOut={handleZoomOut}
-                          onReset={handleReset}
-                          onFullscreen={toggleFullscreen}
-                          isFullscreen={isFullscreen}
-                          svgRef={svgRef}
-                          containerRef={containerRef}
-                          zoomBehaviorRef={zoomBehaviorRef}
-                          showAnnotations={showAnnotations}
-                          setShowAnnotations={setShowAnnotations}
-                          selectedChromosomes={selectedChromosomes}
-                        />
-                      </>
-                    ) : (
-                      <motion.div 
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        className="flex flex-col items-center justify-center p-8 text-center text-muted-foreground"
-                      >
-                        <Upload className="h-10 w-10 mb-3" />
-                        <h3 className="text-base font-medium">No Data Available</h3>
-                        <p className="text-sm">Upload files or load example data</p>
-                      </motion.div>
-                    )}
-                  </Card>
-                </div>
-
-                {/* Detailed View Sidebar */}
-                <div className={cn(
-                  "col-span-12 lg:col-span-4",
-                  isDetailedViewFullscreen && "fixed inset-0 z-50"
-                )}>
-                  <Card className={cn(
-                    "h-[800px] overflow-hidden",
-                    isDetailedViewFullscreen && "h-screen"
-                  )}>
-                    <CardHeader className="p-4 border-b shrink-0">
-                      <CardTitle className="text-sm font-medium flex items-center gap-2">
-                        <MousePointerClick className="h-4 w-4" />
-                        Selected Block Details
-                        {selectedSynteny.length > 0 && (
-                          <Badge variant="secondary" className="ml-auto">
-                            {selectedSynteny.length} selected
-                          </Badge>
-                        )}
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="p-0 h-[calc(100%-4rem)]">
-                      {selectedSynteny.length > 0 ? (
-                        <DetailedSyntenyView
-                          selectedBlock={selectedSynteny[0]}
-                          referenceData={filteredData.referenceData}
-                          onBlockClick={handleSyntenyToggle}
-                          selectedSynteny={selectedSynteny}
-                          onToggleSelection={handleSyntenyToggle}
-                          isFullscreen={isDetailedViewFullscreen}
-                          onFullscreen={setIsDetailedViewFullscreen}
-                        />
+                {/* Responsive Layout for Visualization and Details */}
+                <div className="grid grid-cols-12 gap-4">
+                  {/* Main Visualization Area */}
+                  <div className={selectedSynteny.length > 0 ? "col-span-12 lg:col-span-8" : "col-span-12"}>
+                    <Card className="h-full" ref={mainCardRef}>
+                      {isLoading ? (
+                        <div className="p-4 h-[800px]">
+                          <Skeleton className="h-full w-full" />
+                        </div>
+                      ) : syntenyData.length > 0 ? (
+                        <div style={{ height: `${containerHeight}px` }}>
+                          <ChromosomeSynteny
+                            referenceData={filteredData.referenceData}
+                            syntenyData={filteredData.syntenyData}
+                            referenceGenomeData={referenceGenomeData}
+                            selectedSynteny={selectedSynteny}
+                            onSyntenySelect={handleSyntenySelection}
+                            width="100%"
+                            height="100%"
+                            alignmentFilter={alignmentFilter}
+                            setAlignmentFilter={setAlignmentFilter}
+                            onZoomIn={handleZoomIn}
+                            onZoomOut={handleZoomOut}
+                            onReset={handleReset}
+                            onFullscreen={toggleFullscreen}
+                            isFullscreen={isFullscreen}
+                            svgRef={svgRef}
+                            containerRef={containerRef}
+                            zoomBehaviorRef={zoomBehaviorRef}
+                            showAnnotations={showAnnotations}
+                            setShowAnnotations={setShowAnnotations}
+                            selectedChromosomes={selectedChromosomes}
+                          />
+                        </div>
                       ) : (
-                        <div className="h-full flex flex-col items-center justify-center p-8 text-center text-muted-foreground">
-                          <MousePointerClick className="h-6 w-6 mx-auto mb-2 opacity-50" />
-                          <p>Select a synteny block to view details</p>
+                        <div className="h-full flex flex-col items-center justify-center p-8">
+                          <motion.div 
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className="text-center space-y-6"
+                          >
+                            <div className="space-y-3">
+                              <div className="relative w-16 h-16 mx-auto">
+                                <div className="absolute inset-0 bg-blue-400/20 dark:bg-blue-500/20 blur-xl rounded-full" />
+                                <div className="relative flex items-center justify-center w-full h-full bg-white/50 dark:bg-gray-900/50 backdrop-blur-sm rounded-full border border-blue-200 dark:border-blue-800">
+                                  <Upload className="h-8 w-8 text-blue-500 dark:text-blue-400" />
+                                </div>
+                              </div>
+                              <div>
+                                <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">
+                                  No Data Available
+                                </h3>
+                                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1 max-w-sm mx-auto">
+                                  Get started by uploading your data files or explore our example datasets
+                                </p>
+                              </div>
+                            </div>
+
+                            <div className="flex flex-col sm:flex-row items-center gap-3 justify-center">
+                              <Sheet>
+                                <SheetTrigger asChild>
+                                  <Button 
+                                    variant="outline" 
+                                    size="lg"
+                                    className="min-w-[160px] gap-2"
+                                  >
+                                    <Upload className="h-4 w-4" />
+                                    Upload Files
+                                  </Button>
+                                </SheetTrigger>
+                                <SheetContent className="w-full sm:max-w-md overflow-y-auto">
+                                  <SheetHeader>
+                                    <SheetTitle>Data Upload</SheetTitle>
+                                    <SheetDescription>
+                                      Upload your data files or use the example files provided
+                                    </SheetDescription>
+                                  </SheetHeader>
+                                  
+                                  <div className="mt-6 space-y-6">
+                                    <div className="space-y-4">
+                                      <h3 className="text-sm font-medium flex items-center gap-2">
+                                        <Upload className="h-4 w-4" />
+                                        Required Files
+                                      </h3>
+                                      <div className="space-y-4">
+                                        <CSVUploader 
+                                          type="synteny" 
+                                          onDataLoad={onDataLoad.synteny} 
+                                        />
+                                        <CSVUploader 
+                                          type="species" 
+                                          onDataLoad={onDataLoad.species} 
+                                        />
+                                        <CSVUploader 
+                                          type="reference" 
+                                          onDataLoad={onDataLoad.reference} 
+                                        />
+                                      </div>
+                                    </div>
+
+                                    <Separator />
+
+                                    <div className="space-y-4">
+                                      <h3 className="text-sm font-medium flex items-center gap-2">
+                                        <Upload className="h-4 w-4" />
+                                        Optional Files
+                                      </h3>
+                                      <CSVUploader 
+                                        type="annotations" 
+                                        onDataLoad={onDataLoad.annotations}
+                                        required={false}
+                                      />
+                                    </div>
+
+                                    <div className="pt-4">
+                                      <p className="text-xs text-muted-foreground">
+                                        All files should be in CSV format. Hover over the info icon on each uploader to see the required fields.
+                                      </p>
+                                    </div>
+                                  </div>
+                                </SheetContent>
+                              </Sheet>
+
+                              <ExampleFilesDrawer onLoadExample={loadExampleData}>
+                                <Button 
+                                  variant="default"
+                                  size="lg"
+                                  className="min-w-[160px] gap-2 bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600"
+                                >
+                                  <FileText className="h-4 w-4" />
+                                  Try Examples
+                                </Button>
+                              </ExampleFilesDrawer>
+                            </div>
+
+                            <div className="pt-8">
+                              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-3xl mx-auto px-4">
+                                {[
+                                  {
+                                    icon: FileText,
+                                    title: "Example Datasets",
+                                    description: "Explore pre-configured datasets to understand the visualization capabilities"
+                                  },
+                                  {
+                                    icon: Upload,
+                                    title: "Upload Your Data",
+                                    description: "Import your own synteny data files for custom genome visualization"
+                                  },
+                                  {
+                                    icon: TableProperties,
+                                    title: "Interactive View",
+                                    description: "Analyze genomic relationships with our interactive visualization tools"
+                                  }
+                                ].map((feature, i) => (
+                                  <motion.div
+                                    key={i}
+                                    initial={{ opacity: 0, y: 20 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ delay: 0.2 + i * 0.1 }}
+                                    className="relative group"
+                                  >
+                                    <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 to-indigo-500/10 rounded-lg blur-xl transition-all duration-300 group-hover:scale-110 opacity-0 group-hover:opacity-100" />
+                                    <div className="relative p-4 text-center space-y-3">
+                                      <div className="w-10 h-10 mx-auto rounded-lg bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center">
+                                        <feature.icon className="h-5 w-5 text-blue-500 dark:text-blue-400" />
+                                      </div>
+                                      <h4 className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                                        {feature.title}
+                                      </h4>
+                                      <p className="text-xs text-gray-500 dark:text-gray-400">
+                                        {feature.description}
+                                      </p>
+                                    </div>
+                                  </motion.div>
+                                ))}
+                              </div>
+                            </div>
+                          </motion.div>
                         </div>
                       )}
-                    </CardContent>
-                  </Card>
-                </div>
+                    </Card>
+                  </div>
 
-                {/* Add Synteny Table - Full Width */}
-                <div className="col-span-12">
-                  <SyntenyTable 
-                    selectedSynteny={selectedSynteny}
-                    onToggleSelection={handleSyntenyToggle}
-                    onExport={(data) => downloadCSV(
-                      data,
-                      `synteny-blocks-${new Date().toISOString().split('T')[0]}.csv`
-                    )}
-                  />
+                  {/* Detailed View Sidebar */}
+                  {selectedSynteny.length > 0 && (
+                    <motion.div 
+                      initial={{ opacity: 0, x: 20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: 20 }}
+                      className={cn(
+                        "col-span-12 lg:col-span-4",
+                        isDetailedViewFullscreen && "fixed inset-0 z-50 backdrop-blur-md"
+                      )}
+                    >
+                      <Card className={cn(
+                        "",
+                        isDetailedViewFullscreen ? "h-screen" : `h-[${containerHeight}px]`
+                      )}>
+                        <CardHeader className="p-4 border-b shrink-0">
+                          <CardTitle className="text-sm font-medium flex items-center gap-2">
+                            <MousePointerClick className="h-4 w-4" />
+                            Selected Block Details
+                            <Badge variant="secondary" className="ml-auto">
+                              {selectedSynteny.length} selected
+                            </Badge>
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent className="p-0 h-[calc(100%-4rem)]">
+                          <DetailedSyntenyView
+                            selectedBlock={selectedSynteny[0]}
+                            referenceData={filteredData.referenceData}
+                            onBlockClick={handleSyntenyToggle}
+                            selectedSynteny={selectedSynteny}
+                            onToggleSelection={handleSyntenyToggle}
+                            isFullscreen={isDetailedViewFullscreen}
+                            onFullscreen={setIsDetailedViewFullscreen}
+                          />
+                        </CardContent>
+                      </Card>
+                    </motion.div>
+                  )}
+                  {/* Add Synteny Table - Full Width */}
+                  <div className="col-span-12">
+                    <SyntenyTable 
+                      selectedSynteny={selectedSynteny}
+                      onToggleSelection={handleSyntenyToggle}
+                      onExport={(data) => downloadCSV(
+                        data,
+                        `synteny-blocks-${new Date().toISOString().split('T')[0]}.csv`
+                      )}
+                    />
+                  </div>
                 </div>
-              </div>
-            </motion.div>
-          </div>
-        </motion.div>
+              </motion.div>
+            </div>
+          </motion.div>
+        </div>
       </div>
     </PageWrapper>
   );

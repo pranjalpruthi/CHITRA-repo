@@ -21,6 +21,7 @@ interface SyntenyRibbonProps {
   onSelect: (link: SyntenyData, isSelected: boolean) => void;
   isSelected?: boolean;
   zoomBehaviorRef: React.RefObject<d3.ZoomBehavior<any, any>>;
+  selectedChromosomes: string[];
 }
 
 const SYNTENY_COLORS = {
@@ -34,10 +35,10 @@ const SYNTENY_COLORS = {
     LARGE: 3.5
   },
   OPACITY: {
-    DEFAULT: 0.2,
-    HOVER: 0.6,
-    SELECTED: 0.8,
-    ACTIVE: 0.9
+    DEFAULT: 0.45,
+    HOVER: 0.75,
+    SELECTED: 0.9,
+    ACTIVE: 1.0
   }
 } as const;
 
@@ -59,7 +60,39 @@ export function renderSyntenyRibbon({
   onSelect,
   isSelected = false,
   zoomBehaviorRef,
+  selectedChromosomes,
 }: SyntenyRibbonProps) {
+  // Enhanced filtering logic
+  const shouldRenderRibbon = () => {
+    // If no chromosomes are selected, show all ribbons
+    if (selectedChromosomes.length === 0) return true;
+
+    const refChr = `ref:${link.ref_chr}`;
+    const queryChr = `${link.query_name}:${link.query_chr}`;
+
+    // Check if reference chromosome is selected
+    const isRefSelected = selectedChromosomes.includes(refChr);
+    
+    // If reference chromosome is selected but no query chromosomes are selected,
+    // show all connections to this reference chromosome
+    const hasSelectedQueryChrs = selectedChromosomes.some(chr => 
+      chr.startsWith(link.query_name + ":")
+    );
+
+    if (isRefSelected && !hasSelectedQueryChrs) {
+      return true; // Show all connections to selected reference chromosome
+    }
+
+    // If both reference and query chromosomes are selected,
+    // only show ribbons between selected chromosomes
+    return isRefSelected && selectedChromosomes.includes(queryChr);
+  };
+
+  // Check if we should render this ribbon
+  if (!shouldRenderRibbon()) {
+    return null;
+  }
+
   // Get chromosome positions
   const getXPosition = (species: string, chr: string, pos: number) => {
     const speciesChrs = referenceData.filter(d => d.species_name === species);
@@ -106,7 +139,11 @@ export function renderSyntenyRibbon({
   const blockGroup = g.append("g")
     .attr("class", `synteny-group ${isSelected ? 'selected' : ''}`)
     .attr("data-synteny-id", syntenyId)
-    .attr("data-selected", isSelected ? "true" : "false");
+    .attr("data-selected", isSelected ? "true" : "false")
+    .style("user-select", "none")
+    .style("-webkit-user-select", "none")
+    .style("-moz-user-select", "none")
+    .style("-ms-user-select", "none");
 
   // Source block
   const sourceBlock = blockGroup.append("rect")
@@ -143,13 +180,34 @@ export function renderSyntenyRibbon({
     .attr("x2", x2)
     .attr("y2", targetY);
 
+  // Get the query species color
+  const queryColor = speciesColorScale(targetSpecies);
+  
+  // Create a more visible gradient with higher opacity
   gradient.append("stop")
     .attr("offset", "0%")
-    .attr("stop-color", speciesColorScale(sourceSpecies));
+    .attr("stop-color", queryColor)
+    .attr("stop-opacity", "0.4");  // Higher starting opacity
+
+  gradient.append("stop")
+    .attr("offset", "15%")
+    .attr("stop-color", queryColor)
+    .attr("stop-opacity", "0.7");  // Higher mid opacity
+
+  gradient.append("stop")
+    .attr("offset", "50%")
+    .attr("stop-color", queryColor)
+    .attr("stop-opacity", "0.9");  // Near full opacity at peak
+
+  gradient.append("stop")
+    .attr("offset", "85%")
+    .attr("stop-color", queryColor)
+    .attr("stop-opacity", "0.7");  // Higher mid opacity
 
   gradient.append("stop")
     .attr("offset", "100%")
-    .attr("stop-color", speciesColorScale(targetSpecies));
+    .attr("stop-color", queryColor)
+    .attr("stop-opacity", "0.4");  // Higher ending opacity
 
   // Draw ribbon
   const path = d3.path();
@@ -177,7 +235,8 @@ export function renderSyntenyRibbon({
     .attr("opacity", isSelected ? SYNTENY_COLORS.OPACITY.SELECTED : SYNTENY_COLORS.OPACITY.DEFAULT)
     .attr("class", `synteny-ribbon ${isSelected ? 'selected' : ''}`)
     .attr("data-synteny-id", syntenyId)
-    .style("transition", "opacity 0.2s ease-in-out");
+    .style("transition", "opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1)")
+    .style("filter", "drop-shadow(0 4px 6px rgba(0, 0, 0, 0.15))");  // Slightly stronger shadow
 
   // Initial state setup - Set initial opacities based on selection state
   const setElementStates = (selected: boolean) => {

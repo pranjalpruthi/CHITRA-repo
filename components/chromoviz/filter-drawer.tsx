@@ -150,12 +150,47 @@ export const FilterDrawer = ({
   // Automatically update selected chromosomes when reference selection changes
   React.useEffect(() => {
     const selectedRefChrs = selectedChromosomes.filter(chr => chr.startsWith('ref:'));
-    const connectedChrs = getConnectedQueryChromosomes(selectedRefChrs);
-    const connectedValues = connectedChrs.map(chr => chr.value);
     
-    // Set both reference and connected query chromosomes
-    setSelectedChromosomes([...selectedRefChrs, ...connectedValues]);
+    if (selectedRefChrs.length > 0) {
+      // Get all connected chromosomes for the selected reference chromosomes
+      const connectedChrs = getConnectedQueryChromosomes(selectedRefChrs);
+      
+      // If no query chromosomes are explicitly selected, don't auto-select any
+      const hasSelectedQueryChrs = selectedChromosomes.some(chr => 
+        !chr.startsWith('ref:')
+      );
+
+      if (hasSelectedQueryChrs) {
+        // If query chromosomes are selected, filter to keep only valid connections
+        const connectedValues = connectedChrs.map(chr => chr.value);
+        const currentQueryChrs = selectedChromosomes.filter(chr => 
+          !chr.startsWith('ref:') && connectedValues.includes(chr)
+        );
+        
+        setSelectedChromosomes([...selectedRefChrs, ...currentQueryChrs]);
+      } else {
+        // If no query chromosomes are selected, just keep the reference selection
+        setSelectedChromosomes(selectedRefChrs);
+      }
+    }
   }, [selectedChromosomes.filter(chr => chr.startsWith('ref:')).join(','), syntenyData]);
+
+  // Add this function to filter synteny data based on selections
+  const getFilteredSyntenyData = (data: typeof syntenyData) => {
+    if (!data) return [];
+    
+    return data.filter(syn => {
+      const refChr = `ref:${syn.ref_chr}`;
+      const queryChr = `${syn.query_name}:${syn.query_chr}`;
+      
+      // If no chromosomes are selected, show all
+      if (selectedChromosomes.length === 0) return true;
+      
+      // Only show ribbons between selected chromosomes
+      return selectedChromosomes.includes(refChr) && 
+             selectedChromosomes.includes(queryChr);
+    });
+  };
 
   return (
     <Drawer>
@@ -224,7 +259,9 @@ export const FilterDrawer = ({
                         value: `ref:${chr.chromosome}`
                       }))}
                       onValueChange={(values) => {
-                        setSelectedChromosomes(values);
+                        // When reference chromosomes change, update selection but keep existing query selections
+                        const currentQueryChrs = selectedChromosomes.filter(chr => !chr.startsWith('ref:'));
+                        setSelectedChromosomes([...values, ...currentQueryChrs]);
                       }}
                       placeholder="Select reference chromosomes..."
                       className="mt-1.5"

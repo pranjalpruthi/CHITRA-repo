@@ -38,70 +38,107 @@ export function MiniMap({
   const { theme } = useTheme();
 
   useEffect(() => {
-    if (!miniMapRef.current) return;
+    if (!miniMapRef.current || !mainSvgRef.current) return;
 
     const miniMap = d3.select(miniMapRef.current);
     miniMap.selectAll("*").remove();
 
-    const scale = Math.min(
-      width / dimensions.width,
-      height / dimensions.height
-    );
+    // Calculate proper scaling that maintains aspect ratio
+    const mainAspectRatio = dimensions.width / dimensions.height;
+    const miniMapAspectRatio = width / height;
+    
+    let scale: number;
+    let translationX = 0;
+    let translationY = 0;
+    
+    if (mainAspectRatio > miniMapAspectRatio) {
+      scale = width / dimensions.width;
+      translationY = (height - dimensions.height * scale) / 2;
+    } else {
+      scale = height / dimensions.height;
+      translationX = (width - dimensions.width * scale) / 2;
+    }
 
     // Theme-aware colors
     const backgroundColor = theme === 'dark' ? 'hsl(var(--background))' : 'hsl(var(--background))';
     const borderColor = theme === 'dark' ? 'hsl(var(--border))' : 'hsl(var(--border))';
-    const ribbonOpacity = theme === 'dark' ? 0.2 : 0.3;
+    const viewportColor = theme === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
+    const ribbonOpacity = theme === 'dark' ? 0.15 : 0.25;
+
+    // Create container group with proper positioning
+    const container = miniMap.append("g")
+      .attr("transform", `translate(${translationX}, ${translationY})`);
 
     // Create mini-map background
-    miniMap.append("rect")
+    container.append("rect")
       .attr("width", dimensions.width * scale)
       .attr("height", dimensions.height * scale)
       .attr("fill", backgroundColor)
       .attr("stroke", borderColor)
       .attr("stroke-width", 1);
 
-    // Draw chromosomes in mini-map
-    const miniG = miniMap.append("g")
+    // Create visualization group
+    const miniG = container.append("g")
       .attr("transform", `scale(${scale})`);
 
-    // Clone and simplify main visualization for mini-map
-    const mainSvg = d3.select(mainSvgRef.current);
-    const clone = mainSvg.node()?.cloneNode(true) as SVGElement;
-    const simplified = d3.select(clone).select("g");
-    
-    // Remove unnecessary elements and adjust opacity for theme
-    simplified.selectAll("text").remove();
-    simplified.selectAll(".synteny-ribbon")
-      .attr("opacity", ribbonOpacity)
-      .attr("stroke", theme === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)');
+    // Clone and simplify main visualization
+    const mainContent = mainSvgRef.current.querySelector("g");
+    if (mainContent) {
+      const clone = mainContent.cloneNode(true) as SVGGElement;
+      
+      // Adjust visual properties for mini-map
+      d3.select(clone)
+        .selectAll("text, .gene-annotation, .tooltip")
+        .remove();
+      
+      d3.select(clone)
+        .selectAll(".synteny-ribbon")
+        .attr("opacity", ribbonOpacity)
+        .attr("stroke-width", 0.5);
 
-    // Adjust chromosome colors for theme
-    simplified.selectAll(".chromosome")
-      .attr("stroke", theme === 'dark' ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.2)');
+      d3.select(clone)
+        .selectAll(".chromosome")
+        .attr("stroke-width", 0.5)
+        .attr("stroke", theme === 'dark' ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.3)');
 
-    miniG.node()?.appendChild(clone);
+      miniG.node()?.appendChild(clone);
+    }
 
-    // Update drag behavior
-    const dragBehavior = d3.drag()
+    // Add viewport rectangle
+    const viewport = container.append("rect")
+      .attr("class", "viewport-rect")
+      .attr("width", viewportRect.width * scale)
+      .attr("height", viewportRect.height * scale)
+      .attr("x", viewportRect.x * scale)
+      .attr("y", viewportRect.y * scale)
+      .attr("fill", "none")
+      .attr("stroke", viewportColor)
+      .attr("stroke-width", 1)
+      .style("pointer-events", "none");
+
+    // Update drag behavior with improved positioning
+    const dragBehavior = d3.drag<SVGSVGElement, unknown>()
       .on("drag", (event) => {
         if (!zoomBehaviorRef.current) return;
         
-        const x = event.x / scale;
-        const y = event.y / scale;
+        const x = (event.x - translationX) / scale;
+        const y = (event.y - translationY) / scale;
+        
+        // Ensure we stay within bounds
+        const boundedX = Math.max(0, Math.min(x, dimensions.width - viewportRect.width));
+        const boundedY = Math.max(0, Math.min(y, dimensions.height - viewportRect.height));
         
         const transform = d3.zoomIdentity
-          .translate(-x * zoom, -y * zoom)
+          .translate(-boundedX * zoom, -boundedY * zoom)
           .scale(zoom);
 
-        mainSvg
+        d3.select(mainSvgRef.current)
           .transition()
           .duration(0)
           .call(zoomBehaviorRef.current.transform, transform);
       });
 
-    miniMap.call(dragBehavior as any);
-
+    miniMap.call(dragBehavior);
   }, [viewportRect, zoom, dimensions, width, height, mainSvgRef, zoomBehaviorRef, theme]);
 
   return (

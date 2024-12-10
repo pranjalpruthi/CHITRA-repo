@@ -263,6 +263,10 @@ export function ChromosomeSynteny({
   // Add ref for tracking current transform
   const currentTransformRef = useRef<d3.ZoomTransform>(d3.zoomIdentity);
 
+  // Add these refs for handling continuous pan
+  const panIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const isPanningRef = useRef(false);
+
   const filterSyntenyData = (data: SyntenyData[]) => {
     // First filter by selected chromosomes
     let filteredData = data;
@@ -318,12 +322,16 @@ export function ChromosomeSynteny({
         height: newHeight
       });
     } else {
-      setDimensions({
-        x: 0,
-        y: 0,
-        width: viewport.width,
-        height: viewport.height
-      });
+      // Reset to container dimensions when exiting fullscreen
+      if (containerRef.current) {
+        const rect = containerRef.current.getBoundingClientRect();
+        setDimensions({
+          x: 0,
+          y: 0,
+          width: rect.width,
+          height: rect.height
+        });
+      }
     }
   }, [viewport, containerRef]);
 
@@ -556,12 +564,12 @@ export function ChromosomeSynteny({
     URL.revokeObjectURL(downloadLink.href);
   }, [svgRef]);
 
-  // Add pan handlers
+  // Modify the handlePan function to support continuous movement
   const handlePan = useCallback((direction: 'up' | 'down' | 'left' | 'right') => {
     if (!svgRef.current || !zoomBehaviorRef.current) return;
 
     const currentTransform = d3.zoomTransform(svgRef.current);
-    const panAmount = 100; // Increased from 50 to 100 for larger movements
+    const panAmount = 50; // Reduced for smoother continuous movement
     
     let newX = currentTransform.x;
     let newY = currentTransform.y;
@@ -587,10 +595,30 @@ export function ChromosomeSynteny({
 
     d3.select(svgRef.current)
       .transition()
-      .duration(300) // Increased from 200 to 300ms
-      .ease(d3.easeCubicOut) // Added easing function for smoother motion
+      .duration(100) // Reduced for smoother continuous movement
+      .ease(d3.easeLinear) // Changed to linear for continuous movement
       .call(zoomBehaviorRef.current.transform, newTransform);
   }, [svgRef, zoomBehaviorRef]);
+
+  // Add these handlers for continuous pan
+  const startContinuousPan = useCallback((direction: 'up' | 'down' | 'left' | 'right') => {
+    if (isPanningRef.current) return;
+    
+    isPanningRef.current = true;
+    handlePan(direction);
+    
+    panIntervalRef.current = setInterval(() => {
+      handlePan(direction);
+    }, 50); // Adjust interval for smooth movement
+  }, [handlePan]);
+
+  const stopContinuousPan = useCallback(() => {
+    if (panIntervalRef.current) {
+      clearInterval(panIntervalRef.current);
+      panIntervalRef.current = null;
+    }
+    isPanningRef.current = false;
+  }, []);
 
   // Add keyboard event handler
   useEffect(() => {
@@ -614,6 +642,32 @@ export function ChromosomeSynteny({
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [handlePan]);
+
+  useEffect(() => {
+    const handleResize = () => {
+      if (!svgRef.current) return;
+
+      const containerWidth = containerRef.current?.offsetWidth || 800;
+      const containerHeight = containerRef.current?.offsetHeight || 600;
+
+      setDimensions({
+        x: 0,
+        y: 0,
+        width: containerWidth,
+        height: containerHeight
+      });
+
+      // Update the SVG viewBox to match the new dimensions
+      d3.select(svgRef.current)
+        .attr("viewBox", `0 0 ${containerWidth} ${containerHeight}`)
+        .attr("preserveAspectRatio", "xMidYMid meet");
+    };
+
+    window.addEventListener('resize', handleResize);
+    handleResize(); // Initial call to set dimensions
+
+    return () => window.removeEventListener('resize', handleResize);
+  }, [svgRef, containerRef]);
 
   useEffect(() => {
     if (!svgRef.current || !containerRef.current) return;
@@ -698,8 +752,20 @@ export function ChromosomeSynteny({
       });
     });
 
-    // Modified ribbon drawing code
-    const filteredData = filteredSyntenyData;
+    // Use filtered synteny data
+    const filteredData = filteredSyntenyData.filter(link => {
+      const refChr = `ref:${link.ref_chr}`;
+      const queryChr = `${link.query_name}:${link.query_chr}`;
+      
+      // If no chromosomes are selected, show all
+      if (selectedChromosomes.length === 0) return true;
+      
+      // Only show ribbons between selected chromosomes
+      return selectedChromosomes.includes(refChr) && 
+             selectedChromosomes.includes(queryChr);
+    });
+
+    // Render filtered ribbons
     filteredData.forEach(link => {
       const sourceSpecies = link.ref_species;
       const targetSpecies = link.query_name;
@@ -736,6 +802,7 @@ export function ChromosomeSynteny({
         ),
         onSelect: onSyntenySelect,
         zoomBehaviorRef,
+        selectedChromosomes,
       });
     });
 
@@ -823,206 +890,281 @@ export function ChromosomeSynteny({
     selectedSynteny, 
     onSyntenySelect,
     referenceGenomeData,
-    showAnnotations
+    showAnnotations,
+    selectedChromosomes,
   ]);
+
+  // Add window resize handler
+  useEffect(() => {
+    const handleResize = () => {
+      if (!containerRef.current) return;
+      
+      // Update dimensions based on fullscreen state
+      if (document.fullscreenElement) {
+        const screenWidth = window.innerWidth;
+        const screenHeight = window.innerHeight;
+        
+        const aspectRatio = viewport.width / viewport.height;
+        let newWidth = screenWidth;
+        let newHeight = screenWidth / aspectRatio;
+        
+        if (newHeight > screenHeight) {
+          newHeight = screenHeight;
+          newWidth = screenHeight * aspectRatio;
+        }
+        
+        setDimensions({
+          x: 0,
+          y: 0,
+          width: newWidth,
+          height: newHeight
+        });
+      } else {
+        const rect = containerRef.current.getBoundingClientRect();
+        setDimensions({
+          x: 0,
+          y: 0,
+          width: rect.width,
+          height: rect.height
+        });
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [viewport, containerRef]);
 
   return (
     <div 
       ref={containerRef}
       className={cn(
-        "relative w-full h-full flex flex-col",
-        isFullscreen && "fixed inset-0 bg-background/95 backdrop-blur-sm z-50"
+        "relative w-full h-full overflow-hidden",
+        isFullscreen && "fixed inset-0 z-50"
       )}
     >
-      {/* Header Controls */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        {/* Left Side Controls */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 w-full sm:w-auto">
-          {/* Alignment Filter Buttons */}
-          <div className="flex items-center gap-1.5">
-            <AlignmentFilterButton
-              filter="all"
-              currentFilter={alignmentFilter}
-              onClick={setAlignmentFilter}
-              icon={ArrowLeftRight}
-              label="All"
-              iconOnly={true}
-            />
-            <AlignmentFilterButton
-              filter="forward"
-              currentFilter={alignmentFilter}
-              onClick={setAlignmentFilter}
-              icon={ArrowRight}
-              label="Forward"
-            />
-            <AlignmentFilterButton
-              filter="reverse"
-              currentFilter={alignmentFilter}
-              onClick={setAlignmentFilter}
-              icon={ArrowLeft}
-              label="Reverse"
-            />
-          </div>
+      <div className={cn(
+        "absolute inset-0 transition-opacity duration-200",
+        isFullscreen ? "opacity-100 backdrop-blur-md" : "opacity-0"
+      )} />
 
-          {/* Bottom Controls Row */}
-          <div className="flex items-center gap-4 w-full sm:w-auto">
-            <div className="flex items-center gap-1.5">
-              <Switch
-                id="annotations-mode"
-                checked={showAnnotations}
-                onCheckedChange={setShowAnnotations}
-                className="scale-75"
-              />
-              <Label htmlFor="annotations-mode" className="text-xs text-muted-foreground whitespace-nowrap">
-                Annotations
-              </Label>
-            </div>
-
-            <Badge variant="secondary" className="text-xs whitespace-nowrap">
-              {Math.round(zoom * 100)}%
-            </Badge>
-          </div>
-        </div>
-        
-        {/* Right Side Controls */}
-        <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleSaveAsSVG}
-            className="h-8 w-8 p-0"
-            title="Save as SVG"
-          >
-            <Save className="h-4 w-4" />
-          </Button>
-          <div className="flex items-center gap-1">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={onZoomOut}
-              className="h-8 w-8 p-0"
-            >
-              <ZoomOut className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={onReset}
-              className="h-8 w-8 p-0"
-            >
-              <RefreshCw className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={onZoomIn}
-              className="h-8 w-8 p-0"
-            >
-              <ZoomIn className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={onFullscreen}
-              className="h-8 w-8 p-0"
-            >
-              {isFullscreen ? (
-                <Minimize2 className="h-4 w-4" />
-              ) : (
-                <Maximize2 className="h-4 w-4" />
-              )}
-            </Button>
-          </div>
-        </div>
-      </div>
-
-      {/* Main Content Area */}
-      <div className="relative flex-1 min-h-0">
+      <div className={cn(
+        "relative w-full h-full z-10",
+        isFullscreen && "bg-background/5"
+      )}>
+        {/* Header Controls */}
         <div className={cn(
-          "w-full h-full",
-          isFullscreen && "h-[calc(100vh-8rem)]"
+          "absolute top-0 left-0 right-0 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 border-b border-border/20",
+          "bg-background/10 backdrop-blur-md z-10"
         )}>
-          <svg
-            ref={svgRef}
-            width={width}
-            height={height}
-            viewBox="0 0 1400 800"
-            preserveAspectRatio="xMidYMid meet"
-            className={cn(
-              "w-full h-full",
-              isFullscreen && "max-w-[95vw] max-h-[95vh]"
-            )}
-            style={{ 
-              aspectRatio: '16/9'
-            }}
-          />
+          {/* Left Side Controls */}
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 w-full sm:w-auto">
+            {/* Alignment Filter Buttons */}
+            <div className="flex items-center gap-1.5">
+              <AlignmentFilterButton
+                filter="all"
+                currentFilter={alignmentFilter}
+                onClick={setAlignmentFilter}
+                icon={ArrowLeftRight}
+                label="All"
+                iconOnly={true}
+              />
+              <AlignmentFilterButton
+                filter="forward"
+                currentFilter={alignmentFilter}
+                onClick={setAlignmentFilter}
+                icon={ArrowRight}
+                label="Forward"
+              />
+              <AlignmentFilterButton
+                filter="reverse"
+                currentFilter={alignmentFilter}
+                onClick={setAlignmentFilter}
+                icon={ArrowLeft}
+                label="Reverse"
+              />
+            </div>
+
+            {/* Bottom Controls Row */}
+            <div className="flex items-center gap-4 w-full sm:w-auto">
+              <div className="flex items-center gap-1.5">
+                <Switch
+                  id="annotations-mode"
+                  checked={showAnnotations}
+                  onCheckedChange={setShowAnnotations}
+                  className="scale-75"
+                />
+                <Label htmlFor="annotations-mode" className="text-xs text-muted-foreground whitespace-nowrap">
+                  Annotations
+                </Label>
+              </div>
+
+              <Badge variant="secondary" className="text-xs whitespace-nowrap">
+                {Math.round(zoom * 100)}%
+              </Badge>
+            </div>
+          </div>
           
-          <MiniMap
-            mainSvgRef={svgRef}
-            zoomBehaviorRef={zoomBehaviorRef}
-            viewportRect={viewport}
-            dimensions={dimensions}
-            zoom={zoom}
-            isFullscreen={isFullscreen}
-          />
-
-          <Tooltip info={debouncedHoverInfo} />
-
-          {hoveredGene && (
-            <GeneTooltip
-              gene={hoveredGene.gene}
-              x={hoveredGene.x}
-              y={hoveredGene.y}
-            />
-          )}
+          {/* Right Side Controls */}
+          <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleSaveAsSVG}
+              className="h-8 w-8 p-0"
+              title="Save as SVG"
+            >
+              <Save className="h-4 w-4" />
+            </Button>
+            <div className="flex items-center gap-1">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={onZoomOut}
+                className="h-8 w-8 p-0"
+              >
+                <ZoomOut className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={onReset}
+                className="h-8 w-8 p-0"
+              >
+                <RefreshCw className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={onZoomIn}
+                className="h-8 w-8 p-0"
+              >
+                <ZoomIn className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={onFullscreen}
+                className="h-8 w-8 p-0"
+              >
+                {isFullscreen ? (
+                  <Minimize2 className="h-4 w-4" />
+                ) : (
+                  <Maximize2 className="h-4 w-4" />
+                )}
+              </Button>
+            </div>
+          </div>
         </div>
 
-        {/* Add Pan Controls */}
-        <div className="absolute left-4 bottom-4 z-10">
-          <div className="inline-grid w-fit grid-cols-3 gap-1">
-            <div></div>
-            <Button
-              variant="outline"
-              size="icon"
-              aria-label="Pan camera up"
-              onClick={() => handlePan('up')}
-              className="h-8 w-8"
-            >
-              <ChevronUp className="h-4 w-4" />
-            </Button>
-            <div></div>
-            <Button
-              variant="outline"
-              size="icon"
-              aria-label="Pan camera left"
-              onClick={() => handlePan('left')}
-              className="h-8 w-8"
-            >
-              <ChevronLeft className="h-4 w-4" />
-            </Button>
-            <div className="flex items-center justify-center">
-              <Circle className="h-4 w-4 opacity-60" />
+        {/* Main Content Area */}
+        <div className="relative flex-1 h-[calc(100%)]">
+          <div className="w-full h-full">
+            <svg
+              ref={svgRef}
+              className={cn(
+                "w-full h-full",
+                isFullscreen && "w-screen h-screen"
+              )}
+              viewBox={`0 0 ${width} ${height}`}
+              preserveAspectRatio="xMidYMid meet"
+            />
+            
+            <div className="absolute bottom-20 right-4 z-20">
+              <MiniMap
+                mainSvgRef={svgRef}
+                zoomBehaviorRef={zoomBehaviorRef}
+                viewportRect={viewport}
+                dimensions={dimensions}
+                zoom={zoom}
+                isFullscreen={isFullscreen}
+              />
             </div>
-            <Button
-              variant="outline"
-              size="icon"
-              aria-label="Pan camera right"
-              onClick={() => handlePan('right')}
-              className="h-8 w-8"
-            >
-              <ChevronRight className="h-4 w-4" />
-            </Button>
-            <div></div>
-            <Button
-              variant="outline"
-              size="icon"
-              aria-label="Pan camera down"
-              onClick={() => handlePan('down')}
-              className="h-8 w-8"
-            >
-              <ChevronDown className="h-4 w-4" />
-            </Button>
-            <div></div>
+
+            <Tooltip info={debouncedHoverInfo} />
+
+            {hoveredGene && (
+              <GeneTooltip
+                gene={hoveredGene.gene}
+                x={hoveredGene.x}
+                y={hoveredGene.y}
+              />
+            )}
+
+            <div className="absolute left-4 bottom-20 z-20">
+              <div className="inline-grid w-fit grid-cols-3 gap-1">
+                <div></div>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  aria-label="Pan camera up"
+                  onMouseDown={() => startContinuousPan('up')}
+                  onMouseUp={stopContinuousPan}
+                  onMouseLeave={stopContinuousPan}
+                  onTouchStart={() => startContinuousPan('up')}
+                  onTouchEnd={stopContinuousPan}
+                  className={cn(
+                    "h-8 w-8 transition-colors",
+                    isPanningRef.current && "bg-blue-500/10 border-blue-500/50"
+                  )}
+                >
+                  <ChevronUp className="h-4 w-4" />
+                </Button>
+                <div></div>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  aria-label="Pan camera left"
+                  onMouseDown={() => startContinuousPan('left')}
+                  onMouseUp={stopContinuousPan}
+                  onMouseLeave={stopContinuousPan}
+                  onTouchStart={() => startContinuousPan('left')}
+                  onTouchEnd={stopContinuousPan}
+                  className={cn(
+                    "h-8 w-8 transition-colors",
+                    isPanningRef.current && "bg-blue-500/10 border-blue-500/50"
+                  )}
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+                <div className="flex items-center justify-center">
+                  <Circle className="h-4 w-4 opacity-60" />
+                </div>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  aria-label="Pan camera right"
+                  onMouseDown={() => startContinuousPan('right')}
+                  onMouseUp={stopContinuousPan}
+                  onMouseLeave={stopContinuousPan}
+                  onTouchStart={() => startContinuousPan('right')}
+                  onTouchEnd={stopContinuousPan}
+                  className={cn(
+                    "h-8 w-8 transition-colors",
+                    isPanningRef.current && "bg-blue-500/10 border-blue-500/50"
+                  )}
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+                <div></div>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  aria-label="Pan camera down"
+                  onMouseDown={() => startContinuousPan('down')}
+                  onMouseUp={stopContinuousPan}
+                  onMouseLeave={stopContinuousPan}
+                  onTouchStart={() => startContinuousPan('down')}
+                  onTouchEnd={stopContinuousPan}
+                  className={cn(
+                    "h-8 w-8 transition-colors",
+                    isPanningRef.current && "bg-blue-500/10 border-blue-500/50"
+                  )}
+                >
+                  <ChevronDown className="h-4 w-4" />
+                </Button>
+                <div></div>
+              </div>
+            </div>
           </div>
         </div>
       </div>

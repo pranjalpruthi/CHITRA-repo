@@ -199,23 +199,63 @@ export function SyntenyTable({ selectedSynteny, onToggleSelection, onExport }: S
         className="fixed bottom-8 right-8 z-50"
       >
         <div className="relative">
-          <div className="absolute inset-0 bg-indigo-300/30 dark:bg-blue-500/30 blur-2xl rounded-2xl" />
-          <div className="absolute inset-0 bg-blue-300/20 dark:bg-blue-400/20 blur-xl rounded-2xl" />
+          <div className="absolute inset-0 rounded-full bg-gradient-to-r from-indigo-500/20 to-blue-500/20 blur-xl animate-pulse" />
+          <div className="absolute inset-0 rounded-full bg-gradient-to-r from-blue-500/20 to-cyan-500/20 blur-lg animate-pulse delay-75" />
           
           <Button
             onClick={() => setIsOpen(!isOpen)}
-            className="relative bg-white/90 dark:bg-black/50 backdrop-blur-md border-[1.5px] border-indigo-200 dark:border-white/20 rounded-2xl px-4 py-2 shadow-lg hover:shadow-xl transition-all duration-300 cursor-grab active:cursor-grabbing h-auto"
+            className={cn(
+              "relative h-14 w-14 rounded-full p-0 overflow-hidden",
+              "bg-white/90 dark:bg-black/50 backdrop-blur-md",
+              "border-2 border-indigo-200/50 dark:border-white/20",
+              "shadow-lg hover:shadow-xl transition-all duration-300",
+              "cursor-grab active:cursor-grabbing",
+              hasNewSelection && "ring-2 ring-blue-500 ring-offset-2 dark:ring-offset-gray-950"
+            )}
           >
-            <div className="flex items-center gap-2 text-gray-700 dark:text-white">
-              <TableIcon className="h-4 w-4" />
-              <span className="text-sm font-medium">Selected Blocks</span>
+            <div className="relative flex items-center justify-center">
+              <TableIcon className="h-5 w-5 text-gray-700 dark:text-white" />
+              
               {selectedSynteny.length > 0 && (
-                <Badge variant="secondary" className="ml-1">
-                  {selectedSynteny.length}
-                </Badge>
+                <motion.div
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  className="absolute -top-1 -right-1"
+                >
+                  <Badge 
+                    variant="secondary"
+                    className={cn(
+                      "h-5 min-w-5 rounded-full px-1.5 flex items-center justify-center",
+                      "bg-blue-500 text-white border-2 border-white dark:border-gray-950",
+                      "text-xs font-semibold"
+                    )}
+                  >
+                    {selectedSynteny.length}
+                  </Badge>
+                </motion.div>
               )}
             </div>
           </Button>
+
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span className="sr-only">Selected Blocks</span>
+              </TooltipTrigger>
+              <TooltipContent 
+                side="left"
+                className="flex items-center gap-2 bg-white/90 dark:bg-gray-950/90 backdrop-blur-sm"
+              >
+                <TableIcon className="h-4 w-4" />
+                <span>Selected Blocks</span>
+                {selectedSynteny.length > 0 && (
+                  <Badge variant="secondary">
+                    {selectedSynteny.length}
+                  </Badge>
+                )}
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         </div>
       </motion.div>
     </>

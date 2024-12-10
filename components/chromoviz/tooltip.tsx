@@ -7,6 +7,14 @@ import { ArrowRight, ArrowLeft } from "lucide-react";
 import { ChromosomeData, SyntenyData, GeneAnnotation } from "@/app/types";
 import React from "react";
 
+const glassEffect = cn(
+  "bg-gradient-to-br from-white/90 to-white/80 dark:from-gray-950/90 dark:to-gray-950/80",
+  "backdrop-blur-md",
+  "border border-white/20 dark:border-gray-800/20",
+  "shadow-lg shadow-black/5",
+  "hover:shadow-xl transition-shadow duration-300"
+);
+
 export function getChromosomeTooltip(chr: ChromosomeData): JSX.Element {
   const mbSize = (chr.chr_size_bp / 1_000_000).toFixed(2);          
   const centromereInfo = chr.centromere_start && chr.centromere_end
@@ -310,12 +318,12 @@ export function Tooltip({ info }: { info: any }) {
   const tooltipVariants = {
     hidden: { 
       opacity: 0, 
-      y: 20,
+      x: -20,
       scale: 0.95
     },
     visible: { 
       opacity: 1, 
-      y: 0,
+      x: 0,
       scale: 1,
       transition: {
         type: "spring",
@@ -326,7 +334,7 @@ export function Tooltip({ info }: { info: any }) {
     },
     exit: { 
       opacity: 0, 
-      y: 20,
+      x: -20,
       scale: 0.95,
       transition: {
         duration: 0.2
@@ -361,12 +369,15 @@ export function Tooltip({ info }: { info: any }) {
             animate="visible"
             exit="exit"
             className={cn(
-              "fixed bottom-4 left-1/2 transform -translate-x-1/2 z-50",
-              "bg-white dark:bg-gray-950 rounded-lg shadow-lg",
-              "border border-border dark:border-gray-800"
+              "fixed left-4 z-[90]",
+              "bottom-[calc(4rem+theme(space.8))]",
+              "w-[calc(100vw-2rem)] sm:w-auto",
+              "min-w-[280px] max-w-[350px]",
+              glassEffect,
+              "rounded-lg"
             )}
           >
-            <div className="p-4 text-sm whitespace-pre-line dark:text-gray-100">
+            <div className="p-2 sm:p-3 text-sm whitespace-pre-line">
               {info.content}
             </div>
           </motion.div>
@@ -375,7 +386,7 @@ export function Tooltip({ info }: { info: any }) {
     );
   }
 
-  // Handle gene data content
+  // Handle gene data content with more compact layout
   return (
     <AnimatePresence>
       {info.isOpen && (
@@ -385,78 +396,75 @@ export function Tooltip({ info }: { info: any }) {
           animate="visible"
           exit="exit"
           className={cn(
-            "fixed bottom-4 left-1/2 transform -translate-x-1/2 z-50",
-            "bg-white dark:bg-gray-950 rounded-lg shadow-lg",
-            "border border-border dark:border-gray-800"
+            "fixed left-4 z-[90]",
+            "bottom-[calc(4rem+theme(space.8))]",
+            "w-[calc(100vw-2rem)] sm:w-auto",
+            "min-w-[280px] max-w-[350px]",
+            glassEffect,
+            "rounded-lg"
           )}
         >
-          <div className="p-4 space-y-3">
-            <motion.div 
-              variants={contentVariants}
-              custom={0}
-              className="flex items-center justify-between gap-2"
-            >
-              <span className="font-medium text-lg dark:text-gray-100">
-                {geneData?.symbol}
-              </span>
-              <Badge 
-                variant="outline"
-                className={cn(
-                  "transition-all duration-300 flex items-center gap-1",
-                  geneData?.strand === '+' 
-                    ? "bg-red-100 text-red-800 dark:bg-red-950/50 dark:text-red-300 dark:border-red-800/30" 
-                    : "bg-blue-100 text-blue-800 dark:bg-blue-950/50 dark:text-blue-300 dark:border-blue-800/30"
-                )}
-              >
-                {geneData?.strand === '+' ? (
-                  <>
-                    Forward <ArrowRight className="h-3 w-3" />
-                  </>
-                ) : (
-                  <>
-                    <ArrowLeft className="h-3 w-3" /> Reverse
-                  </>
-                )}
-              </Badge>
-            </motion.div>
-
-            {geneData?.isCluster && (
-              <motion.div
+          <div className="p-2 sm:p-3 text-sm whitespace-pre-line">
+            <div className="p-3 space-y-2">
+              <motion.div 
                 variants={contentVariants}
-                custom={1}
-                className="flex items-center gap-2"
+                custom={0}
+                className="flex items-center justify-between gap-2"
               >
+                <span className="font-medium text-base dark:text-gray-100">
+                  {geneData?.symbol}
+                </span>
                 <Badge 
                   variant="outline"
-                  className="bg-indigo-100 text-indigo-800 dark:bg-indigo-950/50 dark:text-indigo-300 dark:border-indigo-800/30"
+                  className={cn(
+                    "text-xs py-0",
+                    geneData?.strand === '+' 
+                      ? "bg-red-100/80 text-red-800 dark:bg-red-950/50 dark:text-red-300" 
+                      : "bg-blue-100/80 text-blue-800 dark:bg-blue-950/50 dark:text-blue-300"
+                  )}
                 >
-                  🔍 Cluster of {geneData.geneCount} genes
+                  {geneData?.strand === '+' ? 'Forward →' : '← Reverse'}
                 </Badge>
               </motion.div>
-            )}
 
-            <motion.div
-              variants={contentVariants}
-              custom={2}
-              className="space-y-2 text-sm text-muted-foreground dark:text-gray-400"
-            >
-              <div className="flex items-center gap-2">
-                <Badge 
-                  variant="outline"
-                  className="bg-gray-100 text-gray-800 dark:bg-gray-900/50 dark:text-gray-300 dark:border-gray-700"
+              {geneData?.isCluster && (
+                <motion.div
+                  variants={contentVariants}
+                  custom={1}
+                  className="flex items-center gap-2"
                 >
-                  {geneData?.class}
-                </Badge>
-                <span>{geneData?.position} Mb</span>
-              </div>
-              {geneData?.name && (
-                <div className="dark:text-gray-300">Name: {geneData.name}</div>
+                  <Badge 
+                    variant="outline"
+                    className="bg-indigo-100 text-indigo-800 dark:bg-indigo-950/50 dark:text-indigo-300 dark:border-indigo-800/30"
+                  >
+                    🔍 Cluster of {geneData.geneCount} genes
+                  </Badge>
+                </motion.div>
               )}
-              {geneData?.locus_tag && (
-                <div className="dark:text-gray-300">Locus: {geneData.locus_tag}</div>
-              )}
-              <div className="dark:text-gray-300">ID: {geneData.GeneID}</div>
-            </motion.div>
+
+              <motion.div
+                variants={contentVariants}
+                custom={2}
+                className="space-y-2 text-sm text-muted-foreground dark:text-gray-400"
+              >
+                <div className="flex items-center gap-2">
+                  <Badge 
+                    variant="outline"
+                    className="bg-gray-100 text-gray-800 dark:bg-gray-900/50 dark:text-gray-300 dark:border-gray-700"
+                  >
+                    {geneData?.class}
+                  </Badge>
+                  <span>{geneData?.position} Mb</span>
+                </div>
+                {geneData?.name && (
+                  <div className="dark:text-gray-300">Name: {geneData.name}</div>
+                )}
+                {geneData?.locus_tag && (
+                  <div className="dark:text-gray-300">Locus: {geneData.locus_tag}</div>
+                )}
+                <div className="dark:text-gray-300">ID: {geneData.GeneID}</div>
+              </motion.div>
+            </div>
           </div>
         </motion.div>
       )}
@@ -496,104 +504,152 @@ export function HoverTooltip({
   selectedBlock,
   className 
 }: HoverTooltipProps) {
+  const tooltipVariants = {
+    hidden: { 
+      opacity: 0, 
+      y: 10,
+      scale: 0.95,
+      transition: {
+        type: "spring",
+        duration: 0.2
+      }
+    },
+    visible: { 
+      opacity: 1, 
+      y: 0,
+      scale: 1,
+      transition: {
+        type: "spring",
+        stiffness: 400,
+        damping: 30,
+        mass: 0.8
+      }
+    },
+    exit: { 
+      opacity: 0,
+      y: 10,
+      scale: 0.95,
+      transition: {
+        type: "spring",
+        duration: 0.15
+      }
+    }
+  };
+
+  // Calculate position and progress values
+  const getPositionDisplay = (position: number | undefined, size: number) => {
+    if (!position) return `${(size / 1_000_000).toFixed(2)} Mb total`;
+    const positionMb = Math.abs(position) / 1_000_000;
+    return `${positionMb.toFixed(2)} Mb`;
+  };
+
+  const getProgressWidth = (position: number | undefined, size: number) => {
+    if (!position) return 0;
+    const normalizedPosition = Math.abs(position) / size;
+    return Math.min(Math.max(normalizedPosition * 100, 0), 100);
+  };
+
   return (
     <AnimatePresence>
       {(hoveredBlock || hoveredChromosome) && (
         <motion.div
-          initial={{ opacity: 0, y: 20, scale: 0.95 }}
-          animate={{ 
-            opacity: 1, 
-            y: 0, 
-            scale: 1,
-            transition: {
-              type: "spring",
-              stiffness: 500,
-              damping: 25,
-              mass: 1
-            }
-          }}
-          exit={{ 
-            opacity: 0, 
-            y: 20, 
-            scale: 0.95,
-            transition: {
-              duration: 0.2
-            }
-          }}
+          variants={tooltipVariants}
+          initial="hidden"
+          animate="visible"
+          exit="exit"
           className={cn(
-            "fixed bottom-4 left-1/2 transform -translate-x-1/2 z-50",
-            "bg-white dark:bg-gray-950 rounded-lg shadow-lg",
-            "border border-border dark:border-gray-800",
+            "fixed left-4 z-[90]",
+            "bottom-[calc(4rem+theme(space.8))]",
+            "w-[calc(100vw-2rem)] sm:w-auto",
+            "min-w-[280px] max-w-[350px]",
+            glassEffect,
+            "rounded-lg",
+            "before:absolute before:inset-0 before:rounded-lg",
+            "before:bg-gradient-to-br before:from-blue-500/10 before:to-purple-500/10",
+            "before:dark:from-blue-500/5 before:dark:to-purple-500/5",
+            "transition-transform hover:scale-[1.02] active:scale-[0.98]",
             className
           )}
         >
-          <div className="space-y-4 p-4 min-w-[300px]">
+          <div className="relative space-y-3 p-3">
             {hoveredBlock && (
               <>
-                {/* Header */}
                 <div className="flex items-center justify-between">
                   <Badge 
                     variant="outline" 
-                    className="bg-gradient-to-r from-blue-50 to-purple-50 text-gray-800 dark:from-blue-950/30 dark:to-purple-950/30 dark:text-gray-100 dark:border-blue-800/30"
+                    className="bg-gradient-to-r from-blue-50 to-purple-50 text-gray-800 dark:from-blue-950/30 dark:to-purple-950/30 dark:text-gray-100 dark:border-blue-800/30 transition-colors hover:from-blue-100 hover:to-purple-100 dark:hover:from-blue-950/40 dark:hover:to-purple-950/40"
                   >
                     Syntenic Region
                   </Badge>
                   <Badge 
                     variant="secondary"
-                    className="bg-blue-100/50 text-blue-900 dark:bg-blue-950/50 dark:text-blue-100 dark:border-blue-800/30"
+                    className="bg-blue-100/50 text-blue-900 dark:bg-blue-950/50 dark:text-blue-100 dark:border-blue-800/30 transition-colors hover:bg-blue-200/50"
                   >
                     {((hoveredBlock.ref_end - hoveredBlock.ref_start) / 1_000_000).toFixed(2)} Mb
                   </Badge>
                 </div>
 
-                {/* Reference Section */}
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Badge variant="outline" className="bg-blue-50 text-blue-900 dark:bg-blue-950/50 dark:text-blue-100 dark:border-blue-800/30">
-                      Reference
-                    </Badge>
-                    <span className="text-sm text-muted-foreground">{hoveredBlock.ref_species} {hoveredBlock.ref_chr}</span>
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between group">
+                    <div className="flex items-center gap-2">
+                      <Badge 
+                        variant="outline" 
+                        className="bg-blue-50 text-blue-900 dark:bg-blue-950/50 dark:text-blue-100 dark:border-blue-800/30 transition-all group-hover:bg-blue-100"
+                      >
+                        Reference
+                      </Badge>
+                      <span className="text-sm text-muted-foreground group-hover:text-foreground transition-colors">
+                        {hoveredBlock.ref_species} {hoveredBlock.ref_chr}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <ArrowRight className="w-4 h-4 text-blue-500/50 group-hover:text-blue-500 transition-colors" />
+                      <Badge 
+                        variant="secondary" 
+                        className="bg-blue-100/50 dark:bg-blue-950/50 dark:text-blue-100 dark:border-blue-800/30 transition-colors group-hover:bg-blue-200/50"
+                      >
+                        {(hoveredBlock.ref_start / 1_000_000).toFixed(2)}-{(hoveredBlock.ref_end / 1_000_000).toFixed(2)} Mb
+                      </Badge>
+                    </div>
                   </div>
-                  <Badge variant="secondary" className="bg-blue-100/50 dark:bg-blue-950/50 dark:text-blue-100 dark:border-blue-800/30">
-                    {(hoveredBlock.ref_start / 1_000_000).toFixed(2)}-{(hoveredBlock.ref_end / 1_000_000).toFixed(2)} Mb
-                  </Badge>
                 </div>
               </>
             )}
             
             {hoveredChromosome && (
               <>
-                {/* Header */}
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between group">
                   <Badge 
                     variant="outline" 
-                    className="bg-gradient-to-r from-indigo-50 to-blue-50 text-gray-800 dark:from-indigo-950/30 dark:to-blue-950/30 dark:text-gray-100 dark:border-blue-800/30"
+                    className="bg-gradient-to-r from-indigo-50 to-blue-50 text-gray-800 dark:from-indigo-950/30 dark:to-blue-950/30 dark:text-gray-100 dark:border-blue-800/30 transition-all group-hover:from-indigo-100 group-hover:to-blue-100"
                   >
                     {hoveredChromosome.isRef ? 'Reference Position' : 'Query Position'}
                   </Badge>
                   <Badge 
                     variant="secondary"
-                    className="bg-blue-100/50 text-blue-900 dark:bg-blue-950/50 dark:text-blue-100 dark:border-blue-800/30"
+                    className="bg-blue-100/50 text-blue-900 dark:bg-blue-950/50 dark:text-blue-100 dark:border-blue-800/30 transition-colors group-hover:bg-blue-200/50"
                   >
-                    {hoveredChromosome.position 
-                      ? `${(hoveredChromosome.position / 1_000_000).toFixed(2)} Mb`
-                      : `${(hoveredChromosome.size / 1_000_000).toFixed(2)} Mb total`
-                    }
+                    {getPositionDisplay(hoveredChromosome.position, hoveredChromosome.size)}
                   </Badge>
                 </div>
 
-                {/* Gene Info if available */}
                 {hoveredChromosome.gene && (
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between group p-2 rounded-md hover:bg-gray-50/50 dark:hover:bg-gray-900/30 transition-colors">
                     <div className="flex items-center gap-2">
-                      <Badge variant="outline" className="bg-gray-50 text-gray-800 dark:bg-gray-900/50 dark:text-gray-100 dark:border-gray-700">
+                      <Badge 
+                        variant="outline" 
+                        className="bg-gray-50 text-gray-800 dark:bg-gray-900/50 dark:text-gray-100 dark:border-gray-700 transition-colors group-hover:bg-gray-100"
+                      >
                         Gene
                       </Badge>
-                      <span className="text-sm font-medium dark:text-gray-200">
+                      <span className="text-sm font-medium dark:text-gray-200 group-hover:text-foreground transition-colors">
                         {hoveredChromosome.gene.symbol || 'Unknown'}
                       </span>
                     </div>
-                    <Badge variant="secondary" className="bg-gray-100/50 dark:bg-gray-900/50 dark:text-gray-100">
+                    <Badge 
+                      variant="secondary" 
+                      className="bg-gray-100/50 dark:bg-gray-900/50 dark:text-gray-100 transition-colors group-hover:bg-gray-200/50"
+                    >
                       {hoveredChromosome.gene.class || 'Unknown Type'}
                     </Badge>
                   </div>
@@ -601,17 +657,23 @@ export function HoverTooltip({
               </>
             )}
 
-            {/* Single Progress Bar */}
-            <div className="w-full bg-gray-100 dark:bg-gray-800 h-1.5 rounded-full overflow-hidden">
-              <div 
-                className="h-full bg-gradient-to-r from-blue-500 to-purple-500 dark:from-blue-600 dark:to-purple-600"
+            <div className="relative w-full bg-gray-100 dark:bg-gray-800 h-2 rounded-full overflow-hidden">
+              <motion.div 
+                className="absolute h-full bg-gradient-to-r from-blue-500 to-purple-500 dark:from-blue-600 dark:to-purple-600"
                 style={{ 
                   width: hoveredBlock 
                     ? `${((hoveredBlock.ref_end - hoveredBlock.ref_start) / hoveredBlock.ref_end) * 100}%`
-                    : `${(hoveredChromosome?.position || 0) / (hoveredChromosome?.size || 1) * 100}%`,
-                  transition: 'width 0.3s ease-in-out'
+                    : `${getProgressWidth(hoveredChromosome?.position, hoveredChromosome?.size || 1)}%`
                 }}
+                initial={{ width: "0%" }}
+                animate={{ 
+                  width: hoveredBlock 
+                    ? `${((hoveredBlock.ref_end - hoveredBlock.ref_start) / hoveredBlock.ref_end) * 100}%`
+                    : `${getProgressWidth(hoveredChromosome?.position, hoveredChromosome?.size || 1)}%`
+                }}
+                transition={{ type: "spring", stiffness: 300, damping: 30 }}
               />
+              <div className="absolute inset-0 bg-gradient-to-r from-white/10 to-transparent dark:from-white/5" />
             </div>
           </div>
         </motion.div>
