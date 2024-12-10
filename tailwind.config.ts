@@ -35,6 +35,11 @@ const config: Config = {
       },
       // Merging colors, borderRadius, keyframes, and animation from the second file
       colors: {
+        "color-1": "hsl(var(--color-1))",
+        "color-2": "hsl(var(--color-2))",
+        "color-3": "hsl(var(--color-3))",
+        "color-4": "hsl(var(--color-4))",
+        "color-5": "hsl(var(--color-5))",
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
@@ -138,6 +143,18 @@ const config: Config = {
             transform: "scale(1)",
           },
         },
+        aurora: {
+          from: {
+            backgroundPosition: "50% 50%, 50% 50%",
+          },
+          to: {
+            backgroundPosition: "350% 50%, 350% 50%",
+          },
+        },
+        rainbow: {
+          "0%": { "background-position": "0%" },
+          "100%": { "background-position": "200%" },
+        },
       },
       animation: {
         "logo-cloud": "logo-cloud 30s linear infinite", // Adjust duration and timing as needed for your design.
@@ -149,6 +166,8 @@ const config: Config = {
         "accordion-up": "accordion-up 0.2s ease-out",
         "border-beam": "border-beam calc(var(--duration)*1s) infinite linear",
         "background-shine": "background-shine 2s linear infinite",
+        aurora: "aurora 60s linear infinite",
+        rainbow: "rainbow var(--speed, 2s) infinite linear",
       },
     },
   },
@@ -156,6 +175,16 @@ const config: Config = {
   plugins: [
     require("tailwindcss-animate"), // Assuming require is resolved in your environment
     // Add other unique plugins here
+    function ({ addBase, theme }: any) {
+      let allColors = flattenColorPalette(theme("colors"));
+      let newVars = Object.fromEntries(
+        Object.entries(allColors).map(([key, val]) => [`--${key}`, val])
+      );
+
+      addBase({
+        ":root": newVars,
+      });
+    },
     function ({ matchUtilities, theme }: any) {
       matchUtilities(
         {
@@ -177,6 +206,24 @@ const config: Config = {
         },
         { values: flattenColorPalette(theme("backgroundColor")), type: "color" }
       );
+    },
+    function({ addBase }: any) {
+      addBase({
+        ":root": {
+          "--color-1": "240deg 5% 96%",  // Light gray
+          "--color-2": "240deg 5% 84%",  // Medium gray
+          "--color-3": "240deg 5% 65%",  // Dark gray
+          "--color-4": "240deg 5% 49%",  // Darker gray
+          "--color-5": "240deg 5% 34%",  // Darkest gray
+        },
+        ".dark": {
+          "--color-1": "0deg 0% 100%",   // White
+          "--color-2": "240deg 5% 84%",  // Light gray
+          "--color-3": "240deg 5% 65%",  // Medium gray
+          "--color-4": "240deg 5% 49%",  // Dark gray
+          "--color-5": "240deg 5% 34%",  // Darker gray
+        }
+      });
     },
   ],
 };

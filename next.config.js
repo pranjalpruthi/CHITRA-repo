@@ -26,6 +26,16 @@ const nextConfig = {
       hostname: 'utfs.io',
       port: '',
       pathname: '/**'
+    }, {
+      protocol: 'https',
+      hostname: 'pbs.twimg.com',
+      port: '',
+      pathname: '/**'
+    }, {
+      protocol: 'https',
+      hostname: 'i1.rgstatic.net',
+      port: '',
+      pathname: '/**'
     }]
   }
 };

@@ -48,6 +48,8 @@ function Breadcrumbs() {
 
 export default function NavBar() {
   const [isScrolled, setIsScrolled] = useState(false)
+  const pathname = usePathname()
+  const isHomePage = pathname === '/'
 
   useEffect(() => {
     const handleScroll = () => {
@@ -55,55 +57,82 @@ export default function NavBar() {
       setIsScrolled(scrollTop > 10)
     }
 
-    // Initial check
     handleScroll()
-    
-    // Add event listener
     window.addEventListener('scroll', handleScroll, { passive: true })
-    
-    // Cleanup
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
   return (
-    <div className="sticky top-0 z-40">
+    <div className="fixed top-0 left-0 right-0 z-50">
       <header 
         className={clsx(
           "w-full transition-all duration-200",
-          {
-            "border-b bg-background/80 backdrop-blur-xl supports-[backdrop-filter]:bg-background/60 shadow-sm": isScrolled,
-            "bg-background": !isScrolled
-          }
+          isHomePage ? [
+            "max-w-2xl mx-auto mt-4",
+            isScrolled 
+              ? "bg-background/60 backdrop-blur-xl border border-border/40 shadow-sm rounded-full"
+              : "bg-background/5 backdrop-blur-sm rounded-full"
+          ] : [
+            isScrolled 
+              ? "bg-background/60 backdrop-blur-xl border-b border-border/40"
+              : "bg-background/5 backdrop-blur-sm"
+          ]
         )}
       >
-        <div className="flex h-14 lg:h-[55px] items-center justify-between px-4 md:px-6 lg:px-8">
+        <div className={clsx(
+          "flex h-14 lg:h-[55px] items-center justify-between px-4 md:px-6 lg:px-8",
+          isHomePage && "px-6"
+        )}>
           {/* Left side - Logo and Title */}
           <div className="flex items-center gap-4">
-            <ShinyRotatingBorderButton className="!p-1.5 !px-3">
-              <span className="text-sm font-bold tracking-tight">CHITRA</span>
-            </ShinyRotatingBorderButton>
-            <p className="text-sm text-muted-foreground hidden md:block">
+            <Link href="/">
+              <ShinyRotatingBorderButton className={clsx(
+                "!p-1.5 !px-3",
+                isHomePage && "!border-0"
+              )}>
+                <span className="text-sm font-bold tracking-tight">CHITRA</span>
+              </ShinyRotatingBorderButton>
+            </Link>
+            <p className={clsx(
+              "text-sm text-muted-foreground hidden md:block",
+              isHomePage && "hidden"
+            )}>
               Chromosome Interactive Tool for Rearrangement Analysis
             </p>
           </div>
 
-          {/* Right side - Breadcrumbs, Info, Guide, Share, User Profile, and Dark Mode */}
+          {/* Right side content */}
           <div className="flex items-center gap-4">
-            <div className="hidden md:block">
+            <div className={clsx(
+              "hidden md:block",
+              isHomePage && "hidden"
+            )}>
               <Breadcrumbs />
             </div>
             <div className="flex items-center gap-2">
               <AboutSheet>
-                <Button variant="ghost" size="icon" className="h-8 w-8">
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="h-8 w-8 hover:bg-background/80"
+                >
                   <Info className="h-4 w-4" />
                 </Button>
               </AboutSheet>
               <GuideSheet>
-                <Button variant="ghost" size="icon" className="h-8 w-8">
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="h-8 w-8 hover:bg-background/80"
+                >
                   <BookOpen className="h-4 w-4" />
                 </Button>
               </GuideSheet>
-              {config?.auth?.enabled && <div className="hidden md:block"><UserProfile /></div>}
+              {config?.auth?.enabled && (
+                <div className="hidden md:block">
+                  <UserProfile />
+                </div>
+              )}
               <div className="hidden md:block">
                 <ShareDrawer />
               </div>

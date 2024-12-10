@@ -13,6 +13,7 @@ import { Share2, Twitter, Facebook, Copy, Send, Link as LinkIcon, Mail, Info } f
 import { toast } from "sonner"
 import { Separator } from "@/components/ui/separator"
 import React from 'react';
+import { motion } from 'framer-motion'
 
 export function ShareDrawer({ mobile = false }) {
   const [isOpen, setIsOpen] = React.useState(false)
@@ -74,7 +75,12 @@ Please cite this tool as:
         {trigger}
       </DrawerTrigger>
       <DrawerContent className="fixed bottom-0 left-0 right-0 rounded-t-[10px] bg-background/40 backdrop-blur-xl supports-[backdrop-filter]:bg-background/40">
-        <div className="mx-auto w-full max-w-none md:max-w-none px-4 pb-4">
+        <motion.div
+          className="mx-auto w-full max-w-none md:max-w-none px-4 pb-4"
+          initial={{ opacity: 0, y: 50 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+        >
           {/* Handle - only show on mobile */}
           <div className="sticky top-0 flex w-full items-center justify-center bg-transparent pt-4 md:hidden">
             <div className="h-1.5 w-12 rounded-full bg-muted" />
@@ -82,9 +88,9 @@ Please cite this tool as:
 
           <div className="h-[60vh] md:h-[50vh] overflow-y-auto overscroll-contain">
             <DrawerHeader className="mt-2">
-              <DrawerTitle className="text-xl font-medium">Share Chitra</DrawerTitle>
+              <DrawerTitle className="text-xl font-medium">Share Our Tool</DrawerTitle>
               <DrawerDescription className="text-sm text-muted-foreground">
-                Share Chitra with your colleagues or on social media
+                Share this tool with your colleagues or on social media
               </DrawerDescription>
             </DrawerHeader>
 
@@ -97,9 +103,12 @@ Please cite this tool as:
                     className="flex flex-col items-center gap-3 h-auto py-2 hover:bg-accent/50"
                     onClick={() => handleShare('twitter')}
                   >
-                    <div className="w-16 h-16 rounded-2xl bg-[#1DA1F2] flex items-center justify-center shadow-lg shadow-[#1DA1F2]/20">
+                    <motion.div
+                      className="w-16 h-16 rounded-2xl bg-[#1DA1F2] flex items-center justify-center shadow-lg shadow-[#1DA1F2]/40"
+                      whileHover={{ scale: 1.1 }}
+                    >
                       <Twitter className="h-8 w-8 text-white" />
-                    </div>
+                    </motion.div>
                     <span className="text-xs font-medium">Twitter</span>
                   </Button>
                   <Button
@@ -107,9 +116,12 @@ Please cite this tool as:
                     className="flex flex-col items-center gap-3 h-auto py-2 hover:bg-accent/50"
                     onClick={() => handleShare('facebook')}
                   >
-                    <div className="w-16 h-16 rounded-2xl bg-[#4267B2] flex items-center justify-center shadow-lg shadow-[#4267B2]/20">
+                    <motion.div
+                      className="w-16 h-16 rounded-2xl bg-[#4267B2] flex items-center justify-center shadow-lg shadow-[#4267B2]/40"
+                      whileHover={{ scale: 1.1 }}
+                    >
                       <Facebook className="h-8 w-8 text-white" />
-                    </div>
+                    </motion.div>
                     <span className="text-xs font-medium">Facebook</span>
                   </Button>
                   <Button
@@ -117,9 +129,12 @@ Please cite this tool as:
                     className="flex flex-col items-center gap-3 h-auto py-2 hover:bg-accent/50"
                     onClick={() => handleShare('email')}
                   >
-                    <div className="w-16 h-16 rounded-2xl bg-[#EA4335] flex items-center justify-center shadow-lg shadow-[#EA4335]/20">
+                    <motion.div
+                      className="w-16 h-16 rounded-2xl bg-[#EA4335] flex items-center justify-center shadow-lg shadow-[#EA4335]/40"
+                      whileHover={{ scale: 1.1 }}
+                    >
                       <Mail className="h-8 w-8 text-white" />
-                    </div>
+                    </motion.div>
                     <span className="text-xs font-medium">Email</span>
                   </Button>
                   <Button
@@ -127,9 +142,12 @@ Please cite this tool as:
                     className="flex flex-col items-center gap-3 h-auto py-2 hover:bg-accent/50"
                     onClick={() => handleShare('whatsapp')}
                   >
-                    <div className="w-16 h-16 rounded-2xl bg-[#25D366] flex items-center justify-center shadow-lg shadow-[#25D366]/20">
+                    <motion.div
+                      className="w-16 h-16 rounded-2xl bg-[#25D366] flex items-center justify-center shadow-lg shadow-[#25D366]/40"
+                      whileHover={{ scale: 1.1 }}
+                    >
                       <Send className="h-8 w-8 text-white" />
-                    </div>
+                    </motion.div>
                     <span className="text-xs font-medium">WhatsApp</span>
                   </Button>
                 </div>
@@ -144,9 +162,12 @@ Please cite this tool as:
                   className="w-full justify-start gap-4 h-14 hover:bg-accent/50"
                   onClick={() => handleShare('link')}
                 >
-                  <div className="w-10 h-10 rounded-xl bg-purple-500 flex items-center justify-center shadow-lg shadow-purple-500/20">
+                  <motion.div
+                    className="w-10 h-10 rounded-xl bg-purple-500 flex items-center justify-center shadow-lg shadow-purple-500/40"
+                    whileHover={{ scale: 1.1 }}
+                  >
                     <LinkIcon className="h-5 w-5 text-white" />
-                  </div>
+                  </motion.div>
                   <span className="font-medium">Copy Link</span>
                 </Button>
                 <Button
@@ -154,9 +175,12 @@ Please cite this tool as:
                   className="w-full justify-start gap-4 h-14 hover:bg-accent/50"
                   onClick={() => handleShare('copy')}
                 >
-                  <div className="w-10 h-10 rounded-xl bg-blue-500 flex items-center justify-center shadow-lg shadow-blue-500/20">
+                  <motion.div
+                    className="w-10 h-10 rounded-xl bg-blue-500 flex items-center justify-center shadow-lg shadow-blue-500/40"
+                    whileHover={{ scale: 1.1 }}
+                  >
                     <Copy className="h-5 w-5 text-white" />
-                  </div>
+                  </motion.div>
                   <span className="font-medium">Copy Citation</span>
                 </Button>
               </div>
@@ -170,7 +194,7 @@ Please cite this tool as:
                     <Info className="h-5 w-5" />
                   </div>
                   <div className="space-y-1">
-                    <p className="font-medium">About Chitra</p>
+                    <p className="font-medium">About Our Tool</p>
                     <p className="text-xs text-muted-foreground">
                       Version 1.0.0 • Apache 2.0 License • 2024
                     </p>
@@ -179,7 +203,7 @@ Please cite this tool as:
               </div>
             </div>
           </div>
-        </div>
+        </motion.div>
       </DrawerContent>
     </Drawer>
   )

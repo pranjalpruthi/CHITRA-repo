@@ -3,8 +3,8 @@
 import { useEffect, useRef, useState, useCallback, RefObject } from "react";
 import * as d3 from "d3";
 import { Button } from "@/components/ui/button";
-import { ZoomIn, ZoomOut, RefreshCw, Maximize2, Minimize2, Save, ChevronDown, ChevronLeft, ChevronRight, ChevronUp, Circle, ArrowUp, ArrowDown, ArrowUpDown, ArrowLeftRight, ArrowRight, ArrowLeft } from "lucide-react";
-import { ChromosomeData, SyntenyData, ReferenceGenomeData } from "./types";
+import { ZoomIn, ZoomOut, RefreshCw, Maximize2, Minimize2, Save, ChevronDown, ChevronLeft, ChevronRight, ChevronUp, Circle, ArrowUp, ArrowDown, ArrowUpDown, ArrowLeftRight, ArrowRight, ArrowLeft, Settings2 } from "lucide-react";
+import { ChromosomeData, SyntenyData, ReferenceGenomeData } from "../types";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import { useDebounce } from "use-debounce";
@@ -23,6 +23,16 @@ import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import React from "react";
+import { 
+  CHROMOSOME_CONFIG,
+  SYNTENY_COLORS,
+  GENE_TYPE_COLORS,
+  GENE_ANNOTATION_CONFIG,
+  type GeneAnnotation,
+  type GeneClass,
+  OPTIMIZATION_CONFIG
+} from "@/config/chromoviz.config";
+import { SettingsPanel } from "@/components/chromoviz/settings-panel";
 
 // First, add these type definitions at the top
 type D3Selection = d3.Selection<SVGSVGElement, unknown, null, undefined>;
@@ -68,73 +78,7 @@ interface ChromosomeSyntenyProps {
   selectedChromosomes: string[];
 }
 
-// Add biological constants
-const CHROMOSOME_CONFIG = {
-  HEIGHT: 24,
-  SPACING: 15,
-  TELOMERE_RADIUS: 12,
-  CENTROMERE_WIDTH: 20,
-  CENTROMERE_INDENT: 6,
-} as const;
-
-// Color configuration for biological meaning
-const SYNTENY_COLORS = {
-  FORWARD: '#2563eb1a', // Lighter blue with less opacity
-  REVERSE: '#dc26261a', // Lighter red with less opacity
-  BLOCK_FORWARD: '#2563eb',
-  BLOCK_REVERSE: '#dc2626',
-  STROKE_WIDTH: {
-    SMALL: 1.5,  // For blocks > 10Mb
-    MEDIUM: 2.5, // For blocks 5-10Mb
-    LARGE: 3.5   // For blocks < 5Mb
-  },
-  OPACITY: {
-    DEFAULT: 0.2,
-    HOVER: 0.8,
-    ACTIVE: 0.9
-  }
-} as const;
-
-// First, add these constants near the top with other configurations
-const GENE_TYPE_COLORS = {
-  gene: '#4ade80',       // Green
-  exon: '#2563eb',       // Blue
-  CDS: '#f43f5e',        // Red
-  pseudogene: '#a855f7'  // Purple
-} as const;
-
-// Add these constants near the top with other configurations
-const GENE_ANNOTATION_CONFIG = {
-  HEIGHT: 8,
-  SPACING: 2,
-  COLORS: {
-    transcribed_pseudogene: '#94a3b8', // slate-400
-    protein_coding: '#2563eb',         // blue-600
-    pseudogene: '#dc2626',            // red-600
-    ncRNA: '#16a34a',                 // green-600
-    tRNA: '#8b5cf6',                  // violet-500
-    rRNA: '#ec4899',                  // pink-500
-    default: '#6b7280'                // gray-500
-  }
-} as const;
-
 // Add this interface for gene annotations
-interface GeneAnnotation {
-  chromosome: string;
-  genomicAccession: string;
-  start: number;
-  end: number;
-  strand: '+' | '-';  // More specific than just string
-  class: GeneClass;   // Use the specific gene classes
-  locusTag?: string | null;
-  symbol?: string | null;
-  name?: string | null;
-  geneId: string;
-}
-
-// Add this type to ensure proper color mapping
-type GeneClass = keyof typeof GENE_ANNOTATION_CONFIG.COLORS;
-
 interface GeneAnnotationProps {
   gene: GeneAnnotation;
   xScale: d3.ScaleLinear<number, number>;
@@ -217,6 +161,23 @@ const AlignmentFilterButton = ({
   );
 };
 
+// Add this interface for visualization settings
+interface VisualizationConfig {
+  chromosomeHeight: number;
+  chromosomeSpacing: number;
+  annotationHeight: number;
+  annotationSpacing: number;
+  maxTracks: number;
+  minVisibleSize: number;
+  maxVisibleGenes: number;
+  clusteringThreshold: number;
+  showAnnotations: boolean;
+  geneColors: {
+    forward: string;
+    reverse: string;
+  };
+}
+
 export function ChromosomeSynteny({
   referenceData,
   syntenyData,
@@ -266,6 +227,30 @@ export function ChromosomeSynteny({
   // Add these refs for handling continuous pan
   const panIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const isPanningRef = useRef(false);
+
+  // Add state for visualization config
+  const [visualConfig, setVisualConfig] = useState({
+    chromosomeHeight: CHROMOSOME_CONFIG.HEIGHT,
+    chromosomeSpacing: CHROMOSOME_CONFIG.SPACING,
+    annotationHeight: GENE_ANNOTATION_CONFIG.HEIGHT,
+    annotationSpacing: GENE_ANNOTATION_CONFIG.SPACING,
+    maxTracks: GENE_ANNOTATION_CONFIG.MAX_TRACKS,
+    minVisibleSize: OPTIMIZATION_CONFIG.MIN_VISIBLE_SIZE,
+    maxVisibleGenes: OPTIMIZATION_CONFIG.MAX_VISIBLE_GENES,
+    clusteringThreshold: OPTIMIZATION_CONFIG.CLUSTERING_THRESHOLD,
+    showAnnotations: true,
+    geneColors: {
+      forward: GENE_ANNOTATION_CONFIG.COLORS.FORWARD,
+      reverse: GENE_ANNOTATION_CONFIG.COLORS.REVERSE,
+    },
+  });
+
+  const handleConfigChange = useCallback((newConfig: Partial<typeof visualConfig>) => {
+    setVisualConfig(prev => ({
+      ...prev,
+      ...newConfig
+    }));
+  }, []);
 
   const filterSyntenyData = (data: SyntenyData[]) => {
     // First filter by selected chromosomes
@@ -745,7 +730,8 @@ export function ChromosomeSynteny({
           onLeave: handleElementLeave,
           container: g,
           annotations: chrAnnotations, // Pass filtered annotations
-          showAnnotations // Pass the flag
+          showAnnotations, // Pass the flag
+          config: visualConfig
         });
         
         xOffset += xScale(chr.chr_size_bp) + CHROMOSOME_CONFIG.SPACING * 2;
@@ -892,6 +878,7 @@ export function ChromosomeSynteny({
     referenceGenomeData,
     showAnnotations,
     selectedChromosomes,
+    visualConfig
   ]);
 
   // Add window resize handler
@@ -934,12 +921,14 @@ export function ChromosomeSynteny({
     return () => window.removeEventListener('resize', handleResize);
   }, [viewport, containerRef]);
 
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+
   return (
     <div 
       ref={containerRef}
       className={cn(
         "relative w-full h-full overflow-hidden",
-        isFullscreen && "fixed inset-0 z-50"
+        isFullscreen && "fixed inset-0 z-50 bg-background"
       )}
     >
       <div className={cn(
@@ -949,7 +938,7 @@ export function ChromosomeSynteny({
 
       <div className={cn(
         "relative w-full h-full z-10",
-        isFullscreen && "bg-background/5"
+        isFullscreen && "bg-background"
       )}>
         {/* Header Controls */}
         <div className={cn(
@@ -1006,6 +995,14 @@ export function ChromosomeSynteny({
           
           {/* Right Side Controls */}
           <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-8 w-8 p-0"
+              onClick={() => setIsSettingsOpen(prev => !prev)}
+            >
+              <Settings2 className="h-4 w-4" />
+            </Button>
             <Button
               variant="outline"
               size="sm"
@@ -1168,6 +1165,13 @@ export function ChromosomeSynteny({
           </div>
         </div>
       </div>
+
+      <SettingsPanel
+        config={visualConfig}
+        onConfigChange={handleConfigChange as any}
+        isOpen={isSettingsOpen}
+        onOpenChange={setIsSettingsOpen}
+      />
     </div>
   );
 }

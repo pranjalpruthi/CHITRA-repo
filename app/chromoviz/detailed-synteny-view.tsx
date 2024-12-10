@@ -2,7 +2,7 @@
 
 import { useRef, useEffect, useState } from 'react';
 import * as d3 from 'd3';
-import { SyntenyData, ChromosomeData } from './types';
+import { SyntenyData, ChromosomeData } from '../types';
 import { Card, CardContent } from '@/components/ui/card';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Badge } from '@/components/ui/badge';
@@ -20,6 +20,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 // Add configuration types
 interface SyntenyViewConfig {
@@ -574,7 +575,10 @@ export function DetailedSyntenyView({
         const y1 = baseRadius * Math.sin(angle - Math.PI / 2);
         const x2 = (baseRadius + config.scale.tickLength) * Math.cos(angle - Math.PI / 2);
         const y2 = (baseRadius + config.scale.tickLength) * Math.sin(angle - Math.PI / 2);
+        const textX = (baseRadius + config.scale.tickLength + 15) * Math.cos(angle - Math.PI / 2);
+        const textY = (baseRadius + config.scale.tickLength + 15) * Math.sin(angle - Math.PI / 2);
         
+        // Add tick line
         labelLayer.append('line')
           .attr('x1', x1)
           .attr('y1', y1)
@@ -582,6 +586,24 @@ export function DetailedSyntenyView({
           .attr('y2', y2)
           .attr('stroke', '#94a3b8')
           .attr('stroke-width', 1);
+
+        // Add tick label
+        if (config.scale.showLabels) {
+          const formattedTick = tick >= 1000000 
+            ? `${(tick / 1000000).toFixed(1)}M` 
+            : tick >= 1000 
+              ? `${(tick / 1000).toFixed(0)}K` 
+              : tick.toString();
+
+          labelLayer.append('text')
+            .attr('x', textX)
+            .attr('y', textY)
+            .attr('text-anchor', angle > Math.PI ? 'end' : 'start')
+            .attr('dominant-baseline', 'middle')
+            .attr('font-size', '5px')
+            .attr('fill', '#64748b')
+            .text(formattedTick);
+        }
       });
     };
 
@@ -877,7 +899,7 @@ export function DetailedSyntenyView({
           )}
         </AnimatePresence>
 
-        {/* Config Card - Updated to left side */}
+        {/* Config Card */}
         <AnimatePresence>
           {showConfig && (
             <motion.div
@@ -890,163 +912,152 @@ export function DetailedSyntenyView({
               )}
             >
               <Card className="w-[400px] bg-white/40 dark:bg-gray-950/40 backdrop-blur-md border-white/50 dark:border-gray-800/50 shadow-[inset_0_0_8px_rgba(255,255,255,0.4)] dark:shadow-[inset_0_0_8px_rgba(0,0,0,0.4)]">
-                <CardContent className="p-4 space-y-4">
-                  {/* Visual Section */}
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <Badge 
-                        variant="outline" 
-                        className="bg-green-50/50 text-green-900 dark:bg-green-900/20 dark:text-green-100 border-green-200/50 dark:border-green-800/50"
-                      >
-                        Visual
-                      </Badge>
-                    </div>
+                <CardContent className="p-4">
+                  <Tabs defaultValue="visual" className="space-y-4">
+                    <TabsList className="grid w-full grid-cols-4">
+                      <TabsTrigger value="visual">Visual</TabsTrigger>
+                      <TabsTrigger value="annotations">Annotations</TabsTrigger>
+                      <TabsTrigger value="scale">Scale</TabsTrigger>
+                      <TabsTrigger value="interaction">Interaction</TabsTrigger>
+                    </TabsList>
 
-                    <div className="grid grid-cols-2 gap-3">
-                      <div className="space-y-1.5">
-                        <Label className="text-xs">Ribbon Opacity</Label>
-                        <Slider
-                          value={[config.visual.ribbonOpacity * 100]}
-                          onValueChange={([value]) => 
-                            handleConfigChange({ 
-                              ...config,
-                              visual: {
-                                ...config.visual,
-                                ribbonOpacity: value / 100 
-                              }
-                            })
-                          }
-                          max={100}
-                          step={1}
-                          className="h-4"
-                        />
+                    {/* Visual Tab */}
+                    <TabsContent value="visual" className="space-y-4">
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="space-y-1.5">
+                          <Label className="text-xs">Ribbon Opacity</Label>
+                          <Slider
+                            value={[config.visual.ribbonOpacity * 100]}
+                            onValueChange={([value]) => 
+                              handleConfigChange({ 
+                                visual: {
+                                  ...config.visual,
+                                  ribbonOpacity: value / 100 
+                                }
+                              })
+                            }
+                            max={100}
+                            step={1}
+                            className="h-4"
+                          />
+                        </div>
+
+                        <div className="space-y-1.5">
+                          <Label className="text-xs">Block Opacity</Label>
+                          <Slider
+                            value={[config.visual.blockOpacity * 100]}
+                            onValueChange={([value]) => 
+                              handleConfigChange({ 
+                                visual: {
+                                  ...config.visual,
+                                  blockOpacity: value / 100 
+                                }
+                              })
+                            }
+                            max={100}
+                            step={1}
+                            className="h-4"
+                          />
+                        </div>
+
+                        <div className="space-y-1.5">
+                          <Label className="text-xs">Track Width</Label>
+                          <Slider
+                            value={[config.visual.trackWidth * 100]}
+                            onValueChange={([value]) => 
+                              handleConfigChange({ 
+                                visual: { ...config.visual, trackWidth: value / 100 } 
+                              })
+                            }
+                            max={50}
+                            step={1}
+                            className="h-4"
+                          />
+                        </div>
+
+                        <div className="space-y-1.5">
+                          <Label className="text-xs">Gap Angle</Label>
+                          <Slider
+                            value={[config.visual.gapAngle * 100]}
+                            onValueChange={([value]) => 
+                              handleConfigChange({ 
+                                visual: { ...config.visual, gapAngle: value / 100 } 
+                              })
+                            }
+                            max={50}
+                            step={1}
+                            className="h-4"
+                          />
+                        </div>
                       </div>
 
-                      <div className="space-y-1.5">
-                        <Label className="text-xs">Block Opacity</Label>
-                        <Slider
-                          value={[config.visual.blockOpacity * 100]}
-                          onValueChange={([value]) => 
-                            handleConfigChange({ 
-                              ...config,
-                              visual: {
-                                ...config.visual,
-                                blockOpacity: value / 100 
-                              }
-                            })
-                          }
-                          max={100}
-                          step={1}
-                          className="h-4"
-                        />
+                      <div className="grid grid-cols-2 gap-2">
+                        <div className="space-y-1.5">
+                          <Label className="text-xs">Reference Color</Label>
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <Button
+                                variant="outline"
+                                className="w-full h-6"
+                                style={{ backgroundColor: config.visual.colors.reference }}
+                              />
+                            </PopoverTrigger>
+                            <PopoverContent className="w-64 p-2">
+                              <Input
+                                type="color"
+                                value={config.visual.colors.reference}
+                                onChange={(e) => 
+                                  handleConfigChange({
+                                    visual: { 
+                                      ...config.visual,
+                                      colors: { 
+                                        ...config.visual.colors,
+                                        reference: e.target.value 
+                                      } 
+                                    }
+                                  })
+                                }
+                              />
+                            </PopoverContent>
+                          </Popover>
+                        </div>
+
+                        <div className="space-y-1.5">
+                          <Label className="text-xs">Query Color</Label>
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <Button
+                                variant="outline"
+                                className="w-full h-6"
+                                style={{ backgroundColor: config.visual.colors.query }}
+                              />
+                            </PopoverTrigger>
+                            <PopoverContent className="w-64 p-2">
+                              <Input
+                                type="color"
+                                value={config.visual.colors.query}
+                                onChange={(e) => 
+                                  handleConfigChange({
+                                    visual: { 
+                                      ...config.visual,
+                                      colors: { 
+                                        ...config.visual.colors,
+                                        query: e.target.value 
+                                      } 
+                                    }
+                                  })
+                                }
+                              />
+                            </PopoverContent>
+                          </Popover>
+                        </div>
                       </div>
+                    </TabsContent>
 
-                      <div className="space-y-1.5">
-                        <Label className="text-xs">Track Width</Label>
-                        <Slider
-                          value={[config.visual.trackWidth * 100]}
-                          onValueChange={([value]) => 
-                            handleConfigChange({ 
-                              visual: { ...config.visual, trackWidth: value / 100 } 
-                            })
-                          }
-                          max={50}
-                          step={1}
-                          className="h-4"
-                        />
-                      </div>
-
-                      <div className="space-y-1.5">
-                        <Label className="text-xs">Gap Angle</Label>
-                        <Slider
-                          value={[config.visual.gapAngle * 100]}
-                          onValueChange={([value]) => 
-                            handleConfigChange({ 
-                              visual: { ...config.visual, gapAngle: value / 100 } 
-                            })
-                          }
-                          max={50}
-                          step={1}
-                          className="h-4"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-4 gap-2">
-                      <div className="space-y-1.5 col-span-2">
-                        <Label className="text-xs">Reference</Label>
-                        <Popover>
-                          <PopoverTrigger asChild>
-                            <Button
-                              variant="outline"
-                              className="w-full h-6"
-                              style={{ backgroundColor: config.visual.colors.reference }}
-                            />
-                          </PopoverTrigger>
-                          <PopoverContent className="w-64 p-2">
-                            <Input
-                              type="color"
-                              value={config.visual.colors.reference}
-                              onChange={(e) => 
-                                handleConfigChange({
-                                  visual: { 
-                                    ...config.visual, // Spread the existing visual configuration
-                                    colors: { 
-                                      ...config.visual.colors, // Spread the existing colors
-                                      reference: e.target.value 
-                                    } 
-                                  }
-                                })
-                              }
-                            />
-                          </PopoverContent>
-                        </Popover>
-                      </div>
-
-                      <div className="space-y-1.5 col-span-2">
-                        <Label className="text-xs">Query</Label>
-                        <Popover>
-                          <PopoverTrigger asChild>
-                            <Button
-                              variant="outline"
-                              className="w-full h-6"
-                              style={{ backgroundColor: config.visual.colors.query }}
-                            />
-                          </PopoverTrigger>
-                          <PopoverContent className="w-64 p-2">
-                            <Input
-                              type="color"
-                              value={config.visual.colors.query}
-                              onChange={(e) => 
-                                handleConfigChange({
-                                  visual: { 
-                                    ...config.visual, // Spread the existing visual configuration
-                                    colors: { 
-                                      ...config.visual.colors, // Spread the existing colors
-                                      query: e.target.value 
-                                    } 
-                                  }
-                                })
-                              }
-                            />
-                          </PopoverContent>
-                        </Popover>
-                      </div>
-                    </div>
-                  </div>
-
-                  <Separator className="bg-gray-200 dark:bg-gray-800 my-2" />
-
-                  {/* Annotations Section */}
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <Badge 
-                        variant="outline" 
-                        className="bg-purple-50/50 text-purple-900 dark:bg-purple-900/20 dark:text-purple-100 border-purple-200/50 dark:border-purple-800/50"
-                      >
-                        Annotations
-                      </Badge>
-                      <div className="flex items-center space-x-2">
+                    {/* Annotations Tab */}
+                    <TabsContent value="annotations" className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <Label className="text-sm font-medium">Show Annotations</Label>
                         <Switch
                           checked={config.annotations.show}
                           onCheckedChange={(checked) =>
@@ -1057,63 +1068,52 @@ export function DetailedSyntenyView({
                               }
                             })
                           }
-                          className="scale-75"
-                        />
-                        <Label className="text-xs">Show</Label>
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-3">
-                      <div className="space-y-1.5">
-                        <Label className="text-xs">Height</Label>
-                        <Slider
-                          value={[config.annotations.height]}
-                          onValueChange={([value]) =>
-                            handleConfigChange({
-                              annotations: { 
-                                ...config.annotations, 
-                                height: value 
-                              }
-                            })
-                          }
-                          max={20}
-                          step={1}
-                          className="h-4"
                         />
                       </div>
 
-                      <div className="space-y-1.5">
-                        <Label className="text-xs">Spacing</Label>
-                        <Slider
-                          value={[config.annotations.spacing]}
-                          onValueChange={([value]) =>
-                            handleConfigChange({
-                              annotations: { 
-                                ...config.annotations, 
-                                spacing: value 
-                              }
-                            })
-                          }
-                          max={10}
-                          step={1}
-                          className="h-4"
-                        />
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="space-y-1.5">
+                          <Label className="text-xs">Height</Label>
+                          <Slider
+                            value={[config.annotations.height]}
+                            onValueChange={([value]) =>
+                              handleConfigChange({
+                                annotations: { 
+                                  ...config.annotations, 
+                                  height: value 
+                                }
+                              })
+                            }
+                            max={20}
+                            step={1}
+                            className="h-4"
+                          />
+                        </div>
+
+                        <div className="space-y-1.5">
+                          <Label className="text-xs">Spacing</Label>
+                          <Slider
+                            value={[config.annotations.spacing]}
+                            onValueChange={([value]) =>
+                              handleConfigChange({
+                                annotations: { 
+                                  ...config.annotations, 
+                                  spacing: value 
+                                }
+                              })
+                            }
+                            max={10}
+                            step={1}
+                            className="h-4"
+                          />
+                        </div>
                       </div>
-                    </div>
-                  </div>
+                    </TabsContent>
 
-                  <Separator className="bg-gray-200 dark:bg-gray-800 my-2" />
-
-                  {/* Scale Section */}
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <Badge 
-                        variant="outline" 
-                        className="bg-blue-50/50 text-blue-900 dark:bg-blue-900/20 dark:text-blue-100 border-blue-200/50 dark:border-blue-800/50"
-                      >
-                        Scale
-                      </Badge>
-                      <div className="flex items-center space-x-2">
+                    {/* Scale Tab */}
+                    <TabsContent value="scale" className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <Label className="text-sm font-medium">Show Ticks</Label>
                         <Switch
                           checked={config.scale.showTicks}
                           onCheckedChange={(checked) =>
@@ -1124,64 +1124,53 @@ export function DetailedSyntenyView({
                               }
                             })
                           }
-                          className="scale-75"
-                        />
-                        <Label className="text-xs">Show Ticks</Label>
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-3">
-                      <div className="space-y-1.5">
-                        <Label className="text-xs">Tick Count</Label>
-                        <Slider
-                          value={[config.scale.tickCount]}
-                          onValueChange={([value]) =>
-                            handleConfigChange({
-                              scale: { 
-                                ...config.scale, 
-                                tickCount: value 
-                              }
-                            })
-                          }
-                          min={4}
-                          max={20}
-                          step={1}
-                          className="h-4"
                         />
                       </div>
 
-                      <div className="space-y-1.5">
-                        <Label className="text-xs">Tick Length</Label>
-                        <Slider
-                          value={[config.scale.tickLength]}
-                          onValueChange={([value]) =>
-                            handleConfigChange({
-                              scale: { 
-                                ...config.scale, 
-                                tickLength: value 
-                              }
-                            })
-                          }
-                          max={20}
-                          step={1}
-                          className="h-4"
-                        />
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="space-y-1.5">
+                          <Label className="text-xs">Tick Count</Label>
+                          <Slider
+                            value={[config.scale.tickCount]}
+                            onValueChange={([value]) =>
+                              handleConfigChange({
+                                scale: { 
+                                  ...config.scale, 
+                                  tickCount: value 
+                                }
+                              })
+                            }
+                            min={4}
+                            max={20}
+                            step={1}
+                            className="h-4"
+                          />
+                        </div>
+
+                        <div className="space-y-1.5">
+                          <Label className="text-xs">Tick Length</Label>
+                          <Slider
+                            value={[config.scale.tickLength]}
+                            onValueChange={([value]) =>
+                              handleConfigChange({
+                                scale: { 
+                                  ...config.scale, 
+                                  tickLength: value 
+                                }
+                              })
+                            }
+                            max={20}
+                            step={1}
+                            className="h-4"
+                          />
+                        </div>
                       </div>
-                    </div>
-                  </div>
+                    </TabsContent>
 
-                  <Separator className="bg-gray-200 dark:bg-gray-800 my-2" />
-
-                  {/* Interaction Section */}
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <Badge 
-                        variant="outline" 
-                        className="bg-purple-50/50 text-purple-900 dark:bg-purple-900/20 dark:text-purple-100 border-purple-200/50 dark:border-purple-800/50"
-                      >
-                        Interaction
-                      </Badge>
-                      <div className="flex items-center space-x-2">
+                    {/* Interaction Tab */}
+                    <TabsContent value="interaction" className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <Label className="text-sm font-medium">Enable Zoom</Label>
                         <Switch
                           checked={config.interaction.enableZoom}
                           onCheckedChange={(checked) =>
@@ -1192,71 +1181,68 @@ export function DetailedSyntenyView({
                               }
                             })
                           }
-                          className="scale-75"
                         />
-                        <Label className="text-xs">Enable Zoom</Label>
                       </div>
-                    </div>
 
-                    <div className="grid grid-cols-2 gap-3">
-                      <div className="space-y-1.5">
-                        <Label className="text-xs">Zoom Min</Label>
-                        <Slider
-                          value={[config.interaction.zoomExtent[0] * 100]}
-                          onValueChange={([value]) =>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="space-y-1.5">
+                          <Label className="text-xs">Zoom Min</Label>
+                          <Slider
+                            value={[config.interaction.zoomExtent[0] * 100]}
+                            onValueChange={([value]) =>
+                              handleConfigChange({
+                                interaction: { 
+                                  ...config.interaction, 
+                                  zoomExtent: [
+                                    value / 100,
+                                    config.interaction.zoomExtent[1]
+                                  ] 
+                                }
+                              })
+                            }
+                            min={10}
+                            max={100}
+                            step={1}
+                            className="h-4"
+                          />
+                        </div>
+
+                        <div className="space-y-1.5">
+                          <Label className="text-xs">Zoom Max</Label>
+                          <Slider
+                            value={[config.interaction.zoomExtent[1] * 100]}
+                            onValueChange={([value]) =>
+                              handleConfigChange({
+                                interaction: { 
+                                  ...config.interaction, 
+                                  zoomExtent: [
+                                    config.interaction.zoomExtent[0],
+                                    value / 100
+                                  ] 
+                                }
+                              })
+                            }
+                            min={100}
+                            max={1000}
+                            step={10}
+                            className="h-4"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-between">
+                        <Label className="text-sm font-medium">Show Tooltips</Label>
+                        <Switch
+                          checked={config.interaction.showTooltips}
+                          onCheckedChange={(checked) =>
                             handleConfigChange({
-                              interaction: { 
-                                ...config.interaction, 
-                                zoomExtent: [
-                                  value / 100,
-                                  config.interaction.zoomExtent[1]
-                                ] 
-                              }
+                              interaction: { ...config.interaction, showTooltips: checked }
                             })
                           }
-                          min={10}
-                          max={100}
-                          step={1}
-                          className="h-4"
                         />
                       </div>
-
-                      <div className="space-y-1.5">
-                        <Label className="text-xs">Zoom Max</Label>
-                        <Slider
-                          value={[config.interaction.zoomExtent[1] * 100]}
-                          onValueChange={([value]) =>
-                            handleConfigChange({
-                              interaction: { 
-                                ...config.interaction, 
-                                zoomExtent: [
-                                  config.interaction.zoomExtent[0],
-                                  value / 100
-                                ] 
-                              }
-                            })
-                          }
-                          min={100}
-                          max={1000}
-                          step={10}
-                          className="h-4"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="flex items-center space-x-2">
-                      <Switch
-                        checked={config.interaction.showTooltips}
-                        onCheckedChange={(checked) =>
-                          handleConfigChange({
-                            interaction: { ...config.interaction, showTooltips: checked }
-                          })
-                        }
-                        className="scale-75"
-                      />
-                      <Label className="text-xs">Show Tooltips</Label>
-                    </div>
-                  </div>
+                    </TabsContent>
+                  </Tabs>
                 </CardContent>
               </Card>
             </motion.div>

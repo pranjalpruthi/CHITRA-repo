@@ -8,12 +8,13 @@ import { Github, Twitter, Linkedin, Globe, BookOpen, GraduationCap } from "lucid
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
-
+import { AnimatedTooltip } from "@/components/ui/animated-tooltip";
 interface TeamMember {
   name: string;
   role: string;
   bio: string;
   avatar: string;
+  image: string;
   links: {
     github?: string;
     twitter?: string;
@@ -30,6 +31,7 @@ const team: TeamMember[] = [
     role: "Core Web Developer & Research Scientist",
     bio: "Research Scientist at CSIR-IGIB: Exploring the frontiers of genomics | Skilled in IT, Full Stack Web development, Database Administration and Bioinformatics, Building innovative and user-friendly platforms",
     avatar: "bg-gradient-to-br from-purple-500 to-pink-500",
+    image: "https://pbs.twimg.com/profile_images/1866546460919205889/XF3K4o86_400x400.jpg",
     links: {
       github: "https://github.com/pranjalpruthi",
       linkedin: "https://www.linkedin.com/in/pranjal-pruthi/",
@@ -42,6 +44,7 @@ const team: TeamMember[] = [
     role: "Principal Investigator",
     bio: "Specializing in Comparative Genomics, Genome Evolution, Adaptation, Chromosome Rearrangements, HGT, Repeats",
     avatar: "bg-gradient-to-br from-blue-500 to-green-500",
+    image: "https://pbs.twimg.com/profile_images/1759517165764427777/-q4XxNJW_400x400.jpg",
     links: {
       website: "https://bioinformaticsonline.com/profile/admin",
       scholar: "https://scholar.google.co.uk/citations?user=ySm4BzcAAAAJ&hl=en",
@@ -54,6 +57,7 @@ const team: TeamMember[] = [
     role: "Documentation -PhD & Senior Research Fellow",
     bio: "Institute of Genomics and Integrative Biology | IGIB · Genome Informatics and Structural Biology Research Area (IGIB) | Bioinformatics and Big Data analysis #Pro in SSR analysis",
     avatar: "bg-gradient-to-br from-rose-400 to-orange-500",
+    image: "https://pbs.twimg.com/profile_images/1526164953585295360/3WX0lSZn_400x400.jpg",
     links: {
       researchgate: "https://www.researchgate.net/profile/Preeti-Agarwal",
       scholar: "https://scholar.google.com"
@@ -64,11 +68,40 @@ const team: TeamMember[] = [
     role: "Data Analyst - PhD & Senior Research Fellow",
     bio: "PhD Student at Jitendra lab, Institute of Genomics and Integrative Biology | IGIB · Genome Informatics and Structural Biology Research Area (IGIB)",
     avatar: "bg-gradient-to-br from-cyan-500 to-blue-500",
+    image: "https://i1.rgstatic.net/ii/profile.image/11431281223771539-1707933700618_Q512/Ajay-Bhatia-5.jpg",
     links: {
       researchgate: "https://www.researchgate.net/profile/Ajay-Bhatia",
       scholar: "https://scholar.google.com"
     }
   }
+];
+
+// Define team members for the animated tooltip
+const teamMembers = [
+  {
+    id: 1,
+    name: "Dr. Jitendra Narayan",
+    designation: "Principal Investigator",
+    image: team[1].image,
+  },
+  {
+    id: 2,
+    name: "Pranjal Pruthi",
+    designation: "Core Web Developer",
+    image: team[0].image,
+  },
+  {
+    id: 3,
+    name: "Preeti Agarwal",
+    designation: "Documentation & Research",
+    image: team[2].image,
+  },
+  {
+    id: 4,
+    name: "Ajay Bhatia",
+    designation: "Data Analyst",
+    image: team[3].image,
+  },
 ];
 
 const fadeIn = {
@@ -111,7 +144,18 @@ export function AboutSheet({ children }: { children?: React.ReactNode }) {
             </SheetHeader>
           </motion.div>
           
+
+
           <div className="mt-6 space-y-6">
+            <motion.div variants={fadeIn} className="flex flex-col items-center justify-center w-full">
+              <h3 className="text-lg font-semibold mb-4">Meet Our Team</h3>
+              <div className="flex flex-row items-center justify-center gap-2">
+                <AnimatedTooltip items={teamMembers} />
+              </div>
+            </motion.div>
+
+            <Separator />
+
             <motion.div variants={fadeIn}>
               {/* Project Description */}
               <h3 className="text-lg font-semibold mb-2">Project Overview</h3>
@@ -138,6 +182,7 @@ export function AboutSheet({ children }: { children?: React.ReactNode }) {
                 <motion.div variants={fadeIn}>
                   <div className="flex items-start space-x-4">
                     <Avatar className={cn("h-12 w-12", team[1].avatar)}>
+                      <AvatarImage src={team[1].image} alt={team[1].name} />
                       <AvatarFallback className="text-white">
                         {team[1].name.split(' ').map(n => n[0]).join('')}
                       </AvatarFallback>
@@ -184,6 +229,7 @@ export function AboutSheet({ children }: { children?: React.ReactNode }) {
                     className="flex items-start space-x-4"
                   >
                     <Avatar className={cn("h-12 w-12", member.avatar)}>
+                      <AvatarImage src={member.image} alt={member.name} />
                       <AvatarFallback className="text-white">
                         {member.name.split(' ').map(n => n[0]).join('')}
                       </AvatarFallback>

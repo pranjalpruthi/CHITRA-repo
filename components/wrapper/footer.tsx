@@ -6,8 +6,8 @@ import { Badge } from '@/components/ui/badge';
 
 export default function Footer() {
     return (
-        <footer className="border-t dark:bg-black">
-            <div className="mx-auto max-w-screen-xl px-4 py-8 mb-[4.5rem] min-[825px]:mb-8">
+        <footer className="relative border-t dark:bg-black">
+            <div className="mx-auto max-w-screen-xl px-4 py-8 min-[825px]:py-12">
                 <div className="grid grid-cols-2 gap-8 sm:grid-cols-4">
                     <div className="col-span-2 sm:col-span-1">
                         <div className="space-y-4">
