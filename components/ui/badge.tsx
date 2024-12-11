@@ -1,6 +1,5 @@
 import * as React from "react"
 import { cva, type VariantProps } from "class-variance-authority"
-
 import { cn } from "@/lib/utils"
 
 const badgeVariants = cva(
@@ -15,6 +14,7 @@ const badgeVariants = cva(
         destructive:
           "border-transparent bg-destructive text-destructive-foreground hover:bg-destructive/80",
         outline: "text-foreground",
+        glow: "border border-black/5 bg-gradient-to-b from-white/80 to-white/50 dark:from-neutral-900/90 dark:to-neutral-800/90 backdrop-blur-md shadow-[0_2px_8px_rgba(0,0,0,0.04)] dark:shadow-[0_2px_8px_rgba(0,0,0,0.2)]",
       },
     },
     defaultVariants: {
@@ -25,11 +25,22 @@ const badgeVariants = cva(
 
 export interface BadgeProps
   extends React.HTMLAttributes<HTMLDivElement>,
-    VariantProps<typeof badgeVariants> {}
+    VariantProps<typeof badgeVariants> {
+  icon?: React.ReactNode;
+  glowColor?: string;
+}
 
-function Badge({ className, variant, ...props }: BadgeProps) {
+function Badge({ className, variant, icon, glowColor = "purple", ...props }: BadgeProps) {
   return (
-    <div className={cn(badgeVariants({ variant }), className)} {...props} />
+    <div className={cn(badgeVariants({ variant }), className)} {...props}>
+      {icon && variant === "glow" && (
+        <span className="relative flex h-2 w-2 mr-1.5">
+          <span className={`absolute inline-flex h-full w-full animate-ping rounded-full bg-${glowColor}-400 opacity-75`}></span>
+          <span className={`relative inline-flex h-2 w-2 rounded-full bg-${glowColor}-500`}></span>
+        </span>
+      )}
+      {props.children}
+    </div>
   )
 }
 

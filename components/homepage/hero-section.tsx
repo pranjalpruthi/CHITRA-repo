@@ -20,6 +20,8 @@ import {
 import { cn } from "@/lib/utils";
 import Particles from "../ui/particles";
 import AnimatedShinyText from "@/components/ui/animated-shiny-text";
+import { BlurIn } from "../ui/Blur-in";
+import { BackgroundBeamsWithCollision } from "../ui/background-beams-with-collision";
 
 // Create separate components for each feature card
 function FeatureOne() {
@@ -76,6 +78,8 @@ function FeatureThree() {
 export default function HeroSection() {
     const [email, setEmail] = useState('');
     const [isLoading, setIsLoading] = useState(false);
+    const [isPreviewLoading, setIsPreviewLoading] = useState(false);
+    const [isGithubHovered, setIsGithubHovered] = useState(false);
 
     const handleBetaSignup = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -98,7 +102,7 @@ export default function HeroSection() {
             min-h-[85vh] py-8 sm:py-16 md:py-24 
             pt-16 sm:pt-20 md:pt-24
             bg-gradient-to-b from-background via-background/95 to-background/90">
-            {/* Add Particles as the first child */}
+            <BackgroundBeamsWithCollision className="absolute inset-0 -z-20 opacity-20" />
             <Particles
                 className="absolute inset-0 -z-10"
                 quantity={200}
@@ -175,11 +179,11 @@ export default function HeroSection() {
                 transition={{ delay: 0.3 }}
                 className="text-center"
             >
-                <h1 className={`${TITLE_TAILWIND_CLASS} scroll-m-20 font-bold tracking-tight text-center 
-                    max-w-[1120px] text-4xl sm:text-5xl lg:text-7xl mb-4
-                    bg-gradient-to-b from-foreground to-muted-foreground bg-clip-text text-transparent`}>
-                    CHITRA
-                </h1>
+                <BlurIn>
+                    <span className="bg-gradient-to-b from-foreground to-muted-foreground bg-clip-text text-transparent">
+                        CHITRA
+                    </span>
+                </BlurIn>
                 <p className="text-xl sm:text-2xl lg:text-3xl mt-3 font-medium text-muted-foreground/90 max-w-[800px] mx-auto">
                     CHromosome Interactive Tool for Rearrangement Analysis
                 </p>
@@ -228,30 +232,50 @@ export default function HeroSection() {
                 transition={{ delay: 0.5 }}
                 className="mt-4 flex items-center gap-4"
             >
-                {/* Preview Demo Button */}
-                <Link href="/chromoviz">
+                <Link href="/chromoviz" onClick={() => setIsPreviewLoading(true)}>
                     <div className="relative overflow-hidden rounded-full dark:bg-zinc-900 bg-white shadow border dark:border-zinc-800 group border-zinc-400 p-0.5">
-                        <span className="absolute inset-[-1000%] animate-[spin_5s_linear_infinite_reverse] dark:bg-[conic-gradient(from_90deg_at_50%_50%,#fff_0%,#09090B_7%)] bg-[conic-gradient(from_90deg_at_50%_50%,#000_0%,#fff_5%)] group-hover:bg-none" />
+                        <span className={cn(
+                            "absolute inset-[-1000%] animate-[spin_5s_linear_infinite_reverse]",
+                            "dark:bg-[conic-gradient(from_90deg_at_50%_50%,#fff_0%,#09090B_7%)]",
+                            "bg-[conic-gradient(from_90deg_at_50%_50%,#000_0%,#fff_5%)]",
+                            isPreviewLoading ? "opacity-50" : "group-hover:bg-none"
+                        )} />
                         <Button 
                             variant="outline"
-                            className="h-12 px-8 rounded-full font-medium backdrop-blur-xl 
-                                bg-zinc-50 dark:bg-zinc-900 
-                                text-zinc-800 dark:text-zinc-200
-                                border-0"
+                            className={cn(
+                                "h-12 px-8 rounded-full font-medium backdrop-blur-xl",
+                                "bg-zinc-50 dark:bg-zinc-900",
+                                "text-zinc-800 dark:text-zinc-200",
+                                "border-0 transition-colors duration-300",
+                                isPreviewLoading && "text-blue-500 dark:text-blue-400"
+                            )}
+                            disabled={isPreviewLoading}
                         >
-                            Preview Demo
-                            <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
+                            {isPreviewLoading ? (
+                                "Loading..."
+                            ) : (
+                                <>
+                                    Preview Demo
+                                    <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
+                                </>
+                            )}
                         </Button>
                     </div>
                 </Link>
 
-                {/* GitHub Button */}
                 <Link 
                     href="https://github.com/yourusername/yourrepo" 
                     target="_blank"
+                    onMouseEnter={() => setIsGithubHovered(true)}
+                    onMouseLeave={() => setIsGithubHovered(false)}
                 >
                     <div className="relative overflow-hidden rounded-full dark:bg-zinc-900 bg-white shadow border dark:border-zinc-800 group border-zinc-400 p-0.5">
-                        <span className="absolute inset-[-1000%] animate-[spin_5s_linear_infinite_reverse] dark:bg-[conic-gradient(from_90deg_at_50%_50%,#fff_0%,#09090B_7%)] bg-[conic-gradient(from_90deg_at_50%_50%,#000_0%,#fff_5%)] group-hover:bg-none" />
+                        <span className={cn(
+                            "absolute inset-[-1000%] animate-[spin_5s_linear_infinite_reverse]",
+                            "dark:bg-[conic-gradient(from_90deg_at_50%_50%,#fff_0%,#09090B_7%)]",
+                            "bg-[conic-gradient(from_90deg_at_50%_50%,#000_0%,#fff_5%)]",
+                            "group-hover:bg-none"
+                        )} />
                         <Button
                             variant="outline"
                             size="icon"
@@ -260,8 +284,14 @@ export default function HeroSection() {
                                 text-zinc-800 dark:text-zinc-200
                                 border-0"
                         >
-                            <Github className="h-5 w-5" />
+                            <Github className={cn(
+                                "h-5 w-5 transition-all duration-300",
+                                isGithubHovered && "scale-110 text-blue-500 dark:text-blue-400"
+                            )} />
                             <span className="sr-only">GitHub Repository</span>
+                            {isGithubHovered && (
+                                <span className="absolute inset-0 animate-ping rounded-full bg-blue-400/20" />
+                            )}
                         </Button>
                     </div>
                 </Link>
