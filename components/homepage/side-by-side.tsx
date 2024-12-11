@@ -119,32 +119,44 @@ export default function SideBySide() {
             icon={<Dna className="w-5 h-5" />}
             title="Synteny Analysis"
             description="Visualize and analyze syntenic relationships between chromosomes across different species with our interactive visualization tools."
-            gradient="from-blue-500 via-purple-500 to-pink-500"
-            className="sm:col-span-1 sm:row-span-2"
+            className={`sm:col-span-1 sm:row-span-2 p-4 sm:p-6 h-full 
+              bg-gradient-to-br from-blue-500/10 to-blue-600/10 
+              dark:from-blue-400/10 dark:to-blue-500/10 
+              border border-blue-500/20 dark:border-blue-400/20
+              backdrop-blur-md`}
             size="default"
           />
           <GradientBentoCard
             icon={<GitBranch className="w-5 h-5" />}
             title="Breakpoint Detection"
             description="Identify chromosomal breakpoints and structural variations with precision using our advanced detection algorithms."
-            gradient="from-green-500 via-teal-500 to-blue-500"
-            className="sm:col-span-1"
+            className={`sm:col-span-1 p-4 sm:p-6 h-full 
+              bg-gradient-to-br from-purple-500/10 to-purple-600/10 
+              dark:from-purple-400/10 dark:to-purple-500/10 
+              border border-purple-500/20 dark:border-purple-400/20
+              backdrop-blur-md`}
             size="default"
           />
           <GradientBentoCard
             icon={<Database className="w-5 h-5" />}
             title="Gene Annotation"
             description="Comprehensive gene annotation tools for detailed genomic analysis and interpretation."
-            gradient="from-orange-500 via-red-500 to-purple-500"
-            className="sm:col-span-1"
+            className={`sm:col-span-1 p-4 sm:p-6 h-full 
+              bg-gradient-to-br from-emerald-500/10 to-emerald-600/10 
+              dark:from-emerald-400/10 dark:to-emerald-500/10 
+              border border-emerald-500/20 dark:border-emerald-400/20
+              backdrop-blur-md`}
             size="default"
           />
           <GradientBentoCard
             icon={<Microscope className="w-5 h-5" />}
             title="Multi-Species Analysis"
             description="Compare genomic features across multiple species simultaneously with advanced comparative analysis tools."
-            gradient="from-pink-500 via-purple-500 to-indigo-500"
-            className="sm:col-span-2"
+            className={`sm:col-span-2 p-4 sm:p-6 h-full 
+              bg-gradient-to-br from-pink-500/10 to-pink-600/10 
+              dark:from-pink-400/10 dark:to-pink-500/10 
+              border border-pink-500/20 dark:border-pink-400/20
+              backdrop-blur-md`}
             size="default"
           />
         </div>

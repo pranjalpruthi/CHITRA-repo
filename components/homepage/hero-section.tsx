@@ -26,13 +26,13 @@ function FeatureOne() {
     return (
         <GradientBentoCard
             title="Interactive Visualization"
-            className={`p-6 h-full bg-gradient-to-br from-blue-500/10 to-blue-600/10 
+            className={`p-4 sm:p-6 h-full bg-gradient-to-br from-blue-500/10 to-blue-600/10 
                 dark:from-blue-400/10 dark:to-blue-500/10 
                 border border-blue-500/20 dark:border-blue-400/20`}
         >
-            <Microscope className="h-8 w-8 text-blue-500 dark:text-blue-400 mb-4" />
-            <h3 className="font-semibold text-lg mb-2">Interactive Visualization</h3>
-            <p className="text-muted-foreground">
+            <Microscope className="h-6 w-6 sm:h-8 sm:w-8 text-blue-500 dark:text-blue-400 mb-2 sm:mb-4" />
+            <h3 className="font-semibold text-base sm:text-lg mb-1 sm:mb-2">Interactive Visualization</h3>
+            <p className="text-sm sm:text-base text-muted-foreground">
                 Powerful tools for exploring chromosomal rearrangements with intuitive controls
             </p>
         </GradientBentoCard>
@@ -272,14 +272,13 @@ export default function HeroSection() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.5 }}
-                className="grid grid-cols-1 grid-rows-1 gap-6 mt-16 sm:mt-20 w-full max-w-6xl mx-auto px-4 
-                    sm:grid-cols-2 sm:grid-rows-2"
+                className="grid grid-cols-2 gap-3 sm:gap-6 mt-16 sm:mt-20 w-full max-w-6xl mx-auto px-4"
             >
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.6 }}
-                    className="sm:row-span-2"
+                    className="col-span-2 sm:row-span-2 sm:col-span-1"
                 >
                     <FeatureOne />
                 </motion.div>
@@ -287,6 +286,7 @@ export default function HeroSection() {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.7 }}
+                    className="col-span-1"
                 >
                     <FeatureTwo />
                 </motion.div>
@@ -294,6 +294,7 @@ export default function HeroSection() {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.8 }}
+                    className="col-span-1"
                 >
                     <FeatureThree />
                 </motion.div>

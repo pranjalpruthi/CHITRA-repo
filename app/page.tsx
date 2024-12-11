@@ -16,18 +16,11 @@ export default function Home() {
       <div className="flex my-[8rem] w-full justify-center items-center">
         <SideBySide />
       </div>
-      <div className="flex flex-col p-2 w-full justify-center items-center">
-        <MarketingCards />
-      </div>
+
       <div className="w-full flex justify-center items-center">
         <OpenSource />
       </div>
-      <div className="max-w-[1200px] p-8 mt-[2rem] lg:mt-[6rem] lg:mb-[5rem]">
-        <BlogSample />
-      </div>
-      {(config.auth.enabled && config.payments.enabled) && <div>
-        <Pricing />
-      </div>}
+
     </PageWrapper>
   );
 }
