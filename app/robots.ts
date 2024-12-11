@@ -5,7 +5,7 @@ export default function robots(): MetadataRoute.Robots {
     rules: {
       userAgent: '*',
       allow: '/',
-      disallow: '/dashboard/',
+      disallow: '/chromoviz/',
     },
     sitemap: 'https://starter.rasmic.xyz/sitemap.xml',
   }

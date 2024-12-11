@@ -658,30 +658,30 @@ export default function ChromoViz() {
   return (
     <PageWrapper>
       <div className={cn(
-        "relative w-full min-h-screen bg-background",
+        "relative w-full h-screen bg-background",
         isFullScreen ? "fixed inset-0 z-50 backdrop-blur-md p-0" : "pt-8 sm:pt-12"
       )}>
         <div className={cn(
-          "w-full px-4 sm:px-6 pb-20",
-          isFullScreen && "p-0"
+          "w-full h-[calc(100vh-theme(spacing.20))] px-4 sm:px-6",
+          isFullScreen && "h-screen p-0"
         )}>
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             className={cn(
-              "min-h-screen w-full max-w-[2000px] mx-auto",
+              "h-full w-full max-w-[2000px] mx-auto flex flex-col",
               isFullScreen && "backdrop-blur-md"
             )}
           >
             {/* Main Content Grid */}
-            <div className="grid grid-cols-12 gap-4">
+            <div className="grid grid-cols-12 gap-4 h-full">
               <motion.div 
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.4 }}
-                className="col-span-12 space-y-3"
+                className="col-span-12 flex flex-col h-full"
               >
-                {/* Controls Cards */}
+                {/* Controls Bar */}
                 <FloatingHUDBar
                   onGenerateVisualization={handleGenerateVisualization}
                   onLoadExample={loadExampleData}
@@ -701,16 +701,16 @@ export default function ChromoViz() {
                 />
 
                 {/* Responsive Layout for Visualization and Details */}
-                <div className="grid grid-cols-12 gap-4">
+                <div className="grid grid-cols-12 gap-4 flex-1 min-h-0">
                   {/* Main Visualization Area */}
-                  <div className={selectedSynteny.length > 0 ? "col-span-12 lg:col-span-8" : "col-span-12"}>
-                    <Card className="h-full" ref={mainCardRef}>
+                  <div className={selectedSynteny.length > 0 ? "col-span-12 lg:col-span-8 h-full" : "col-span-12 h-full"}>
+                    <Card className="h-full flex flex-col" ref={mainCardRef}>
                       {isLoading ? (
-                        <div className="p-4 h-[800px]">
+                        <div className="p-4 flex-1">
                           <Skeleton className="h-full w-full" />
                         </div>
                       ) : syntenyData.length > 0 ? (
-                        <div style={{ height: `${containerHeight}px` }}>
+                        <div className="flex-1 min-h-0">
                           <ChromosomeSynteny
                             referenceData={filteredData.referenceData}
                             syntenyData={filteredData.syntenyData}
@@ -889,15 +889,9 @@ export default function ChromoViz() {
                       initial={{ opacity: 0, x: 20 }}
                       animate={{ opacity: 1, x: 0 }}
                       exit={{ opacity: 0, x: 20 }}
-                      className={cn(
-                        "col-span-12 lg:col-span-4",
-                        isDetailedViewFullscreen && "fixed inset-0 z-50 backdrop-blur-md"
-                      )}
+                      className="col-span-12 lg:col-span-4 h-full"
                     >
-                      <Card className={cn(
-                        "",
-                        isDetailedViewFullscreen ? "h-screen" : `h-[${containerHeight}px]`
-                      )}>
+                      <Card className="h-full flex flex-col">
                         <CardHeader className="p-4 border-b shrink-0">
                           <CardTitle className="text-sm font-medium flex items-center gap-2">
                             <MousePointerClick className="h-4 w-4" />

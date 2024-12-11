@@ -9,11 +9,11 @@ import { motion } from "framer-motion";
 export default function OpenSource() {
     return (
         <div className="relative w-full overflow-hidden">
-            <div className="max-w-[1400px] mx-auto px-4 py-32 lg:py-40">
-                {/* Animated background elements */}
+            <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 lg:py-20">
+                {/* Animated background elements - made smaller */}
                 <div className="absolute inset-0 z-0">
                     <motion.div
-                        className="absolute top-1/4 left-1/4 w-[500px] h-[500px] rounded-full bg-blue-500/20 blur-[120px]"
+                        className="absolute top-1/4 left-1/4 w-[200px] sm:w-[300px] lg:w-[400px] h-[200px] sm:h-[300px] lg:h-[400px] rounded-full bg-blue-500/20 blur-[80px]"
                         animate={{
                             scale: [1, 1.2, 1],
                             opacity: [0.3, 0.5, 0.3],
@@ -25,7 +25,7 @@ export default function OpenSource() {
                         }}
                     />
                     <motion.div
-                        className="absolute bottom-1/4 right-1/4 w-[400px] h-[400px] rounded-full bg-purple-500/20 blur-[100px]"
+                        className="absolute bottom-1/4 right-1/4 w-[150px] sm:w-[250px] lg:w-[300px] h-[150px] sm:h-[250px] lg:h-[300px] rounded-full bg-purple-500/20 blur-[60px]"
                         animate={{
                             scale: [1.2, 1, 1.2],
                             opacity: [0.4, 0.6, 0.4],
@@ -39,33 +39,33 @@ export default function OpenSource() {
                 </div>
 
                 <motion.div 
-                    className="grid grid-cols-1 lg:grid-cols-2 gap-16 xl:gap-24 items-center relative z-10"
+                    className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 lg:gap-12 items-center relative z-10"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ duration: 0.5 }}
                 >
-                    {/* Left Content */}
-                    <div className="space-y-8 lg:space-y-12">
+                    {/* Left Content - more compact spacing */}
+                    <div className="space-y-4 sm:space-y-6 lg:space-y-8">
                         <motion.div 
-                            className="space-y-4 lg:space-y-6"
+                            className="space-y-3 lg:space-y-4"
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: 0.2 }}
                         >
-                            <div className="inline-flex items-center px-6 py-2 rounded-full text-base font-medium 
+                            <div className="inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium 
                                 bg-blue-500/10 text-blue-600 dark:bg-blue-400/10 dark:text-blue-300 
                                 backdrop-blur-sm border border-blue-500/20 dark:border-blue-400/20
                                 shadow-[0_0_15px_rgba(59,130,246,0.1)]">
                                 Open Source
                             </div>
-                            <h2 className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-bold tracking-tight 
+                            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight 
                                 bg-gradient-to-b from-foreground to-muted-foreground bg-clip-text text-transparent">
                                 Built in the Open
                             </h2>
                         </motion.div>
                         
                         <motion.p 
-                            className="text-xl lg:text-2xl text-muted-foreground/80 leading-relaxed"
+                            className="text-base sm:text-lg lg:text-xl text-muted-foreground/80 leading-relaxed"
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: 0.3 }}
@@ -86,14 +86,14 @@ export default function OpenSource() {
                             >
                                 <Button 
                                     variant="outline" 
-                                    className="h-14 px-8 gap-3 text-lg
+                                    className="h-10 sm:h-12 px-4 sm:px-6 gap-2 text-sm sm:text-base
                                         bg-[#FDF4E7]/80 dark:bg-[#2D2416]/80 text-[#F5A524] 
                                         hover:bg-[#FCE9CF] dark:hover:bg-[#3D321F]
                                         border-[#F5A524]/30 hover:border-[#F5A524]/50
-                                        transition-all duration-300 rounded-2xl font-medium
+                                        transition-all duration-300 rounded-lg font-medium
                                         backdrop-blur-sm shadow-[0_8px_16px_rgba(245,165,36,0.1)]"
                                 >
-                                    <Star className="w-6 h-6 fill-[#F5A524]" />
+                                    <Star className="w-4 h-4 sm:w-5 sm:h-5 fill-[#F5A524]" />
                                     Star us on GitHub
                                 </Button>
                             </Link>
@@ -108,7 +108,7 @@ export default function OpenSource() {
                         whileHover={{ scale: 1.02 }}
                         transition={{ duration: 0.5 }}
                     >
-                        <div className="absolute inset-0 rounded-3xl overflow-hidden">
+                        <div className="absolute inset-0 rounded-xl sm:rounded-2xl overflow-hidden">
                             <motion.div 
                                 className="absolute inset-0 bg-gradient-to-br from-blue-500/20 to-purple-500/20"
                                 animate={{

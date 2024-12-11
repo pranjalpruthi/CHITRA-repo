@@ -4,14 +4,10 @@ import { Github, Mail, Building2, GraduationCap, BookOpen, FileText, Code } from
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import { motion } from 'framer-motion';
-import { RainbowGlow } from '@/components/ui/rainbow-glow';
 
 export default function Footer() {
     return (
         <footer className="relative border-t dark:bg-black">
-            <RainbowGlow 
-                className="opacity-20 absolute top-0 w-full h-[400px] blur-[50px]"
-            />
             <div className="mx-auto max-w-screen-xl px-4 py-6 sm:py-8">
                 <motion.div 
                     className="grid grid-cols-2 gap-4 sm:grid-cols-4"

@@ -6,7 +6,6 @@ import { Tabs } from "../ui/animated-tabs";
 import { ArrowUpRight, MessageSquare, Dna, GitBranch, Database, Microscope } from "lucide-react";
 import { BackgroundGradient } from "../ui/background-gradient";
 import { BackgroundBeamsWithCollision } from "../ui/background-beams-with-collision";
-import ShineBorder from "../ui/shine-border";
 import { RainbowButton } from "../ui/rainbow-button";
 import { GradientBentoCard } from "../ui/gradient-bento-card";
 import { Button } from "../ui/button";
@@ -18,7 +17,7 @@ export default function SideBySide() {
       title: "Synteny Analysis",
       value: "synteny",
       content: (
-        <BackgroundGradient className="rounded-[22px] p-1 overflow-hidden">
+        <BackgroundGradient className="rounded-[22px] p-1 overflow-hidden" animate={false}>
           <div className="w-full overflow-hidden relative h-full rounded-[20px] bg-white/[0.7] dark:bg-black/[0.7] backdrop-blur-xl border border-white/[0.2] dark:border-white/[0.1]">
             <Image
               src="https://utfs.io/f/69a12ab1-4d57-4913-90f9-38c6aca6c373-1txg2.png"
@@ -88,15 +87,26 @@ export default function SideBySide() {
     },
   ];
 
-  const [activeTabIndex, setActiveTabIndex] = useState(0);
+  const [activeTabIndex, setActiveTabIndex] = useState<number>(0);
+  const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  useEffect(() => {
+    if (!isClient) return;
+    
     const interval = setInterval(() => {
       setActiveTabIndex((current) => (current + 1) % tabs.length);
     }, 4000);
 
     return () => clearInterval(interval);
-  }, [tabs.length]);
+  }, [isClient, tabs.length]);
+
+  if (!isClient) {
+    return null;
+  }
 
   return (
     <section className="container relative mx-auto px-4 py-24 overflow-hidden">
@@ -116,47 +126,73 @@ export default function SideBySide() {
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 lg:grid-cols-3 max-w-6xl mx-auto mb-12">
           <GradientBentoCard
-            icon={<Dna className="w-5 h-5" />}
+            icon={<Dna className="w-5 h-5 text-indigo-500" />}
             title="Synteny Analysis"
             description="Visualize and analyze syntenic relationships between chromosomes across different species with our interactive visualization tools."
             className={`sm:col-span-1 sm:row-span-2 p-4 sm:p-6 h-full 
-              bg-gradient-to-br from-blue-500/10 to-blue-600/10 
-              dark:from-blue-400/10 dark:to-blue-500/10 
-              border border-blue-500/20 dark:border-blue-400/20
-              backdrop-blur-md`}
+              bg-gradient-to-br from-indigo-500/10 via-blue-500/10 to-sky-500/10
+              dark:from-indigo-400/10 dark:via-blue-400/10 dark:to-sky-400/10
+              border border-indigo-500/20 dark:border-indigo-400/20
+              backdrop-blur-md shadow-[0_0_25px_-5px_rgba(99,102,241,0.3)]
+              hover:shadow-[0_0_35px_-5px_rgba(99,102,241,0.45)]
+              transition-all duration-300`}
+            gradient="linear-gradient(135deg, rgba(129,140,248,0.8), rgba(99,102,241,0.8), rgba(79,70,229,0.8))"
             size="default"
           />
           <GradientBentoCard
-            icon={<GitBranch className="w-5 h-5" />}
-            title="Breakpoint Detection"
+            icon={<GitBranch className="w-5 h-5 text-rose-500" />}
+            title={
+              <div className="flex items-center gap-2">
+                Breakpoint Detection
+                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-rose-100 text-rose-800 dark:bg-rose-900 dark:text-rose-200">
+                  Beta
+                </span>
+              </div>
+            }
             description="Identify chromosomal breakpoints and structural variations with precision using our advanced detection algorithms."
             className={`sm:col-span-1 p-4 sm:p-6 h-full 
-              bg-gradient-to-br from-purple-500/10 to-purple-600/10 
-              dark:from-purple-400/10 dark:to-purple-500/10 
-              border border-purple-500/20 dark:border-purple-400/20
-              backdrop-blur-md`}
+              bg-gradient-to-br from-rose-500/10 via-pink-500/10 to-red-500/10
+              dark:from-rose-400/10 dark:via-pink-400/10 dark:to-red-400/10
+              border border-rose-500/20 dark:border-rose-400/20
+              backdrop-blur-md shadow-[0_0_25px_-5px_rgba(244,63,94,0.3)]
+              hover:shadow-[0_0_35px_-5px_rgba(244,63,94,0.45)]
+              transition-all duration-300`}
+            gradient="linear-gradient(135deg, rgba(251,113,133,0.8), rgba(244,63,94,0.8), rgba(225,29,72,0.8))"
             size="default"
           />
           <GradientBentoCard
-            icon={<Database className="w-5 h-5" />}
-            title="Gene Annotation"
+            icon={<Database className="w-5 h-5 text-teal-500" />}
+            title={
+              <div className="flex items-center gap-2">
+                Gene Annotation
+                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200">
+                  <span className="mr-1">🚧</span> In Progress
+                </span>
+              </div>
+            }
             description="Comprehensive gene annotation tools for detailed genomic analysis and interpretation."
             className={`sm:col-span-1 p-4 sm:p-6 h-full 
-              bg-gradient-to-br from-emerald-500/10 to-emerald-600/10 
-              dark:from-emerald-400/10 dark:to-emerald-500/10 
-              border border-emerald-500/20 dark:border-emerald-400/20
-              backdrop-blur-md`}
+              bg-gradient-to-br from-teal-500/10 via-emerald-500/10 to-green-500/10
+              dark:from-teal-400/10 dark:via-emerald-400/10 dark:to-green-400/10
+              border border-teal-500/20 dark:border-teal-400/20
+              backdrop-blur-md shadow-[0_0_25px_-5px_rgba(20,184,166,0.3)]
+              hover:shadow-[0_0_35px_-5px_rgba(20,184,166,0.45)]
+              transition-all duration-300`}
+            gradient="linear-gradient(135deg, rgba(45,212,191,0.8), rgba(20,184,166,0.8), rgba(13,148,136,0.8))"
             size="default"
           />
           <GradientBentoCard
-            icon={<Microscope className="w-5 h-5" />}
+            icon={<Microscope className="w-5 h-5 text-violet-500" />}
             title="Multi-Species Analysis"
             description="Compare genomic features across multiple species simultaneously with advanced comparative analysis tools."
             className={`sm:col-span-2 p-4 sm:p-6 h-full 
-              bg-gradient-to-br from-pink-500/10 to-pink-600/10 
-              dark:from-pink-400/10 dark:to-pink-500/10 
-              border border-pink-500/20 dark:border-pink-400/20
-              backdrop-blur-md`}
+              bg-gradient-to-br from-violet-500/10 via-purple-500/10 to-fuchsia-500/10
+              dark:from-violet-400/10 dark:via-purple-400/10 dark:to-fuchsia-400/10
+              border border-violet-500/20 dark:border-violet-400/20
+              backdrop-blur-md shadow-[0_0_25px_-5px_rgba(139,92,246,0.3)]
+              hover:shadow-[0_0_35px_-5px_rgba(139,92,246,0.45)]
+              transition-all duration-300`}
+            gradient="linear-gradient(135deg, rgba(167,139,250,0.8), rgba(139,92,246,0.8), rgba(124,58,237,0.8))"
             size="default"
           />
         </div>

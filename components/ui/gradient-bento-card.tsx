@@ -5,7 +5,7 @@ import type { ReactNode } from "react";
 
 interface GradientBentoCardProps {
   icon?: ReactNode;
-  title: string;
+  title: ReactNode;
   value?: React.ReactNode;
   description?: string;
   circleSize?: number;
