@@ -18,8 +18,60 @@ import {
   BarChart3 
 } from 'lucide-react';
 import { cn } from "@/lib/utils";
+import Particles from "../ui/particles";
+import AnimatedShinyText from "@/components/ui/animated-shiny-text";
 
+// Create separate components for each feature card
+function FeatureOne() {
+    return (
+        <GradientBentoCard
+            title="Interactive Visualization"
+            className={`p-6 h-full bg-gradient-to-br from-blue-500/10 to-blue-600/10 
+                dark:from-blue-400/10 dark:to-blue-500/10 
+                border border-blue-500/20 dark:border-blue-400/20`}
+        >
+            <Microscope className="h-8 w-8 text-blue-500 dark:text-blue-400 mb-4" />
+            <h3 className="font-semibold text-lg mb-2">Interactive Visualization</h3>
+            <p className="text-muted-foreground">
+                Powerful tools for exploring chromosomal rearrangements with intuitive controls
+            </p>
+        </GradientBentoCard>
+    );
+}
 
+function FeatureTwo() {
+    return (
+        <GradientBentoCard
+            title="Multiple File Formats"
+            className={`p-6 h-full bg-gradient-to-br from-purple-500/10 to-purple-600/10 
+                dark:from-purple-400/10 dark:to-purple-500/10 
+                border border-purple-500/20 dark:border-purple-400/20`}
+        >
+            <FileSpreadsheet className="h-8 w-8 text-purple-500 dark:text-purple-400 mb-4" />
+            <h3 className="font-semibold text-lg mb-2">Multiple File Formats</h3>
+            <p className="text-muted-foreground">
+                Support for various data formats including CSV and TSV for easy data import
+            </p>
+        </GradientBentoCard>
+    );
+}
+
+function FeatureThree() {
+    return (
+        <GradientBentoCard
+            title="Research-Grade Analysis"
+            className={`p-6 h-full bg-gradient-to-br from-emerald-500/10 to-emerald-600/10 
+                dark:from-emerald-400/10 dark:to-emerald-500/10 
+                border border-emerald-500/20 dark:border-emerald-400/20`}
+        >
+            <BarChart3 className="h-8 w-8 text-emerald-500 dark:text-emerald-400 mb-4" />
+            <h3 className="font-semibold text-lg mb-2">Research-Grade Analysis</h3>
+            <p className="text-muted-foreground">
+                Advanced features for scientific research and publication-ready visualizations
+            </p>
+        </GradientBentoCard>
+    );
+}
 
 export default function HeroSection() {
     const [email, setEmail] = useState('');
@@ -41,211 +93,210 @@ export default function HeroSection() {
         }
     };
 
-    // Define feature data
-    const features = [
-        {
-            icon: Microscope,
-            title: "Interactive Visualization",
-            description: "Powerful tools for exploring chromosomal rearrangements with intuitive controls",
-            gradient: "from-blue-500/10 to-blue-600/10 dark:from-blue-400/10 dark:to-blue-500/10",
-            iconColor: "text-blue-500 dark:text-blue-400",
-            borderColor: "border-blue-500/20 dark:border-blue-400/20"
-        },
-        {
-            icon: FileSpreadsheet,
-            title: "Multiple File Formats",
-            description: "Support for various data formats including CSV and TSV for easy data import",
-            gradient: "from-purple-500/10 to-purple-600/10 dark:from-purple-400/10 dark:to-purple-500/10",
-            iconColor: "text-purple-500 dark:text-purple-400",
-            borderColor: "border-purple-500/20 dark:border-purple-400/20"
-        },
-        {
-            icon: BarChart3,
-            title: "Research-Grade Analysis",
-            description: "Advanced features for scientific research and publication-ready visualizations",
-            gradient: "from-emerald-500/10 to-emerald-600/10 dark:from-emerald-400/10 dark:to-emerald-500/10",
-            iconColor: "text-emerald-500 dark:text-emerald-400",
-            borderColor: "border-emerald-500/20 dark:border-emerald-400/20"
-        }
-    ];
-
     return (
         <div className="flex flex-col items-center justify-center leading-6 relative z-10 px-4 w-full 
-            py-8 sm:py-16 md:py-24 
-            pt-16 sm:pt-20 md:pt-24">
-            {/* Beta Badge */}
+            min-h-[85vh] py-8 sm:py-16 md:py-24 
+            pt-16 sm:pt-20 md:pt-24
+            bg-gradient-to-b from-background via-background/95 to-background/90">
+            {/* Add Particles as the first child */}
+            <Particles
+                className="absolute inset-0 -z-10"
+                quantity={200}
+                staticity={20}
+                color="#3b82f6"
+                ease={20}
+                size={1}
+                vx={0.2}
+                vy={0.1}
+            />
+
+            {/* Premium Apple-style Beta Badge */}
             <motion.div 
-                className="mb-4 sm:mb-6 md:mb-8"
+                className="mb-6 sm:mb-8 md:mb-10"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.2 }}
             >
-                <span className="inline-flex items-center px-4 py-1.5 rounded-full text-sm font-medium 
-                    bg-blue-500/10 text-blue-600 dark:bg-blue-400/10 dark:text-blue-300 
-                    backdrop-blur-sm border border-blue-500/20 dark:border-blue-400/20
-                    shadow-[0_0_15px_rgba(59,130,246,0.1)] dark:shadow-[0_0_15px_rgba(59,130,246,0.1)]">
-                    🚀 Coming Soon - Beta Access
-                </span>
+                <div className={cn(
+                    "group rounded-full",
+                    "border border-black/5",
+                    // Premium glass effect with subtle gradient
+                    "bg-gradient-to-b from-white/80 to-white/50",
+                    "dark:from-neutral-900/90 dark:to-neutral-800/90",
+                    // Backdrop blur and shadow
+                    "backdrop-blur-md shadow-[0_2px_8px_rgba(0,0,0,0.04)]",
+                    "dark:shadow-[0_2px_8px_rgba(0,0,0,0.2)]",
+                    // Hover effects
+                    "hover:cursor-pointer",
+                    "hover:bg-gradient-to-b hover:from-white/90 hover:to-white/60",
+                    "dark:hover:from-neutral-800/90 dark:hover:to-neutral-700/90",
+                    // Smooth transition
+                    "transition-all duration-300 ease-out",
+                    // Fix width and center alignment
+                    "inline-flex"
+                )}>
+                    <AnimatedShinyText 
+                        className={cn(
+                            "inline-flex items-center justify-center px-5 py-1.5",
+                            // Text styling
+                            "text-sm font-medium",
+                            // Premium gradient text
+                            "text-neutral-800 dark:text-neutral-200",
+                            // Remove default styles that might conflict
+                            "!bg-none",
+                            "!bg-clip-text",
+                            // Hover animation
+                            "transition-all duration-300",
+                            "group-hover:opacity-80",
+                            // Fix width issues
+                            "whitespace-nowrap"
+                        )}
+                        shimmerWidth={200}
+                    >
+                        <span className="flex items-center gap-1.5">
+                            <span className="relative flex h-2 w-2">
+                                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-purple-400 opacity-75"></span>
+                                <span className="relative inline-flex h-2 w-2 rounded-full bg-purple-500"></span>
+                            </span>
+                            <span className="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 bg-clip-text text-transparent dark:from-indigo-400 dark:via-purple-400 dark:to-pink-400">
+                                Coming Soon - Join the Beta
+                            </span>
+                        </span>
+                        <ArrowRight className="ml-2 size-3.5 transition-transform duration-300 
+                            ease-in-out group-hover:translate-x-0.5 text-neutral-800 dark:text-neutral-200" />
+                    </AnimatedShinyText>
+                </div>
             </motion.div>
 
             {/* Title with improved spacing */}
-            <h1 className={`${TITLE_TAILWIND_CLASS} scroll-m-20 font-semibold tracking-tight text-center 
-                max-w-[1120px] text-2xl sm:text-3xl lg:text-5xl mb-3
-                bg-gradient-to-b from-foreground to-muted-foreground bg-clip-text text-transparent`}>
-                CHITRA
-                <span className="block text-lg sm:text-xl lg:text-3xl mt-3 font-normal">
+            <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 }}
+                className="text-center"
+            >
+                <h1 className={`${TITLE_TAILWIND_CLASS} scroll-m-20 font-bold tracking-tight text-center 
+                    max-w-[1120px] text-4xl sm:text-5xl lg:text-7xl mb-4
+                    bg-gradient-to-b from-foreground to-muted-foreground bg-clip-text text-transparent`}>
+                    CHITRA
+                </h1>
+                <p className="text-xl sm:text-2xl lg:text-3xl mt-3 font-medium text-muted-foreground/90 max-w-[800px] mx-auto">
                     CHromosome Interactive Tool for Rearrangement Analysis
-                </span>
-            </h1>
-            
-            {/* Description with improved spacing */}
-            <p className="mx-auto max-w-[700px] text-gray-600 dark:text-gray-300 text-center 
-                mt-4 mb-6 text-sm lg:text-base px-4">
-                A powerful visualization tool for exploring chromosomal rearrangements and synteny blocks, 
-                designed for researchers and scientists in genomics
-            </p>
+                </p>
+            </motion.div>
 
-            {/* Beta Access Form with improved spacing */}
+            {/* Beta Signup Form */}
             <motion.form 
-                onSubmit={handleBetaSignup} 
-                className="flex flex-col sm:flex-row gap-2 mt-6 w-full max-w-md px-4 mb-6"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.4 }}
+                onSubmit={handleBetaSignup}
+                className="flex flex-col sm:flex-row gap-3 mt-8 sm:mt-12 w-full max-w-md mx-auto"
+            >
+                <div className="flex-1 relative">
+                    <Input
+                        type="email"
+                        placeholder="Enter your email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        className="h-12 px-4 rounded-xl bg-background/50 backdrop-blur-sm border-muted 
+                            focus:ring-2 focus:ring-blue-500/20 transition-all duration-300
+                            hover:border-blue-500/30"
+                        required
+                    />
+                </div>
+                <RainbowButton
+                    type="submit"
+                    disabled={isLoading}
+                    className="h-12 px-6 rounded-xl font-medium"
+                >
+                    {isLoading ? (
+                        "Joining..."
+                    ) : (
+                        <>
+                            Join Beta
+                            <ArrowRight className="ml-2 h-4 w-4" />
+                        </>
+                    )}
+                </RainbowButton>
+            </motion.form>
+
+            {/* Preview and GitHub Buttons */}
+            <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.5 }}
+                className="mt-4 flex items-center gap-4"
             >
-                <Input
-                    type="email"
-                    placeholder="Enter your email for beta access"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                    className="flex-1 h-12 backdrop-blur-xl bg-white/10 dark:bg-gray-900/50 
-                        border-gray-200/30 dark:border-gray-700/30
-                        placeholder:text-gray-500 dark:placeholder:text-gray-400
-                        focus:border-blue-500/50 dark:focus:border-blue-400/50
-                        shadow-[0_0_15px_rgba(0,0,0,0.05)] dark:shadow-[0_0_15px_rgba(0,0,0,0.1)]"
-                />
-                <Button 
-                    type="submit" 
-                    disabled={isLoading}
-                    className="h-12 px-6 w-full sm:w-auto bg-gradient-to-b from-blue-500 to-blue-600 
-                        hover:from-blue-400 hover:to-blue-500
-                        dark:from-blue-400 dark:to-blue-500 
-                        dark:hover:from-blue-300 dark:hover:to-blue-400
-                        text-white border-0 shadow-lg shadow-blue-500/25
-                        dark:shadow-blue-400/20 transition-all duration-300"
-                >
-                    {isLoading ? (
-                        <span className="flex items-center gap-2">
-                            <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                            Joining...
-                        </span>
-                    ) : (
-                        <span className="flex items-center gap-2">
-                            <Mail className="h-4 w-4" />
-                            Join Beta
-                        </span>
-                    )}
-                </Button>
-            </motion.form>
-
-            {/* Action Buttons with improved spacing */}
-            <motion.div 
-                className="flex flex-col sm:flex-row justify-center items-center gap-3 w-full px-4 mb-8"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.9 }}
-            >
+                {/* Preview Demo Button */}
                 <Link href="/chromoviz">
-                    <RainbowButton 
-                        className="group relative h-12 px-8 text-sm font-medium"
-                    >
-                        Get Started
-                        <ArrowRight className='w-4 h-4 ml-2 transition-transform group-hover:translate-x-1' />
-                    </RainbowButton>
+                    <div className="relative overflow-hidden rounded-full dark:bg-zinc-900 bg-white shadow border dark:border-zinc-800 group border-zinc-400 p-0.5">
+                        <span className="absolute inset-[-1000%] animate-[spin_5s_linear_infinite_reverse] dark:bg-[conic-gradient(from_90deg_at_50%_50%,#fff_0%,#09090B_7%)] bg-[conic-gradient(from_90deg_at_50%_50%,#000_0%,#fff_5%)] group-hover:bg-none" />
+                        <Button 
+                            variant="outline"
+                            className="h-12 px-8 rounded-full font-medium backdrop-blur-xl 
+                                bg-zinc-50 dark:bg-zinc-900 
+                                text-zinc-800 dark:text-zinc-200
+                                border-0"
+                        >
+                            Preview Demo
+                            <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
+                        </Button>
+                    </div>
                 </Link>
 
-                <Link
-                    href="https://www.researchgate.net/profile/Jitendra-Narayan-3"
-                    target='_blank'
-                    aria-label="View Research Publications"
+                {/* GitHub Button */}
+                <Link 
+                    href="https://github.com/yourusername/yourrepo" 
+                    target="_blank"
                 >
-                    <Button 
-                        variant="outline" 
-                        className="h-12 bg-background/50 hover:bg-muted/50
-                            border-border hover:border-border
-                            text-foreground"
-                    >
-                        Publications
-                        <BookOpen className='w-4 h-4 ml-2' />
-                    </Button>
-                </Link>
-
-                <Link
-                    href="https://github.com/pranjalpruthi"
-                    target='_blank'
-                    aria-label="View CHITRA on GitHub"
-                >
-                    <Button
-                        variant="outline"
-                        size="icon"
-                        className="h-12 w-12 rounded-full bg-background/50 hover:bg-muted/50
-                            border-border hover:border-border
-                            text-foreground transition-transform hover:scale-105"
-                    >
-                        <Github className='w-5 h-5' />
-                    </Button>
+                    <div className="relative overflow-hidden rounded-full dark:bg-zinc-900 bg-white shadow border dark:border-zinc-800 group border-zinc-400 p-0.5">
+                        <span className="absolute inset-[-1000%] animate-[spin_5s_linear_infinite_reverse] dark:bg-[conic-gradient(from_90deg_at_50%_50%,#fff_0%,#09090B_7%)] bg-[conic-gradient(from_90deg_at_50%_50%,#000_0%,#fff_5%)] group-hover:bg-none" />
+                        <Button
+                            variant="outline"
+                            size="icon"
+                            className="relative h-12 w-12 rounded-full backdrop-blur-xl 
+                                bg-zinc-50 dark:bg-zinc-900 
+                                text-zinc-800 dark:text-zinc-200
+                                border-0"
+                        >
+                            <Github className="h-5 w-5" />
+                            <span className="sr-only">GitHub Repository</span>
+                        </Button>
+                    </div>
                 </Link>
             </motion.div>
 
-            {/* Feature cards with improved spacing */}
+            {/* Updated Features Grid */}
             <motion.div 
-                className="grid grid-cols-1 sm:grid-cols-3 gap-3 w-full max-w-[1100px] px-4 mb-8"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 1.1 }}
+                transition={{ delay: 0.5 }}
+                className="grid grid-cols-1 grid-rows-1 gap-6 mt-16 sm:mt-20 w-full max-w-6xl mx-auto px-4 
+                    sm:grid-cols-2 sm:grid-rows-2"
             >
-                {features.map((feature, index) => (
-                    <motion.div
-                        key={index}
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 1.1 + index * 0.1 }}
-                        className={cn(
-                            "group relative rounded-xl p-4 hover:shadow-md transition-all duration-300",
-                            "backdrop-blur-sm border",
-                            feature.borderColor,
-                            "hover:scale-[1.02]"
-                        )}
-                    >
-                        <div className={cn(
-                            "absolute inset-0 rounded-xl bg-gradient-to-br opacity-50",
-                            feature.gradient
-                        )} />
-                        
-                        <div className="relative space-y-2">
-                            <div className={cn(
-                                "w-8 h-8 rounded-lg flex items-center justify-center",
-                                "bg-white/50 dark:bg-gray-900/50",
-                                "border",
-                                feature.borderColor
-                            )}>
-                                <feature.icon className={cn(
-                                    "w-4 h-4",
-                                    feature.iconColor
-                                )} />
-                            </div>
-
-                            <h3 className="font-medium text-sm text-foreground">
-                                {feature.title}
-                            </h3>
-                            
-                            <p className="text-xs text-muted-foreground leading-relaxed">
-                                {feature.description}
-                            </p>
-                        </div>
-                    </motion.div>
-                ))}
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.6 }}
+                    className="sm:row-span-2"
+                >
+                    <FeatureOne />
+                </motion.div>
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.7 }}
+                >
+                    <FeatureTwo />
+                </motion.div>
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.8 }}
+                >
+                    <FeatureThree />
+                </motion.div>
             </motion.div>
         </div>
     );

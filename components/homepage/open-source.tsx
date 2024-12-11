@@ -1,66 +1,151 @@
-import { Github } from 'lucide-react';
+"use client";
+
+import { Star } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
 
-export function OpenSource() {
+export default function OpenSource() {
     return (
-        <div className="w-full max-w-[1100px] mx-auto px-4 py-24">
-            <motion.div 
-                className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5 }}
-            >
-                {/* Left Content */}
-                <div className="space-y-6">
-                    <div className="space-y-2">
-                        <p className="text-sm text-muted-foreground uppercase tracking-wider">
-                            oss/acc
-                        </p>
-                        <h2 className="text-3xl sm:text-4xl font-semibold tracking-tight">
-                            Open-source
-                        </h2>
-                    </div>
-                    
-                    <p className="text-muted-foreground text-lg leading-relaxed">
-                        We believe strongly in the value of open source: our codebase and development process is available to learn from and contribute to.
-                    </p>
-
-                    <Link 
-                        href="https://github.com/pranjalpruthi" 
-                        target="_blank"
-                        rel="noopener noreferrer"
-                    >
-                        <Button 
-                            variant="outline" 
-                            className="h-11 px-6 gap-2 bg-background/50 hover:bg-muted/50"
-                        >
-                            <Github className="w-5 h-5" />
-                            Star us on GitHub
-                        </Button>
-                    </Link>
+        <div className="relative w-full overflow-hidden">
+            <div className="max-w-[1400px] mx-auto px-4 py-32 lg:py-40">
+                {/* Animated background elements */}
+                <div className="absolute inset-0 z-0">
+                    <motion.div
+                        className="absolute top-1/4 left-1/4 w-[500px] h-[500px] rounded-full bg-blue-500/20 blur-[120px]"
+                        animate={{
+                            scale: [1, 1.2, 1],
+                            opacity: [0.3, 0.5, 0.3],
+                        }}
+                        transition={{
+                            duration: 8,
+                            repeat: Infinity,
+                            ease: "easeInOut"
+                        }}
+                    />
+                    <motion.div
+                        className="absolute bottom-1/4 right-1/4 w-[400px] h-[400px] rounded-full bg-purple-500/20 blur-[100px]"
+                        animate={{
+                            scale: [1.2, 1, 1.2],
+                            opacity: [0.4, 0.6, 0.4],
+                        }}
+                        transition={{
+                            duration: 6,
+                            repeat: Infinity,
+                            ease: "easeInOut"
+                        }}
+                    />
                 </div>
 
-                {/* Right Content - GitHub Card */}
-                <div className="relative aspect-[4/3] w-full">
-                    <div className="absolute inset-0 rounded-lg bg-gradient-to-br from-neutral-800 to-neutral-950 overflow-hidden">
-                        <div className="absolute inset-0 bg-[linear-gradient(to_right,#4f4f4f2e_1px,transparent_1px),linear-gradient(to_bottom,#4f4f4f2e_1px,transparent_1px)] bg-[size:14px_24px]" />
-                        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
+                <motion.div 
+                    className="grid grid-cols-1 lg:grid-cols-2 gap-16 xl:gap-24 items-center relative z-10"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 0.5 }}
+                >
+                    {/* Left Content */}
+                    <div className="space-y-8 lg:space-y-12">
+                        <motion.div 
+                            className="space-y-4 lg:space-y-6"
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.2 }}
+                        >
+                            <div className="inline-flex items-center px-6 py-2 rounded-full text-base font-medium 
+                                bg-blue-500/10 text-blue-600 dark:bg-blue-400/10 dark:text-blue-300 
+                                backdrop-blur-sm border border-blue-500/20 dark:border-blue-400/20
+                                shadow-[0_0_15px_rgba(59,130,246,0.1)]">
+                                Open Source
+                            </div>
+                            <h2 className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-bold tracking-tight 
+                                bg-gradient-to-b from-foreground to-muted-foreground bg-clip-text text-transparent">
+                                Built in the Open
+                            </h2>
+                        </motion.div>
+                        
+                        <motion.p 
+                            className="text-xl lg:text-2xl text-muted-foreground/80 leading-relaxed"
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.3 }}
+                        >
+                            We believe in transparency and collaboration. Our entire codebase is open source, 
+                            allowing developers to learn from, contribute to, and build upon our work.
+                        </motion.p>
+
+                        <motion.div
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.4 }}
+                        >
+                            <Link 
+                                href="https://github.com/pranjalpruthi" 
+                                target="_blank"
+                                rel="noopener noreferrer"
+                            >
+                                <Button 
+                                    variant="outline" 
+                                    className="h-14 px-8 gap-3 text-lg
+                                        bg-[#FDF4E7]/80 dark:bg-[#2D2416]/80 text-[#F5A524] 
+                                        hover:bg-[#FCE9CF] dark:hover:bg-[#3D321F]
+                                        border-[#F5A524]/30 hover:border-[#F5A524]/50
+                                        transition-all duration-300 rounded-2xl font-medium
+                                        backdrop-blur-sm shadow-[0_8px_16px_rgba(245,165,36,0.1)]"
+                                >
+                                    <Star className="w-6 h-6 fill-[#F5A524]" />
+                                    Star us on GitHub
+                                </Button>
+                            </Link>
+                        </motion.div>
+                    </div>
+
+                    {/* Right Content - Glowing Card */}
+                    <motion.div 
+                        className="relative aspect-[4/3] w-full"
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        whileHover={{ scale: 1.02 }}
+                        transition={{ duration: 0.5 }}
+                    >
+                        <div className="absolute inset-0 rounded-3xl overflow-hidden">
+                            <motion.div 
+                                className="absolute inset-0 bg-gradient-to-br from-blue-500/20 to-purple-500/20"
+                                animate={{
+                                    background: [
+                                        "linear-gradient(45deg, rgba(59,130,246,0.2) 0%, rgba(147,51,234,0.2) 100%)",
+                                        "linear-gradient(225deg, rgba(59,130,246,0.2) 0%, rgba(147,51,234,0.2) 100%)",
+                                    ],
+                                }}
+                                transition={{
+                                    duration: 5,
+                                    repeat: Infinity,
+                                    repeatType: "reverse",
+                                }}
+                            />
+                            <div className="absolute inset-0 backdrop-blur-sm bg-black/50" />
                             <Image
                                 src="/assets/github-card.svg"
-                                alt="GitHub Card"
-                                width={200}
-                                height={200}
-                                className="w-48 h-48 opacity-80"
+                                alt="GitHub Repository"
+                                fill
+                                className="object-cover object-center opacity-90"
+                            />
+                            <motion.div 
+                                className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/10 to-transparent"
+                                animate={{
+                                    opacity: [0, 0.5, 0],
+                                    backgroundPosition: ["200% 200%", "-50% -50%", "200% 200%"],
+                                }}
+                                transition={{
+                                    duration: 3,
+                                    repeat: Infinity,
+                                    ease: "linear",
+                                }}
                             />
                         </div>
-                        <div className="absolute inset-0 bg-gradient-to-t from-neutral-950/50 to-neutral-950/0" />
-                        <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-neutral-950 to-transparent" />
-                    </div>
-                </div>
-            </motion.div>
+                    </motion.div>
+                </motion.div>
+            </div>
         </div>
     );
 }

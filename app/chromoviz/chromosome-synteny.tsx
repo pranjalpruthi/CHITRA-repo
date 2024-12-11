@@ -995,14 +995,14 @@ export function ChromosomeSynteny({
           
           {/* Right Side Controls */}
           <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
-            <Button
-              variant="outline"
-              size="sm"
-              className="h-8 w-8 p-0"
-              onClick={() => setIsSettingsOpen(prev => !prev)}
-            >
-              <Settings2 className="h-4 w-4" />
-            </Button>
+            <div className="relative">
+              <SettingsPanel
+                config={visualConfig}
+                onConfigChange={handleConfigChange as any}
+                isOpen={isSettingsOpen}
+                onOpenChange={setIsSettingsOpen}
+              />
+            </div>
             <Button
               variant="outline"
               size="sm"
@@ -1165,13 +1165,6 @@ export function ChromosomeSynteny({
           </div>
         </div>
       </div>
-
-      <SettingsPanel
-        config={visualConfig}
-        onConfigChange={handleConfigChange as any}
-        isOpen={isSettingsOpen}
-        onOpenChange={setIsSettingsOpen}
-      />
     </div>
   );
 }

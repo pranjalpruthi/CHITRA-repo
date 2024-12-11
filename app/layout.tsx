@@ -10,10 +10,10 @@ import './globals.css'
 export const metadata: Metadata = {
   metadataBase: new URL("https://starter.rasmic.xyz"),
   title: {
-    default: 'CHITRA - CHromosome Interactive Tool for Rearrangement Analysis',
+    default: 'CHITRA - Chromosome Interactive Tool for Rearrangement Analysis',
     template: `%s | CHITRA`
   },
-  description: 'CHITRA (CHromosome Interactive Tool for Rearrangement Analysis) - A powerful tool for analyzing chromosome rearrangements and synteny visualization',
+  description: 'CHITRA (Chromosome Interactive Tool for Rearrangement Analysis) - A powerful tool for analyzing chromosome rearrangements and synteny visualization',
   openGraph: {
     description: 'CHITRA (CHromosome Interactive Tool for Rearrangement Analysis) - A powerful tool for analyzing chromosome rearrangements and synteny visualization',
     images: ['https://utfs.io/f/8a428f85-ae83-4ca7-9237-6f8b65411293-eun6ii.png'],

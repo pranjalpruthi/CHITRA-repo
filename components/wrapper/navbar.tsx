@@ -70,7 +70,7 @@ export default function NavBar() {
           isHomePage ? [
             "max-w-2xl mx-auto mt-4",
             isScrolled 
-              ? "bg-background/60 backdrop-blur-xl border border-border/40 shadow-sm rounded-full"
+              ? "bg-background/60 backdrop-blur-xl border border-border/40 shadow-sm rounded-full border border-white/[0.1] dark:border-white/[0.05]"
               : "bg-background/5 backdrop-blur-sm rounded-full"
           ] : [
             isScrolled 

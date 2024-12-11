@@ -152,8 +152,16 @@ const config: Config = {
           },
         },
         rainbow: {
-          "0%": { "background-position": "0%" },
-          "100%": { "background-position": "200%" },
+          "0%": { "background-position": "0% 50%" },
+          "100%": { "background-position": "200% 50%" },
+        },
+        "shiny-text": {
+          "0%, 90%, 100%": {
+            "background-position": "calc(-100% - var(--shiny-width)) 0",
+          },
+          "30%, 60%": {
+            "background-position": "calc(100% + var(--shiny-width)) 0",
+          },
         },
       },
       animation: {
@@ -167,7 +175,8 @@ const config: Config = {
         "border-beam": "border-beam calc(var(--duration)*1s) infinite linear",
         "background-shine": "background-shine 2s linear infinite",
         aurora: "aurora 60s linear infinite",
-        rainbow: "rainbow var(--speed, 2s) infinite linear",
+        rainbow: "rainbow 4s linear infinite",
+        "shiny-text": "shiny-text 8s infinite",
       },
     },
   },

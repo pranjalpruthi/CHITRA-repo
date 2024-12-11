@@ -1,56 +1,190 @@
-import { Computer, Network } from 'lucide-react'
-import { FaBusinessTime } from 'react-icons/fa'
-import { OrbitingCirclesComponent } from './orbiting-circles'
-import { TITLE_TAILWIND_CLASS } from '@/utils/constants'
+"use client";
 
-const features = [
-  {
-    name: 'Build faster.',
-    description:
-      'Get up and running in no time with pre-configured settings and best practices. Say goodbye to setup and focus on what truly matters - building your application.',
-    icon: Computer,
-  },
-  {
-    name: 'Focus on business logic.',
-    description: 'Concentrate on solving business problems instead of dealing with the repetitive setup.',
-    icon: FaBusinessTime,
-  },
-  {
-    name: 'Ready for scale.',
-    description: 'Prepare for growth from day one. With built-in optimizations and scalable architecture, your application will be ready to handle increased traffic and complexity.',
-    icon: Network,
-  },
-]
+import { useEffect, useState } from "react";
+import Image from "next/image";
+import { Tabs } from "../ui/animated-tabs";
+import { ArrowUpRight, MessageSquare, Dna, GitBranch, Database, Microscope } from "lucide-react";
+import { BackgroundGradient } from "../ui/background-gradient";
+import { BackgroundBeamsWithCollision } from "../ui/background-beams-with-collision";
+import ShineBorder from "../ui/shine-border";
+import { RainbowButton } from "../ui/rainbow-button";
+import { GradientBentoCard } from "../ui/gradient-bento-card";
+import { Button } from "../ui/button";
+import Link from "next/link";
 
 export default function SideBySide() {
-  return (
-    <div className="overflow-hidden ">
-      <div className="mx-auto max-w-7xl px-6 lg:px-8">
-        <div className="mx-auto grid max-w-2xl grid-cols-1 gap-x-8 gap-y-16 sm:gap-y-20 lg:mx-0 lg:max-w-none lg:grid-cols-2">
-          <div className="lg:pr-8 lg:pt-4">
-            <div className="lg:max-w-lg">
-              <p className={`${TITLE_TAILWIND_CLASS} mt-2 font-semibold tracking-tight dark:text-white text-gray-900`}>
-                Nextjs Starter Kit: A faster way to production
-              </p>
-              <p className="mt-6 leading-8 text-gray-600 dark:text-gray-400">
-                Accelerate your development with this powerful Nextjs Starter Kit
-              </p>
-              <dl className="mt-10 max-w-xl space-y-8 leading-7 text-gray-600 lg:max-w-none">
-                {features.map((feature) => (
-                  <div key={feature.name} className="relative pl-9">
-                    <dt className="inline font-semibold dark:text-gray-100 text-gray-900">
-                      <feature.icon className="absolute left-1 top-1 h-5 w-5" aria-hidden="true" />
-                      {feature.name}
-                    </dt>{' '}
-                    <dd className="inline dark:text-gray-400">{feature.description}</dd>
-                  </div>
-                ))}
-              </dl>
-            </div>
+  const tabs = [
+    {
+      title: "Synteny Analysis",
+      value: "synteny",
+      content: (
+        <BackgroundGradient className="rounded-[22px] p-1 overflow-hidden">
+          <div className="w-full overflow-hidden relative h-full rounded-[20px] bg-white/[0.7] dark:bg-black/[0.7] backdrop-blur-xl border border-white/[0.2] dark:border-white/[0.1]">
+            <Image
+              src="https://utfs.io/f/69a12ab1-4d57-4913-90f9-38c6aca6c373-1txg2.png"
+              alt="Chitra Synteny Analysis"
+              width={1200}
+              height={800}
+              className="object-cover w-full h-full rounded-[18px]"
+              priority
+            />
           </div>
-          <OrbitingCirclesComponent />
+        </BackgroundGradient>
+      ),
+    },
+    {
+      title: "Breakpoint Detection",
+      value: "breakpoints",
+      content: (
+        <BackgroundGradient className="rounded-[22px] p-1 overflow-hidden">
+          <div className="w-full overflow-hidden relative h-full rounded-[20px] bg-white/[0.7] dark:bg-black/[0.7] backdrop-blur-xl border border-white/[0.2] dark:border-white/[0.1]">
+            <Image
+              src="https://utfs.io/f/69a12ab1-4d57-4913-90f9-38c6aca6c373-1txg2.png"
+              alt="Chitra Breakpoint Detection"
+              width={1200}
+              height={800}
+              className="object-cover w-full h-full rounded-[18px]"
+              priority
+            />
+          </div>
+        </BackgroundGradient>
+      ),
+    },
+    {
+      title: "Gene Annotation",
+      value: "annotation",
+      content: (
+        <BackgroundGradient className="rounded-[22px] p-1 overflow-hidden">
+          <div className="w-full overflow-hidden relative h-full rounded-[20px] bg-white/[0.7] dark:bg-black/[0.7] backdrop-blur-xl border border-white/[0.2] dark:border-white/[0.1]">
+            <Image
+              src="https://utfs.io/f/69a12ab1-4d57-4913-90f9-38c6aca6c373-1txg2.png"
+              alt="Chitra Gene Annotation"
+              width={1200}
+              height={800}
+              className="object-cover w-full h-full rounded-[18px]"
+              priority
+            />
+          </div>
+        </BackgroundGradient>
+      ),
+    },
+    {
+      title: "Multi-Species Analysis",
+      value: "multi-species",
+      content: (
+        <BackgroundGradient className="rounded-[22px] p-1 overflow-hidden">
+          <div className="w-full overflow-hidden relative h-full rounded-[20px] bg-white/[0.7] dark:bg-black/[0.7] backdrop-blur-xl border border-white/[0.2] dark:border-white/[0.1]">
+            <Image
+              src="https://utfs.io/f/69a12ab1-4d57-4913-90f9-38c6aca6c373-1txg2.png"
+              alt="Chitra Multi-Species Analysis"
+              width={1200}
+              height={800}
+              className="object-cover w-full h-full rounded-[18px]"
+              priority
+            />
+          </div>
+        </BackgroundGradient>
+      ),
+    },
+  ];
+
+  const [activeTabIndex, setActiveTabIndex] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setActiveTabIndex((current) => (current + 1) % tabs.length);
+    }, 4000);
+
+    return () => clearInterval(interval);
+  }, [tabs.length]);
+
+  return (
+    <section className="container relative mx-auto px-4 py-24 overflow-hidden">
+      <BackgroundBeamsWithCollision className="opacity-20" />
+      
+      <div className="relative">
+        <div className="text-center mb-12">
+          
+          
+          <h2 className="text-4xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-gray-900 to-gray-600 dark:from-white dark:to-gray-400 mb-4">
+            Chitra: Interactive Chromosome Analysis
+          </h2>
+          <p className="text-xl text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
+            Advanced visualization and analysis of synteny data, breakpoints, and gene annotations across multiple species.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 lg:grid-cols-3 max-w-6xl mx-auto mb-12">
+          <GradientBentoCard
+            icon={<Dna className="w-5 h-5" />}
+            title="Synteny Analysis"
+            description="Visualize and analyze syntenic relationships between chromosomes across different species with our interactive visualization tools."
+            gradient="from-blue-500 via-purple-500 to-pink-500"
+            className="sm:col-span-1 sm:row-span-2"
+            size="default"
+          />
+          <GradientBentoCard
+            icon={<GitBranch className="w-5 h-5" />}
+            title="Breakpoint Detection"
+            description="Identify chromosomal breakpoints and structural variations with precision using our advanced detection algorithms."
+            gradient="from-green-500 via-teal-500 to-blue-500"
+            className="sm:col-span-1"
+            size="default"
+          />
+          <GradientBentoCard
+            icon={<Database className="w-5 h-5" />}
+            title="Gene Annotation"
+            description="Comprehensive gene annotation tools for detailed genomic analysis and interpretation."
+            gradient="from-orange-500 via-red-500 to-purple-500"
+            className="sm:col-span-1"
+            size="default"
+          />
+          <GradientBentoCard
+            icon={<Microscope className="w-5 h-5" />}
+            title="Multi-Species Analysis"
+            description="Compare genomic features across multiple species simultaneously with advanced comparative analysis tools."
+            gradient="from-pink-500 via-purple-500 to-indigo-500"
+            className="sm:col-span-2"
+            size="default"
+          />
+        </div>
+
+        <div className="h-[600px] [perspective:1000px] relative flex flex-col max-w-6xl mx-auto w-full items-center justify-start">
+          <Tabs 
+            tabs={tabs}
+            containerClassName="mb-8 justify-center"
+            activeTabClassName="bg-white/[0.9] dark:bg-zinc-800/[0.9] shadow-lg backdrop-blur-xl border border-white/[0.2] dark:border-white/[0.1]"
+            tabClassName="font-medium px-6 py-3"
+          />
+        </div>
+
+        <div className="flex flex-col sm:flex-row justify-center items-center gap-4 mt-12">
+          <Link href="/docs">
+            <div className="relative overflow-hidden rounded-full dark:bg-zinc-900 bg-white shadow border dark:border-zinc-800 group border-zinc-400 p-0.5">
+              <span className="absolute inset-[-1000%] animate-[spin_5s_linear_infinite_reverse] dark:bg-[conic-gradient(from_90deg_at_50%_50%,#fff_0%,#09090B_7%)] bg-[conic-gradient(from_90deg_at_50%_50%,#000_0%,#fff_5%)] group-hover:bg-none" />
+              <Button
+                variant="outline"
+                className="h-12 px-8 rounded-full font-medium backdrop-blur-xl 
+                    bg-zinc-50 dark:bg-zinc-900 
+                    text-zinc-800 dark:text-zinc-200
+                    border-0"
+              >
+                <span className="flex items-center gap-2">
+                  <ArrowUpRight className="w-5 h-5" />
+                  View Documentation
+                </span>
+              </Button>
+            </div>
+          </Link>
+          
+          <RainbowButton className="w-full sm:w-auto">
+            <span className="flex items-center gap-2">
+              <MessageSquare className="w-5 h-5" />
+              Share Feedback
+            </span>
+          </RainbowButton>
         </div>
       </div>
-    </div>
-  )
+    </section>
+  );
 }

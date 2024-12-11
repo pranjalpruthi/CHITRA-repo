@@ -285,10 +285,7 @@ export function SettingsPanel({
           <Settings2 className="h-4 w-4" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent
-        className="bg-background/95 p-4"
-        sideOffset={8}
-      >
+      <PopoverContent className="bg-background/95 p-4">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
             <span className="text-xs text-muted-foreground">Settings</span>
