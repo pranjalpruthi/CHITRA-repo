@@ -3,7 +3,7 @@
 import ModeToggle from '@/components/mode-toggle'
 import { UserProfile } from '@/components/user-profile'
 import config from '@/config'
-import { ChevronRight, HomeIcon, Info, BookOpen } from 'lucide-react'
+import { ChevronRight, HomeIcon, Info, BookOpen, FileText } from 'lucide-react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import clsx from 'clsx'
@@ -93,12 +93,35 @@ export default function NavBar() {
                 <span className="text-sm font-bold tracking-tight">CHITRA</span>
               </ShinyRotatingBorderButton>
             </Link>
-            <p className={clsx(
-              "text-sm text-muted-foreground hidden md:block",
-              isHomePage && "hidden"
-            )}>
-              Chromosome Interactive Tool for Rearrangement Analysis
-            </p>
+            <div className="flex items-center gap-2">
+              <AboutSheet>
+                <Button 
+                  variant="ghost" 
+                  className="h-8 hover:bg-background/80 text-sm"
+                >
+                  <Info className="h-4 w-4 md:mr-2" />
+                  <span className="hidden md:inline">About</span>
+                </Button>
+              </AboutSheet>
+              <GuideSheet>
+                <Button 
+                  variant="ghost" 
+                  className="h-8 hover:bg-background/80 text-sm"
+                >
+                  <BookOpen className="h-4 w-4 md:mr-2" />
+                  <span className="hidden md:inline">Guide</span>
+                </Button>
+              </GuideSheet>
+              <Link href="/docs">
+                <Button 
+                  variant="ghost" 
+                  className="h-8 hover:bg-background/80 text-sm"
+                >
+                  <FileText className="h-4 w-4 md:mr-2" />
+                  <span className="hidden md:inline">Docs</span>
+                </Button>
+              </Link>
+            </div>
           </div>
 
           {/* Right side content */}
@@ -110,24 +133,6 @@ export default function NavBar() {
               <Breadcrumbs />
             </div>
             <div className="flex items-center gap-2">
-              <AboutSheet>
-                <Button 
-                  variant="ghost" 
-                  size="icon" 
-                  className="h-8 w-8 hover:bg-background/80"
-                >
-                  <Info className="h-4 w-4" />
-                </Button>
-              </AboutSheet>
-              <GuideSheet>
-                <Button 
-                  variant="ghost" 
-                  size="icon" 
-                  className="h-8 w-8 hover:bg-background/80"
-                >
-                  <BookOpen className="h-4 w-4" />
-                </Button>
-              </GuideSheet>
               {config?.auth?.enabled && (
                 <div className="hidden md:block">
                   <UserProfile />

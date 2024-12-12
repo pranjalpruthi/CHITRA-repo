@@ -1,7 +1,7 @@
 "use client"
 import Link from 'next/link';
 import Image from 'next/image';
-import { Github, Copy, CheckCheck } from 'lucide-react';
+import { Github, Copy, CheckCheck, Building } from 'lucide-react';
 import { motion, useInView } from 'framer-motion';
 import { useRef, useState } from 'react';
 import { toast } from 'sonner';
@@ -26,85 +26,35 @@ export default function Footer() {
     return (
         <footer className="relative border-t bg-black/95 backdrop-blur-xl">
             <div className="mx-auto max-w-screen-xl px-4 py-6 sm:py-8">
-                {/* Main Grid Layout */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-6 sm:gap-8">
-                    {/* Logo and Brand Section */}
+                    {/* Logo and Brand Section - Updated */}
                     <div className="sm:col-span-2 lg:col-span-5 space-y-3">
-                        <div className="space-y-1.5">
-                            <HyperText 
-                                text="CHITRA"
-                                className="text-base sm:text-lg font-bold text-white/90"
-                                duration={1000}
-                            />
-                            <p className="text-xs text-white/60">
-                                Supported by
-                            </p>
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                                <HyperText 
+                                    text="Supported by"
+                                    className="text-xs text-white/60"
+                                    duration={1000}
+                                />
+                            </div>
                         </div>
 
-                        {/* Logos Grid - Apple-style cards */}
-                        <div className="grid grid-cols-3 gap-2 sm:gap-3 max-w-[240px]">
-                            {/* CSIR-IGIB Logo */}
-                            <div className={cn(
-                                "relative overflow-hidden rounded-lg",
-                                "bg-gradient-to-b from-zinc-900/90 to-zinc-900/50",
-                                "border border-white/[0.08]",
-                                "backdrop-blur-md backdrop-saturate-150",
-                                "group transition-all duration-300",
-                                "hover:border-white/[0.12] hover:bg-zinc-800/50"
-                            )}>
-                                <div className="p-2 sm:p-3 relative z-10">
-                                    <Image
-                                        src="/assets/igib.png"
-                                        alt="CSIR-IGIB Logo"
-                                        width={60}
-                                        height={60}
-                                        className="object-contain w-full h-auto aspect-square"
-                                    />
-                                </div>
-                                <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                            </div>
-
-                            {/* Rockefeller Logo - Same styling */}
-                            <div className={cn(
-                                "relative overflow-hidden rounded-lg",
-                                "bg-gradient-to-b from-zinc-900/90 to-zinc-900/50",
-                                "border border-white/[0.08]",
-                                "backdrop-blur-md backdrop-saturate-150",
-                                "group transition-all duration-300",
-                                "hover:border-white/[0.12] hover:bg-zinc-800/50"
-                            )}>
-                                <div className="p-2 sm:p-3 relative z-10">
-                                    <Image
-                                        src="/assets/rf.jpg"
-                                        alt="Rockefeller Logo"
-                                        width={60}
-                                        height={60}
-                                        className="object-contain w-full h-auto aspect-square"
-                                    />
-                                </div>
-                                <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                            </div>
-
-                            {/* Lab Logo - Same styling */}
-                            <div className={cn(
-                                "relative overflow-hidden rounded-lg",
-                                "bg-gradient-to-b from-zinc-900/90 to-zinc-900/50",
-                                "border border-white/[0.08]",
-                                "backdrop-blur-md backdrop-saturate-150",
-                                "group transition-all duration-300",
-                                "hover:border-white/[0.12] hover:bg-zinc-800/50"
-                            )}>
-                                <div className="p-2 sm:p-3 relative z-10">
-                                    <Image
-                                        src="/assets/jnlab.png"
-                                        alt="Lab Logo"
-                                        width={60}
-                                        height={60}
-                                        className="object-contain w-full h-auto aspect-square"
-                                    />
-                                </div>
-                                <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                            </div>
+                        {/* Simplified Logos */}
+                        <div className="flex gap-4 items-center">
+                            <Image
+                                src="/assets/logocloud.svg"
+                                alt="Logo Cloud"
+                                width={200}
+                                height={100}
+                                className="object-contain h-auto"
+                            />
+                            <Image
+                                src="/assets/rf.jpg"
+                                alt="Rockefeller Logo"
+                                width={200}
+                                height={200}
+                                className="object-contain h-auto"
+                            />
                         </div>
                     </div>
 
@@ -172,6 +122,7 @@ export default function Footer() {
                 >
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div className="flex items-center gap-2">
+                            <Building className="h-8 w-8 text-white/60" />
                             <div>
                                 <p className="text-xs font-medium text-white/90">CSIR-IGIB</p>
                                 <p className="text-[10px] text-white/60">Lab of Bioinformatics and Big Data</p>

@@ -2,6 +2,7 @@
 
 import { AnimatePresence, motion, Variants } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
+
 import { cn } from "@/lib/utils";
 
 interface HyperTextProps {
@@ -10,8 +11,6 @@ interface HyperTextProps {
   framerProps?: Variants;
   className?: string;
   animateOnLoad?: boolean;
-  wrapperClassName?: string;
-  responsive?: boolean;
 }
 
 const alphabets = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
@@ -27,9 +26,7 @@ export default function HyperText({
     exit: { opacity: 0, y: 3 },
   },
   className,
-  wrapperClassName,
   animateOnLoad = true,
-  responsive = true,
 }: HyperTextProps) {
   const [displayText, setDisplayText] = useState(text.split(""));
   const [trigger, setTrigger] = useState(false);
@@ -56,40 +53,31 @@ export default function HyperText({
                 ? l
                 : i <= interations.current
                   ? text[i]
-                  : alphabets[getRandomInt(26)]
-            )
+                  : alphabets[getRandomInt(26)],
+            ),
           );
-          interations.current = interations.current + 0.5;
+          interations.current = interations.current + 0.1;
         } else {
           setTrigger(false);
           clearInterval(interval);
         }
       },
-      duration / (text.length * 15)
+      duration / (text.length * 10),
     );
+    // Clean up interval on unmount
     return () => clearInterval(interval);
   }, [text, duration, trigger, animateOnLoad]);
 
   return (
     <div
-      className={cn(
-        "flex flex-wrap scale-100 cursor-default overflow-hidden py-2",
-        responsive && "px-4 sm:px-6 md:px-0",
-        "justify-center items-center",
-        wrapperClassName
-      )}
+      className="flex scale-100 cursor-default overflow-hidden py-2"
       onMouseEnter={triggerAnimation}
     >
       <AnimatePresence mode="wait">
         {displayText.map((letter, i) => (
           <motion.span
             key={i}
-            className={cn(
-              "font-mono",
-              letter === " " ? "w-2 sm:w-3" : "",
-              responsive && "text-sm sm:text-base md:text-lg lg:text-xl",
-              className
-            )}
+            className={cn("font-mono", letter === " " ? "w-3" : "", className)}
             {...framerProps}
           >
             {letter.toUpperCase()}
