@@ -398,8 +398,8 @@ export default function ChromoViz() {
         ]);
 
       // Load optional files - don't fail if they don't exist
-      let geneAnnotations = [];
-      let breakpoints = [];
+      let geneAnnotations: GeneAnnotation[] = [];
+      let breakpoints: ChromosomeBreakpoint[] = [];
       
       try {
         geneAnnotations = await d3.csv(`${path}/ref_gene_annotations.csv`, parseGeneAnnotationRow);
