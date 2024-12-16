@@ -389,15 +389,29 @@ export default function ChromoViz() {
     setError(null);
     setIsUsingExample(true);
     try {
-      // Load required files
-      const [syntenyResponse, referenceResponse, refChromosomeSizes, geneAnnotations, breakpoints] = 
+      // Load required files first
+      const [syntenyResponse, referenceResponse, refChromosomeSizes] = 
         await Promise.all([
           d3.csv(`${path}/synteny_data.csv`, parseCSVRow),
           d3.csv(`${path}/species_data.csv`, parseChromosomeRow),
           d3.csv(`${path}/ref_chromosome_sizes.csv`, parseChromosomeSizeRow),
-          d3.csv(`${path}/ref_gene_annotations.csv`, parseGeneAnnotationRow),
-          d3.csv(`${path}/bp.csv`, parseBreakpointRow),
         ]);
+
+      // Load optional files - don't fail if they don't exist
+      let geneAnnotations = [];
+      let breakpoints = [];
+      
+      try {
+        geneAnnotations = await d3.csv(`${path}/ref_gene_annotations.csv`, parseGeneAnnotationRow);
+      } catch (e) {
+        console.log('Gene annotations file not found - this is optional');
+      }
+
+      try {
+        breakpoints = await d3.csv(`${path}/bp.csv`, parseBreakpointRow);
+      } catch (e) {
+        console.log('Breakpoints file not found - this is optional');
+      }
 
       setSyntenyData(syntenyResponse);
       setSpeciesData(referenceResponse);
@@ -406,7 +420,6 @@ export default function ChromoViz() {
         geneAnnotations: geneAnnotations,
         breakpoints: breakpoints
       });
-
     } catch (err) {
       console.error('Error loading data:', err);
       setError(err instanceof Error ? err.message : 'An error occurred');
