@@ -24,8 +24,8 @@ export interface ChromosomeData {
   chr_id: string;
   chr_type: string;
   chr_size_bp: number;
-  centromere_start: number | null;
-  centromere_end: number | null;
+  centromere_start: number | null | undefined;
+  centromere_end: number | null | undefined;
   annotations?: GeneAnnotation[]; 
 }
 
@@ -42,6 +42,20 @@ export interface GeneAnnotation {
   GeneID: string;
 }
 
+export interface BreakpointData {
+  ref_chr: string;
+  ref_start: number;
+  ref_end: number;
+  breakpoint: string;
+}
+
+export interface ChromosomeBreakpoint {
+  ref_chr: string;
+  ref_start: number;
+  ref_end: number;
+  breakpoint: string;
+}
+
 export interface ReferenceGenomeData {
   chromosomeSizes: {
     chromosome: string;
@@ -50,4 +64,5 @@ export interface ReferenceGenomeData {
     centromere_end?: number;
   }[];
   geneAnnotations?: GeneAnnotation[];
+  breakpoints?: ChromosomeBreakpoint[];
 }

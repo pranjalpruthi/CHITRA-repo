@@ -7,7 +7,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { FileSpreadsheet, GripHorizontal, MousePointerClick, Table as TableIcon, X, ChevronUp } from "lucide-react"
 import { motion, AnimatePresence, useDragControls } from "framer-motion"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { cn } from "@/lib/utils"
 
@@ -62,6 +62,25 @@ function downloadCSV(data: SyntenyData[], filename: string) {
 export function SyntenyTable({ selectedSynteny, onToggleSelection, onExport }: SyntenyTableProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [hasNewSelection, setHasNewSelection] = useState(false)
+  const panelRef = useRef<HTMLDivElement>(null)
+  const buttonRef = useRef<HTMLButtonElement>(null)
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        isOpen && 
+        panelRef.current && 
+        buttonRef.current &&
+        !panelRef.current.contains(event.target as Node) &&
+        !buttonRef.current.contains(event.target as Node)
+      ) {
+        setIsOpen(false)
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [isOpen])
 
   useEffect(() => {
     if (isOpen) {
@@ -80,19 +99,20 @@ export function SyntenyTable({ selectedSynteny, onToggleSelection, onExport }: S
       <AnimatePresence>
         {isOpen && (
           <motion.div
+            ref={panelRef}
             initial={{ x: "100%" }}
             animate={{ x: 0 }}
             exit={{ x: "100%" }}
             transition={{ type: "spring", damping: 20 }}
-            className="fixed top-0 right-0 h-full w-full max-w-md z-50 bg-background/80 backdrop-blur-sm border-l shadow-lg"
+            className="fixed top-0 right-0 h-full w-full max-w-md z-50 bg-background/90 backdrop-blur-xl border-l shadow-2xl"
           >
             <div className="flex flex-col h-full">
-              <div className="p-6 border-b">
+              <div className="p-8 border-b bg-background/50">
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <TableIcon className="h-5 w-5" />
-                    <h3 className="font-semibold">Selected Blocks</h3>
-                    <Badge variant="secondary">
+                  <div className="flex items-center gap-4">
+                    <TableIcon className="h-6 w-6 text-blue-500" />
+                    <h3 className="text-lg font-semibold tracking-tight">Selected Blocks</h3>
+                    <Badge variant="secondary" className="bg-blue-500/10 text-blue-500 rounded-full px-3">
                       {selectedSynteny.length}
                     </Badge>
                   </div>
@@ -120,49 +140,102 @@ export function SyntenyTable({ selectedSynteny, onToggleSelection, onExport }: S
                       variant="ghost"
                       size="icon"
                       onClick={() => setIsOpen(false)}
+                      className={cn(
+                        "h-8 w-8 rounded-full",
+                        "bg-background/80 backdrop-blur-sm",
+                        "ring-1 ring-black/5 dark:ring-white/10",
+                        "shadow-sm hover:shadow-md",
+                        "transition-all duration-200",
+                        "hover:bg-red-500/10 hover:text-red-500",
+                        "hover:scale-110 active:scale-95",
+                        "focus:outline-none focus:ring-2 focus:ring-red-500"
+                      )}
                     >
-                      <X className="h-4 w-4" />
+                      <motion.div
+                        whileTap={{ rotate: 90 }}
+                        transition={{ type: "spring", stiffness: 200, damping: 10 }}
+                      >
+                        <X className="h-4 w-4" />
+                      </motion.div>
                     </Button>
                   </div>
                 </div>
               </div>
 
-              <div className="flex-1 overflow-auto p-6">
+              <div className="flex-1 overflow-auto p-8">
                 {selectedSynteny.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center h-full text-center text-muted-foreground gap-2">
-                    <MousePointerClick className="h-8 w-8" />
-                    <p>Click on synteny ribbons to select them</p>
+                  <div className="flex flex-col items-center justify-center h-full text-center text-muted-foreground gap-3 py-12">
+                    <div className="w-16 h-16 rounded-full bg-blue-500/5 flex items-center justify-center">
+                      <MousePointerClick className="h-8 w-8 text-blue-500" />
+                    </div>
+                    <p className="text-sm font-medium">Click on synteny ribbons to select them</p>
                   </div>
                 ) : (
                   <div className="space-y-3">
                     {selectedSynteny.map((link) => (
                       <Card
                         key={`${link.ref_chr}-${link.query_chr}-${link.ref_start}`}
-                        className="relative group hover:bg-muted/50 transition-colors"
+                        className="relative group hover:bg-muted/30 transition-all duration-300 border-none ring-1 ring-black/5 dark:ring-white/10 shadow-sm hover:shadow-md"
                       >
-                        <CardContent className="p-4">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => onToggleSelection(link)}
-                            className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                        <CardContent className="p-6">
+                          <motion.div
+                            initial={{ scale: 0.8, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            exit={{ scale: 0.8, opacity: 0 }}
+                            className="absolute -top-2 -right-2 z-10"
                           >
-                            <X className="h-4 w-4" />
-                          </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => {
+                                const button = document.activeElement as HTMLElement;
+                                button?.blur();
+                                onToggleSelection(link);
+                              }}
+                              className={cn(
+                                "h-8 w-8 rounded-full",
+                                "bg-background/80 backdrop-blur-sm",
+                                "opacity-0 group-hover:opacity-100",
+                                "ring-1 ring-black/5 dark:ring-white/10",
+                                "shadow-lg hover:shadow-xl",
+                                "transition-all duration-200",
+                                "hover:bg-red-500/10 hover:text-red-500",
+                                "hover:scale-110 active:scale-95",
+                                "focus:outline-none focus:ring-2 focus:ring-red-500"
+                              )}
+                            >
+                              <motion.div
+                                whileTap={{ rotate: 90 }}
+                                transition={{ type: "spring", stiffness: 200, damping: 10 }}
+                              >
+                                <X className="h-4 w-4" />
+                              </motion.div>
+                            </Button>
+                          </motion.div>
                           
-                          <div className="space-y-2">
-                            <div className="flex items-center gap-2">
-                              <span className="font-medium">{link.ref_species} {link.ref_chr}</span>
-                              <ChevronUp className="h-4 w-4 rotate-90" />
-                              <span className="font-medium">{link.query_name} {link.query_chr}</span>
+                          <motion.div
+                            layout
+                            className="space-y-3"
+                          >
+                            <div className="flex items-center gap-3">
+                              <span className="font-medium tracking-tight">{link.ref_species} {link.ref_chr}</span>
+                              <ChevronUp className="h-4 w-4 rotate-90 text-muted-foreground" />
+                              <span className="font-medium tracking-tight">{link.query_name} {link.query_chr}</span>
                             </div>
                             
-                            <div className="text-sm text-muted-foreground space-y-1">
-                              <div>Position: {(link.ref_start / 1_000_000).toFixed(2)}-{(link.ref_end / 1_000_000).toFixed(2)} Mb</div>
-                              <div>Size: {((link.ref_end - link.ref_start) / 1_000_000).toFixed(2)} Mb</div>
+                            <div className="text-sm space-y-2 text-muted-foreground">
                               <div className="flex items-center gap-2">
-                                Orientation: 
+                                <span className="text-xs uppercase tracking-wider opacity-70">Position</span>
+                                <span className="font-medium">{(link.ref_start / 1_000_000).toFixed(2)}-{(link.ref_end / 1_000_000).toFixed(2)} Mb</span>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <span className="text-xs uppercase tracking-wider opacity-70">Size</span>
+                                <span className="font-medium">{((link.ref_end - link.ref_start) / 1_000_000).toFixed(2)} Mb</span>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <span className="text-xs uppercase tracking-wider opacity-70">Orientation</span>
                                 <Badge variant="secondary" className={cn(
+                                  "rounded-full px-3 font-medium tracking-tight",
                                   link.query_strand === '+' 
                                     ? "bg-blue-500/10 text-blue-500" 
                                     : "bg-red-500/10 text-red-500"
@@ -171,7 +244,7 @@ export function SyntenyTable({ selectedSynteny, onToggleSelection, onExport }: S
                                 </Badge>
                               </div>
                             </div>
-                          </div>
+                          </motion.div>
                         </CardContent>
                       </Card>
                     ))}
@@ -203,14 +276,16 @@ export function SyntenyTable({ selectedSynteny, onToggleSelection, onExport }: S
           <div className="absolute inset-0 rounded-full bg-gradient-to-r from-blue-500/20 to-cyan-500/20 blur-lg animate-pulse delay-75" />
           
           <Button
+            ref={buttonRef}
             onClick={() => setIsOpen(!isOpen)}
             className={cn(
-              "relative h-14 w-14 rounded-full p-0 overflow-hidden",
-              "bg-white/90 dark:bg-black/50 backdrop-blur-md",
-              "border-2 border-indigo-200/50 dark:border-white/20",
-              "shadow-lg hover:shadow-xl transition-all duration-300",
+              "relative h-16 w-16 rounded-full p-0 overflow-hidden",
+              "bg-white/95 dark:bg-black/80 backdrop-blur-xl",
+              "border-none shadow-lg hover:shadow-xl",
+              "transition-all duration-300 ease-out",
+              "hover:scale-105 active:scale-95",
               "cursor-grab active:cursor-grabbing",
-              hasNewSelection && "ring-2 ring-blue-500 ring-offset-2 dark:ring-offset-gray-950"
+              hasNewSelection && "ring-2 ring-blue-500 ring-offset-4 dark:ring-offset-gray-950"
             )}
           >
             <div className="relative flex items-center justify-center">

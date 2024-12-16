@@ -14,6 +14,7 @@ const config: Config = {
     "./components/**/*.{js,ts,jsx,tsx,mdx}",
     "./app/**/*.{js,ts,jsx,tsx,mdx}",
     "./src/**/*.{ts,tsx}",
+    "./node_modules/onborda/dist/**/*.{js,ts,jsx,tsx}",
   ],
   // Enabling dark mode
   darkMode: "class", // Assuming you want to enable dark mode based on the class strategy

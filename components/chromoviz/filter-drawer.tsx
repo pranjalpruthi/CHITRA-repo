@@ -381,18 +381,21 @@ export const FilterDrawer = ({
             <div className="flex gap-2">
               <Button
                 variant="outline"
-                className="flex-1 bg-background/40 dark:bg-background/20 hover:bg-destructive/20 dark:hover:bg-destructive/10 hover:text-destructive border border-border/50 dark:border-border/30 shadow-sm backdrop-blur-md text-sm"
+                className="flex-1 bg-background/40 dark:bg-background/20 hover:bg-blue-500/20 dark:hover:bg-blue-500/10 hover:text-blue-500 border border-border/50 dark:border-border/30 shadow-sm backdrop-blur-md text-sm"
                 onClick={() => {
+                  // Reset selections to show all data
                   setSelectedSpecies([]);
                   setSelectedChromosomes([]);
                 }}
                 disabled={isLoading || (selectedSpecies.length === 0 && selectedChromosomes.length === 0)}
               >
-                <X className="h-3.5 w-3.5 mr-1.5" />
-                Clear all
+                <Database className="h-3.5 w-3.5 mr-1.5" />
+                Show all
               </Button>
               <DrawerClose asChild>
-                <Button className="flex-1 shadow-sm text-sm bg-primary/90 dark:bg-primary/80 hover:bg-primary/80 dark:hover:bg-primary/70">Done</Button>
+                <Button className="flex-1 shadow-sm text-sm bg-primary/90 dark:bg-primary/80 hover:bg-primary/80 dark:hover:bg-primary/70">
+                  Done
+                </Button>
               </DrawerClose>
             </div>
           </DrawerFooter>

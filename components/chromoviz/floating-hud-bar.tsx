@@ -1,17 +1,12 @@
 'use client'
 
 import { motion } from "framer-motion";
-import React, { useState, useMemo } from "react";
+import React, { useState } from "react";
 import { 
-  Upload, 
   ArrowRight, 
-  FileSpreadsheet,
+  FileText,
   RefreshCw,
   BookOpen,
-  FileText,
-  HelpCircle,
-  Download,
-  Loader2,
   TableProperties,
   Pin,
   PinOff,
@@ -19,42 +14,13 @@ import {
   Minimize2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import  AiButton  from "@/components/animata/button/ai-button";
+import AiButton from "@/components/animata/button/ai-button";
 import { Separator } from "@/components/ui/separator";
 import { FilterDrawer } from '@/components/chromoviz/filter-drawer';
 import { GuideSheet } from "@/components/chromoviz/guide";
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "@/components/ui/sheet";
-import { CSVUploader } from "@/components/chromoviz/file-uploader";
-import { FeatureTableConverter } from "@/components/chromoviz/feature-table-converter";
-import { parse } from 'csv-parse/browser/esm/sync';
-import { Drawer, DrawerTrigger, DrawerContent, DrawerHeader, DrawerTitle } from "@/components/ui/drawer";
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
-import { cn } from "@/lib/utils";
+import { FileUploaderGroup } from '@/components/chromoviz/file-uploader';
 import { ExampleFilesDrawer } from "@/components/chromoviz/example-files-drawer";
-
-interface FilterDrawerProps {
-  selectedSpecies: string[];
-  setSelectedSpecies: (species: string[]) => void;
-  selectedChromosomes: string[];
-  setSelectedChromosomes: (chromosomes: string[]) => void;
-  speciesOptions: { label: string; value: string }[];
-  chromosomeOptions: { [species: string]: { label: string; value: string; species: string }[] };
-  referenceGenomeData: any;
-  syntenyData?: {
-    ref_chr: string;
-    query_chr: string;
-    query_name: string;
-  }[];
-  isLoading: boolean;
-  children?: React.ReactNode;
-}
+import { cn } from "@/lib/utils";
 
 interface FloatingHUDBarProps {
   onGenerateVisualization: () => void;
@@ -143,64 +109,7 @@ export function FloatingHUDBar({
 
           <div className="flex items-center justify-center gap-1 sm:gap-2 [&>*]:!text-gray-700 dark:[&>*]:!text-white [&_svg]:!stroke-gray-600 dark:[&_svg]:!stroke-white">
             {/* 1. Upload Button */}
-            <Sheet>
-              <SheetTrigger asChild>
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  className="h-8 px-2 text-xs hover:bg-white/10 hover:text-white transition-colors group"
-                >
-                  <Upload className="h-3.5 w-3.5 group-hover:text-blue-400" />
-                  <span className="hidden sm:inline ml-1.5">Upload</span>
-                </Button>
-              </SheetTrigger>
-              <SheetContent className="w-full sm:max-w-md overflow-y-auto">
-                <SheetHeader>
-                  <SheetTitle>Data Upload</SheetTitle>
-                  <SheetDescription>
-                    Upload your data files or use the example files provided below
-                  </SheetDescription>
-                </SheetHeader>
-                
-                <div className="mt-6 space-y-6">
-                  <div className="space-y-4">
-                    <h3 className="text-sm font-medium flex items-center gap-2">
-                      <Upload className="h-4 w-4" />
-                      Required Files
-                    </h3>
-                    <div className="space-y-2">
-                      <CSVUploader type="synteny" onDataLoad={onDataLoad.synteny} />
-                      <CSVUploader type="species" onDataLoad={onDataLoad.species} />
-                      <CSVUploader type="reference" onDataLoad={onDataLoad.reference} />
-                    </div>
-                  </div>
-
-                  <Separator />
-
-                  <div className="space-y-4">
-                    <h3 className="text-sm font-medium flex items-center gap-2">
-                      <Upload className="h-4 w-4" />
-                      Optional Files
-                    </h3>
-                    <CSVUploader 
-                      type="annotations" 
-                      onDataLoad={onDataLoad.annotations}
-                      required={false}
-                    />
-                  </div>
-
-                  <Separator />
-
-                  <div className="space-y-4">
-                    <h3 className="text-sm font-medium flex items-center gap-2">
-                      <FileSpreadsheet className="h-4 w-4" />
-                      Feature Table Converter
-                    </h3>
-                    <FeatureTableConverter />
-                  </div>
-                </div>
-              </SheetContent>
-            </Sheet>
+            <FileUploaderGroup onDataLoad={onDataLoad} />
 
             {/* 2. Generate Button */}
             <Button 
@@ -289,4 +198,4 @@ export function FloatingHUDBar({
       </div>
     </motion.div>
   );
-};
+}

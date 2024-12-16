@@ -47,7 +47,7 @@ export default function HeroSection() {
             <div 
                 className="absolute inset-0 -z-20"
                 style={{
-                    backgroundImage: "url('/assets/hero.svg')",
+                    backgroundImage: "url('/assets/hero-2.svg')",
                     backgroundSize: '90% auto',
                     backgroundPosition: '50% 70px',
                     backgroundRepeat: 'no-repeat',
@@ -108,7 +108,7 @@ export default function HeroSection() {
                 </motion.div>
 
                 {/* Glass Card for Beta Signup Form and Buttons */}
-                <div className="bg-white/30 dark:bg-black/30 backdrop-blur-xl border border-white/20 dark:border-black/20 rounded-full p-6 shadow-lg">
+                <div className="bg-white/30 dark:bg-black/30 backdrop-blur-sm border border-white/20 dark:border-black/20 rounded-full p-6 shadow-lg">
                     {/* Beta Signup Form */}
                     <motion.form 
                         initial={{ opacity: 0, y: 20 }}

@@ -14,6 +14,16 @@ import {
 } from "@/components/ui/tooltip";
 import { HelpCircle } from "lucide-react";
 import { motion } from "framer-motion";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
+import { Separator } from "@/components/ui/separator";
+import { FeatureTableConverter } from "@/components/chromoviz/feature-table-converter";
 
 const FILE_CONFIGS = {
   synteny: {
@@ -38,7 +48,14 @@ const FILE_CONFIGS = {
       query_start: +d.query_start,
       query_end: +d.query_end,
       ref_start: +d.ref_start,
-      ref_end: +d.ref_end
+      ref_end: +d.ref_end,
+      query_name: d.query_name || d.species_name || "Unknown",
+      ref_species: d.ref_species || "Reference",
+      qry_lvl: d.qry_lvl || "synteny",
+      symbol: d.symbol || "",
+      class: d.class || "synteny",
+      position: d.position || "",
+      GeneID: d.GeneID || ""
     })
   },
   species: {
@@ -89,29 +106,42 @@ const FILE_CONFIGS = {
     description: "Upload ref_gene_annotations.csv file (optional)",
     tooltip: {
       title: "Gene Annotations File",
-      description: "Contains gene annotation data for the reference genome",
+      description: "Contains information about gene annotations",
       format: [
-        { field: "chromosome", desc: "Chromosome identifier" },
-        { field: "start", desc: "Gene start position" },
-        { field: "end", desc: "Gene end position" },
-        { field: "strand", desc: "Strand orientation (+/-)" },
+        { field: "chromosome", desc: "Chromosome ID" },
+        { field: "start", desc: "Start position" },
+        { field: "end", desc: "End position" },
+        { field: "strand", desc: "Strand (+/-)" },
+        { field: "class", desc: "Gene class" },
         { field: "symbol", desc: "Gene symbol" },
-        { field: "name", desc: "Gene name" },
-        { field: "class", desc: "Gene class/type" }
+        { field: "name", desc: "Gene name" }
       ]
     },
-    fileType: ".csv",
+    fileType: '.csv',
     parser: (d: any) => ({
-      chromosome: d.chromosome,
-      genomicAccession: d.genomic_accession,
+      ...d,
       start: +d.start,
       end: +d.end,
-      strand: d.strand,
-      class: d.class,
-      locusTag: d.locus_tag || null,
-      symbol: d.symbol || null,
-      name: d.name || null,
-      geneId: d.GeneID
+    })
+  },
+  breakpoints: {
+    title: "Breakpoints Data",
+    description: "Upload breakpoints.csv file (optional)",
+    tooltip: {
+      title: "Breakpoints File",
+      description: "Contains information about chromosome breakpoints",
+      format: [
+        { field: "ref_chr", desc: "Reference chromosome ID" },
+        { field: "ref_start", desc: "Start position" },
+        { field: "ref_end", desc: "End position" },
+        { field: "breakpoint", desc: "Breakpoint identifier" }
+      ]
+    },
+    fileType: '.csv',
+    parser: (d: any) => ({
+      ...d,
+      ref_start: +d.ref_start,
+      ref_end: +d.ref_end,
     })
   }
 } as const;
@@ -138,6 +168,10 @@ const GRADIENT_CONFIGS = {
     hover: "hover:from-amber-500/20 hover:via-orange-500/20 hover:to-red-500/20"
   },
   annotations: {
+    gradient: "from-emerald-500/10 via-green-500/10 to-lime-500/10",
+    hover: "hover:from-emerald-500/20 hover:via-green-500/20 hover:to-lime-500/20"
+  },
+  breakpoints: {
     gradient: "from-emerald-500/10 via-green-500/10 to-lime-500/10",
     hover: "hover:from-emerald-500/20 hover:via-green-500/20 hover:to-lime-500/20"
   }
@@ -206,7 +240,8 @@ export function CSVUploader({ onDataLoad, type, required = true }: FileUploaderP
       const file = newFiles[0];
       const text = await file.text();
       const data = await d3.csvParse(text, config.parser);
-      
+      console.log('Parsed Data:', data); // Add this line
+      console.log('Processed Data:', data); // Add this line
       if (data && data.length > 0) {
         setIsValid(true);
         onDataLoad(data);
@@ -275,5 +310,111 @@ export function CSVUploader({ onDataLoad, type, required = true }: FileUploaderP
         ))}
       </FileUploaderContent>
     </FileUploader>
+  );
+}
+
+interface FileUploaderGroupProps {
+  onDataLoad: {
+    synteny: (data: any) => void;
+    species: (data: any) => void;
+    reference: (data: any) => void;
+    annotations: (data: any) => void;
+    breakpoints?: (data: any) => void;
+  };
+  trigger?: React.ReactNode;
+}
+
+export function FileUploaderGroup({ onDataLoad, trigger }: FileUploaderGroupProps) {
+  const [uploadedData, setUploadedData] = useState<{
+    synteny?: any[];
+    species?: any[];
+    reference?: any[];
+    annotations?: any[];
+    breakpoints?: any[];
+  }>({});
+
+  const handleDataLoad = (type: keyof typeof onDataLoad, data: any[]) => {
+    setUploadedData(prev => {
+      const newData = { ...prev, [type]: data };
+      
+      // Only process data when all required files are uploaded
+      if (newData.synteny && newData.species && newData.reference) {
+        // Call onDataLoad for each type in the correct order
+        onDataLoad.reference(newData.reference);
+        onDataLoad.species(newData.species);
+        onDataLoad.synteny(newData.synteny);
+        if (newData.annotations) {
+          onDataLoad.annotations(newData.annotations);
+        }
+        if (newData.breakpoints) {
+          onDataLoad.breakpoints?.(newData.breakpoints);
+        }
+      }
+      return newData;
+    });
+  };
+
+  return (
+    <Sheet>
+      <SheetTrigger asChild>
+        {trigger || (
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="h-8 px-2 text-xs hover:bg-white/10 hover:text-white transition-colors group"
+          >
+            <Upload className="h-3.5 w-3.5 group-hover:text-blue-400" />
+            <span className="hidden sm:inline ml-1.5">Upload</span>
+          </Button>
+        )}
+      </SheetTrigger>
+      <SheetContent className="w-full sm:max-w-md overflow-y-auto">
+        <SheetHeader>
+          <SheetTitle>Data Upload</SheetTitle>
+          <SheetDescription>
+            Upload your data files or use the example files provided below
+          </SheetDescription>
+        </SheetHeader>
+        
+        <div className="mt-6 space-y-6">
+          <div className="space-y-4">
+            <h3 className="text-sm font-medium flex items-center gap-2">
+              <Upload className="h-4 w-4" />
+              Required Files
+            </h3>
+            <div className="space-y-2">
+              <CSVUploader type="synteny" onDataLoad={(data) => handleDataLoad('synteny', data)} />
+              <CSVUploader type="species" onDataLoad={(data) => handleDataLoad('species', data)} />
+              <CSVUploader type="reference" onDataLoad={(data) => handleDataLoad('reference', data)} />
+            </div>
+          </div>
+
+          <Separator />
+
+          <div className="space-y-4">
+            <h3 className="text-sm font-medium flex items-center gap-2">
+              <Upload className="h-4 w-4" />
+              Optional Files
+            </h3>
+            <CSVUploader 
+              type="annotations" 
+              onDataLoad={(data) => handleDataLoad('annotations', data)}
+              required={false}
+            />
+            <CSVUploader 
+              type="breakpoints" 
+              onDataLoad={(data) => handleDataLoad('breakpoints', data)}
+              required={false}
+            />
+          </div>
+
+          <Separator />
+
+          <div className="space-y-4">
+            <FeatureTableConverter />
+          </div>
+        </div>
+      </SheetContent>
+    </Sheet>
   );
 }

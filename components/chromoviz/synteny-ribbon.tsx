@@ -25,19 +25,19 @@ interface SyntenyRibbonProps {
 }
 
 const SYNTENY_COLORS = {
-  FORWARD: '#2563eb1a',
-  REVERSE: '#dc26261a',
-  BLOCK_FORWARD: '#2563eb',
-  BLOCK_REVERSE: '#dc2626',
+  FORWARD: '#2563eb33',
+  REVERSE: '#dc262633',
+  BLOCK_FORWARD: '#3b82f6',
+  BLOCK_REVERSE: '#ef4444',
   STROKE_WIDTH: {
     SMALL: 1.5,
     MEDIUM: 2.5,
     LARGE: 3.5
   },
   OPACITY: {
-    DEFAULT: 0.45,
-    HOVER: 0.75,
-    SELECTED: 0.9,
+    DEFAULT: 0.6,
+    HOVER: 0.85,
+    SELECTED: 1.0,
     ACTIVE: 1.0
   }
 } as const;
@@ -140,10 +140,16 @@ export function renderSyntenyRibbon({
     .attr("class", `synteny-group ${isSelected ? 'selected' : ''}`)
     .attr("data-synteny-id", syntenyId)
     .attr("data-selected", isSelected ? "true" : "false")
+    .attr("data-block-size", width1 * width2) // Store block size for sorting
+    .style("pointer-events", "all") // Ensure all events are captured
     .style("user-select", "none")
     .style("-webkit-user-select", "none")
     .style("-moz-user-select", "none")
     .style("-ms-user-select", "none");
+
+  // Set z-index based on block size (smaller blocks on top)
+  const zIndex = Math.round(1000000 - (width1 * width2)); // Invert size for z-index
+  blockGroup.style("z-index", zIndex);
 
   // Source block
   const sourceBlock = blockGroup.append("rect")
@@ -187,27 +193,27 @@ export function renderSyntenyRibbon({
   gradient.append("stop")
     .attr("offset", "0%")
     .attr("stop-color", queryColor)
-    .attr("stop-opacity", "0.4");  // Higher starting opacity
+    .attr("stop-opacity", "0.5");  // Increased from 0.4
 
   gradient.append("stop")
     .attr("offset", "15%")
     .attr("stop-color", queryColor)
-    .attr("stop-opacity", "0.7");  // Higher mid opacity
+    .attr("stop-opacity", "0.8");  // Increased from 0.7
 
   gradient.append("stop")
     .attr("offset", "50%")
     .attr("stop-color", queryColor)
-    .attr("stop-opacity", "0.9");  // Near full opacity at peak
+    .attr("stop-opacity", "1.0");  // Increased from 0.9
 
   gradient.append("stop")
     .attr("offset", "85%")
     .attr("stop-color", queryColor)
-    .attr("stop-opacity", "0.7");  // Higher mid opacity
+    .attr("stop-opacity", "0.8");  // Increased from 0.7
 
   gradient.append("stop")
     .attr("offset", "100%")
     .attr("stop-color", queryColor)
-    .attr("stop-opacity", "0.4");  // Higher ending opacity
+    .attr("stop-opacity", "0.5");  // Increased from 0.4
 
   // Draw ribbon
   const path = d3.path();
@@ -235,15 +241,26 @@ export function renderSyntenyRibbon({
     .attr("opacity", isSelected ? SYNTENY_COLORS.OPACITY.SELECTED : SYNTENY_COLORS.OPACITY.DEFAULT)
     .attr("class", `synteny-ribbon ${isSelected ? 'selected' : ''}`)
     .attr("data-synteny-id", syntenyId)
-    .style("transition", "opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1)")
-    .style("filter", "drop-shadow(0 4px 6px rgba(0, 0, 0, 0.15))");  // Slightly stronger shadow
+    .attr("stroke", isSelected ? (link.query_strand === '+' ? SYNTENY_COLORS.BLOCK_FORWARD : SYNTENY_COLORS.BLOCK_REVERSE) : 'none')
+    .attr("stroke-width", isSelected ? 2 : 0)
+    .attr("stroke-opacity", isSelected ? 0.8 : 0)
+    .style("transition", "opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1), stroke-width 0.2s ease-in-out")
+    .style("position", "relative") // Enable stacking context
+    .style("filter", "drop-shadow(0 4px 8px rgba(0, 0, 0, 0.25))");  // Increased shadow intensity
+
+  // Add CSS classes for hover management
+  blockGroup.style("position", "relative")
+    .style("mix-blend-mode", "normal"); // Changed from multiply for better visibility
 
   // Initial state setup - Set initial opacities based on selection state
   const setElementStates = (selected: boolean) => {
     ribbon
       .attr("opacity", selected ? SYNTENY_COLORS.OPACITY.SELECTED : SYNTENY_COLORS.OPACITY.DEFAULT)
       .classed("selected", selected)
-      .attr("data-selected", selected ? "true" : "false");
+      .attr("data-selected", selected ? "true" : "false")
+      .attr("stroke", selected ? (link.query_strand === '+' ? SYNTENY_COLORS.BLOCK_FORWARD : SYNTENY_COLORS.BLOCK_REVERSE) : 'none')
+      .attr("stroke-width", selected ? 2 : 0)
+      .attr("stroke-opacity", selected ? 0.8 : 0);
 
     [sourceBlock, targetBlock].forEach(block => {
       block
@@ -319,10 +336,33 @@ export function renderSyntenyRibbon({
   const attachEvents = (element: d3.Selection<any, unknown, null, undefined>) => {
     element
       .on("mouseover.synteny", (event: MouseEvent) => {
-        handleGroupHover();
-        onHover(event, link);
+        // Get all blocks at the current mouse position
+        const mousePoint = d3.pointer(event);
+        const elementsAtPoint = document.elementsFromPoint(event.clientX, event.clientY)
+          .filter(el => el.classList.contains('synteny-group'))
+          .map(el => d3.select(el));
+
+        // Find the smallest block that contains the mouse point
+        const smallestBlock = elementsAtPoint
+          .sort((a, b) => {
+            const sizeA = parseFloat(a.attr('data-block-size'));
+            const sizeB = parseFloat(b.attr('data-block-size'));
+            return sizeA - sizeB;
+          })[0];
+
+        // Only trigger hover if this is the smallest block or no other blocks are present
+        if (!smallestBlock || smallestBlock.attr('data-synteny-id') === syntenyId) {
+          handleGroupHover();
+          onHover(event, link);
+        }
       })
-      .on("mouseout.synteny", handleGroupLeave)
+      .on("mouseout.synteny", (event: MouseEvent) => {
+        // Only trigger mouseout if we're not entering another part of the same block
+        const toElement = event.relatedTarget as Element;
+        if (!toElement || !blockGroup.node()?.contains(toElement)) {
+          handleGroupLeave();
+        }
+      })
       .on("mousemove.synteny", onMove)
       .on("click.synteny", handleClick);
   };

@@ -8,6 +8,7 @@ import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import HyperText from '../ui/hyper-text';
 import { Button } from '../ui/button';
+import AnimatedText from '../ui/animated-text';
 
 export default function Footer() {
     const ref = useRef(null);
@@ -44,15 +45,15 @@ export default function Footer() {
                             <Image
                                 src="/assets/logocloud.svg"
                                 alt="Logo Cloud"
-                                width={200}
+                                width={150}
                                 height={100}
                                 className="object-contain h-auto"
                             />
                             <Image
                                 src="/assets/rf.jpg"
                                 alt="Rockefeller Logo"
-                                width={200}
-                                height={200}
+                                width={150}
+                                height={100}
                                 className="object-contain h-auto"
                             />
                         </div>
@@ -139,6 +140,14 @@ export default function Footer() {
                         </div>
                     </div>
                 </motion.div>
+            </div>
+
+            {/* Add the subtle animated text at the bottom */}
+            <div className="relative h-24 w-full overflow-hidden opacity-[0.30] select-none pointer-events-none">
+                <AnimatedText 
+                    text="CHITRA" 
+                    className="!text-[12vw] font-black tracking-tighter text-white/80"
+                />
             </div>
         </footer>
     );

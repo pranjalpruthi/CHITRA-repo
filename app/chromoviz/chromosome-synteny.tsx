@@ -4,7 +4,7 @@ import { useEffect, useRef, useState, useCallback, RefObject } from "react";
 import * as d3 from "d3";
 import { Button } from "@/components/ui/button";
 import { ZoomIn, ZoomOut, RefreshCw, Maximize2, Minimize2, Save, ChevronDown, ChevronLeft, ChevronRight, ChevronUp, Circle, ArrowUp, ArrowDown, ArrowUpDown, ArrowLeftRight, ArrowRight, ArrowLeft, Settings2 } from "lucide-react";
-import { ChromosomeData, SyntenyData, ReferenceGenomeData } from "../types";
+import { ChromosomeData, SyntenyData, ReferenceGenomeData, ChromosomeBreakpoint } from "../types";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import { useDebounce } from "use-debounce";
@@ -176,6 +176,12 @@ interface VisualizationConfig {
     forward: string;
     reverse: string;
   };
+}
+
+// Add to the renderChromosome function parameters
+interface RenderChromosomeParams {
+  // ... existing params ...
+  breakpoints?: ChromosomeBreakpoint[];
 }
 
 export function ChromosomeSynteny({
@@ -415,7 +421,7 @@ export function ChromosomeSynteny({
       type: 'synteny',
       data: {
         symbol: link.symbol,
-        strand: link.query_strand, // Use query_strand from SyntenyData
+        strand: link.query_strand,
         class: link.class,
         position: link.position,
         isCluster: link.isCluster,
@@ -425,7 +431,6 @@ export function ChromosomeSynteny({
         GeneID: link.GeneID
       }
     });
-    
     
     const svg = d3.select(svgRef.current);
     const isSelected = selectedSynteny.some(s => 
@@ -442,14 +447,13 @@ export function ChromosomeSynteny({
 
       svg.selectAll(`.matching-block[data-synteny-id="${link.ref_chr}-${link.query_chr}-${link.ref_start}-${link.query_start}"]`)
         .attr("opacity", 1)
-        .attr("stroke-width", 3);
+        .attr("stroke-width", 1);
     }
   };
 
   const handleMouseOut = () => {
     handleElementLeave();
     
-    // Reset visual states while respecting selection
     const svg = d3.select(svgRef.current);
     
     // Reset ribbons based on selection state
@@ -467,7 +471,7 @@ export function ChromosomeSynteny({
       const block = d3.select(this);
       const isSelected = block.classed("selected");
       block.attr("opacity", isSelected ? 1 : 0.8)
-        .attr("stroke-width", isSelected ? 3 : 2);
+        .attr("stroke-width", isSelected ? 1 : 0.5);
     });
   };
 
@@ -692,6 +696,9 @@ export function ChromosomeSynteny({
       .domain([0, 1])
       .range(['#e2e8f0', '#94a3b8']); // Light to darker shade for chromosomes
 
+    // Get reference species from synteny data
+    const referenceSpecies = syntenyData.length > 0 ? syntenyData[0].ref_species : '';
+
     // Draw chromosomes for each species
     uniqueSpecies.forEach((species, speciesIndex) => {
       const speciesColor = speciesColorScale(species);
@@ -710,15 +717,8 @@ export function ChromosomeSynteny({
         .attr("fill", "currentColor")
         .text(species.replace("_", " "));
 
-      // Draw chromosomes with conditional annotation rendering
       let xOffset = 0;
       speciesData.forEach((chr) => {
-        const chrAnnotations = showAnnotations 
-          ? referenceGenomeData?.geneAnnotations?.filter(
-              gene => gene.chromosome === chr.chr_id
-            ) || []
-          : []; // Empty array when annotations are disabled
-
         renderChromosome({
           chromosome: chr,
           xOffset,
@@ -729,9 +729,11 @@ export function ChromosomeSynteny({
           onMove: handleElementMove,
           onLeave: handleElementLeave,
           container: g,
-          annotations: chrAnnotations, // Pass filtered annotations
-          showAnnotations, // Pass the flag
-          config: visualConfig
+          annotations: referenceGenomeData?.geneAnnotations,
+          showAnnotations,
+          breakpoints: referenceGenomeData?.breakpoints,
+          config: visualConfig,
+          isReferenceChromosome: species === referenceSpecies,
         });
         
         xOffset += xScale(chr.chr_size_bp) + CHROMOSOME_CONFIG.SPACING * 2;
@@ -751,8 +753,15 @@ export function ChromosomeSynteny({
              selectedChromosomes.includes(queryChr);
     });
 
-    // Render filtered ribbons
-    filteredData.forEach(link => {
+    // Sort filtered data by block size (largest to smallest)
+    const sortedData = filteredData.sort((a, b) => {
+      const sizeA = (a.ref_end - a.ref_start) * (a.query_end - a.query_start);
+      const sizeB = (b.ref_end - b.ref_start) * (b.query_end - b.query_start);
+      return sizeB - sizeA; // Render largest blocks first (they'll be at the bottom)
+    });
+
+    // Render filtered ribbons in sorted order
+    sortedData.forEach(link => {
       const sourceSpecies = link.ref_species;
       const targetSpecies = link.query_name;
       

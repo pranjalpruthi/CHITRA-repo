@@ -90,6 +90,7 @@
     "mini-svg-data-uri": "^1.4.4",
     "next": "latest",
     "next-themes": "^0.3.0",
+    "onborda": "^1.2.4",
     "papaparse": "^5.4.1",
     "prisma": "^5.9.1",
     "react": "latest",

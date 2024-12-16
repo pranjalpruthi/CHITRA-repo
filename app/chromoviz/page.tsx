@@ -25,7 +25,7 @@ import {
   TableProperties,
 } from "lucide-react";
 import * as d3 from 'd3';
-import { SyntenyData, ChromosomeData, ReferenceGenomeData, GeneAnnotation } from '../types';
+import { SyntenyData, ChromosomeData, ReferenceGenomeData, GeneAnnotation, ChromosomeBreakpoint } from '../types';
 import { useTheme } from "next-themes";
 import {
   Select,
@@ -75,6 +75,7 @@ import { FilterDrawer } from '@/components/chromoviz/filter-drawer';
 import { GuideSheet } from "@/components/chromoviz/guide";
 import { FloatingHUDBar } from "@/components/chromoviz/floating-hud-bar";
 import { ExampleFilesDrawer } from "@/components/chromoviz/example-files-drawer";
+import { FileUploaderGroup } from "@/components/chromoviz/file-uploader";
 
 const parseCSVRow = (d: any): any => {
   return {
@@ -116,6 +117,15 @@ function parseGeneAnnotationRow(d: d3.DSVRowString): GeneAnnotation {
     symbol: d.symbol,
     name: d.name,
     GeneID: d.GeneID
+  };
+}
+
+function parseBreakpointRow(d: d3.DSVRowString): ChromosomeBreakpoint {
+  return {
+    ref_chr: d.ref_chr,
+    ref_start: +d.ref_start,
+    ref_end: +d.ref_end,
+    breakpoint: d.breakpoint
   };
 }
 
@@ -255,13 +265,15 @@ const FilterSection = ({
 export default function ChromoViz() {
   const { theme, setTheme } = useTheme();
   const [syntenyData, setSyntenyData] = useState<SyntenyData[]>([]);
-  const [referenceData, setReferenceData] = useState<ChromosomeData[]>([]);
+  const [speciesData, setSpeciesData] = useState<ChromosomeData[]>([]);
+  const [referenceData, setReferenceData] = useState<ReferenceGenomeData | null>(null);
+  const [geneAnnotations, setGeneAnnotations] = useState<GeneAnnotation[]>([]);
+  const [breakpointsData, setBreakpointsData] = useState<ChromosomeBreakpoint[]>([]);
   const [selectedSpecies, setSelectedSpecies] = useState<string[]>([]);
   const [isInitialized, setIsInitialized] = useState(false);
   const [selectedChromosomes, setSelectedChromosomes] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [referenceGenomeData, setReferenceGenomeData] = useState<ReferenceGenomeData | null>(null);
   const [isVerticalLayout, setIsVerticalLayout] = useState(false);
   const [isFullScreen, setIsFullScreen] = useState(false);
   const [containerHeight, setContainerHeight] = useState<number>(800);
@@ -278,20 +290,20 @@ export default function ChromoViz() {
 
   // Create options for the MultiSelect component
   const speciesOptions = React.useMemo(() => 
-    Array.from(new Set(referenceData.map(d => d.species_name)))
+    Array.from(new Set(speciesData.map(d => d.species_name)))
       .map(species => ({
         label: species.replace('_', ' '),
         value: species,
       }))
       .sort((a, b) => a.label.localeCompare(b.label)),
-    [referenceData]
+    [speciesData]
   );
 
   // Update the chromosome options to include species information
   const chromosomeOptions = React.useMemo(() => {
     const options: { [species: string]: ChromosomeOption[] } = {};
     
-    referenceData.forEach(d => {
+    speciesData.forEach(d => {
       if (!options[d.species_name]) {
         options[d.species_name] = [];
       }
@@ -303,9 +315,9 @@ export default function ChromoViz() {
     });
 
     // Add reference genome chromosomes
-    if (referenceGenomeData?.chromosomeSizes) {
+    if (referenceData?.chromosomeSizes) {
       const refSpecies = 'Reference';
-      options[refSpecies] = referenceGenomeData.chromosomeSizes.map(chr => ({
+      options[refSpecies] = referenceData.chromosomeSizes.map(chr => ({
         label: chr.chromosome,
         value: `ref:${chr.chromosome}`, // Prefix reference chromosomes
         species: refSpecies
@@ -313,7 +325,7 @@ export default function ChromoViz() {
     }
 
     return options;
-  }, [referenceData, referenceGenomeData]);
+  }, [speciesData, referenceData]);
 
   // Helper function to extract chromosome ID from combined value
   const getChromosomeId = (value: string) => {
@@ -328,7 +340,7 @@ export default function ChromoViz() {
 
   // Set initial selections when data is loaded
   useEffect(() => {
-    if (referenceData.length > 0 && selectedSpecies.length === 0 && isInitialized) {
+    if (speciesData.length > 0 && selectedSpecies.length === 0 && isInitialized) {
       // Only set all species as selected by default if there are no saved selections
       const allSpecies = speciesOptions.map(option => option.value);
       setSelectedSpecies(allSpecies);
@@ -341,7 +353,7 @@ export default function ChromoViz() {
           .map(option => option.value)
       );
     }
-  }, [referenceData, speciesOptions, chromosomeOptions, selectedSpecies, isInitialized]);
+  }, [speciesData, speciesOptions, chromosomeOptions, selectedSpecies, isInitialized]);
 
   // Save to localStorage whenever selection changes
   useEffect(() => {
@@ -371,37 +383,28 @@ export default function ChromoViz() {
     return syntenyData[0].ref_species;
   }, [syntenyData]);
 
-  // Modify the loadExampleData function to handle optional files
+  // Modify the loadExampleData function to include breakpoints
   const loadExampleData = async (path: string = '/example/set1') => {
     setIsLoading(true);
     setError(null);
     setIsUsingExample(true);
     try {
-      // First load required files
-      const [syntenyResponse, referenceResponse, refChromosomeSizes] = 
+      // Load required files
+      const [syntenyResponse, referenceResponse, refChromosomeSizes, geneAnnotations, breakpoints] = 
         await Promise.all([
           d3.csv(`${path}/synteny_data.csv`, parseCSVRow),
           d3.csv(`${path}/species_data.csv`, parseChromosomeRow),
           d3.csv(`${path}/ref_chromosome_sizes.csv`, parseChromosomeSizeRow),
+          d3.csv(`${path}/ref_gene_annotations.csv`, parseGeneAnnotationRow),
+          d3.csv(`${path}/bp.csv`, parseBreakpointRow),
         ]);
 
-      if (!syntenyResponse || !referenceResponse || !refChromosomeSizes) {
-        throw new Error('Failed to load required example data');
-      }
-
-      // Try to load gene annotations, but don't fail if missing
-      let geneAnnotations: GeneAnnotation[] = [];
-      try {
-        geneAnnotations = await d3.csv(`${path}/ref_gene_annotations.csv`, parseGeneAnnotationRow);
-      } catch (err) {
-        console.log('Gene annotations not available for this dataset');
-      }
-
       setSyntenyData(syntenyResponse);
-      setReferenceData(referenceResponse);
-      setReferenceGenomeData({
+      setSpeciesData(referenceResponse);
+      setReferenceData({
         chromosomeSizes: refChromosomeSizes,
-        geneAnnotations: geneAnnotations
+        geneAnnotations: geneAnnotations,
+        breakpoints: breakpoints
       });
 
     } catch (err) {
@@ -413,25 +416,70 @@ export default function ChromoViz() {
   };
 
   // Handlers for file uploads
-  const handleSyntenyData = (data: any) => {
-    setSyntenyData(data);
-    setUploadedFiles(prev => ({ ...prev, synteny: true }));
-    setIsUsingExample(false);
-  };
-
-  const handleSpeciesData = (data: any) => {
-    setReferenceData(data);
-    setUploadedFiles(prev => ({ ...prev, species: true }));
-    setIsUsingExample(false);
-  };
-
-  const handleChromosomeData = (data: any) => {
-    setReferenceGenomeData(prev => prev ? {
-      chromosomeSizes: prev.chromosomeSizes,
-      geneAnnotations: data
-    } : null);
-    setUploadedFiles(prev => ({ ...prev, reference: true }));
-    setIsUsingExample(false);
+  const handleDataLoad = {
+    synteny: (data: SyntenyData[]) => {
+      console.log('Loading synteny data:', data);
+      setSyntenyData(data);
+    },
+    species: (data: ChromosomeData[]) => {
+      console.log('Loading species data:', data);
+      setSpeciesData(prev => {
+        const newData = [...data];
+        // Sort to ensure reference species is at the bottom
+        newData.sort((a, b) => {
+          if (a.species_name === 'Reference') return 1;
+          if (b.species_name === 'Reference') return -1;
+          return a.species_name.localeCompare(b.species_name);
+        });
+        return newData;
+      });
+    },
+    reference: (data: any[]) => {
+      console.log('Loading reference data:', data);
+      setReferenceData(prev => ({
+        ...prev,
+        chromosomeSizes: data.map(d => ({
+          chromosome: d.chromosome,
+          size: +d.size,
+          centromere_start: d.centromere_start ? +d.centromere_start : undefined,
+          centromere_end: d.centromere_end ? +d.centromere_end : undefined
+        }))
+      }));
+    },
+    annotations: (data: GeneAnnotation[]) => {
+      console.log('Loading annotation data:', data);
+      setReferenceData(prev => {
+        if (!prev) {
+          return {
+            chromosomeSizes: [],
+            geneAnnotations: data,
+            breakpoints: []
+          };
+        }
+        return {
+          ...prev,
+          geneAnnotations: data,
+          breakpoints: prev.breakpoints
+        };
+      });
+    },
+    breakpoints: (data: ChromosomeBreakpoint[]) => {
+      console.log('Loading breakpoints data:', data);
+      setBreakpointsData(data);
+      setReferenceData(prev => {
+        if (!prev) {
+          return {
+            chromosomeSizes: [],
+            geneAnnotations: [],
+            breakpoints: data
+          };
+        }
+        return {
+          ...prev,
+          breakpoints: data
+        };
+      });
+    }
   };
 
   const canGenerateVisualization = uploadedFiles.synteny && 
@@ -448,13 +496,13 @@ export default function ChromoViz() {
 
   // Update the filteredData function to include chromosome filtering
   const filteredData = React.useMemo(() => {
-    if (!referenceGenomeData || !referenceSpecies) {
-      console.log('Missing reference data:', { referenceGenomeData, referenceSpecies });
-      return { referenceData, syntenyData };
+    if (!referenceData || !referenceSpecies) {
+      console.log('Missing reference data:', { referenceData, referenceSpecies });
+      return { referenceData: speciesData, syntenyData };
     }
 
     // Create reference chromosome data from ref_chromosome_sizes.csv
-    const referenceChromosomes = referenceGenomeData.chromosomeSizes
+    const referenceChromosomes = referenceData.chromosomeSizes
       .filter(chr => 
         selectedChromosomes.length === 0 || 
         selectedChromosomes.includes(`ref:${chr.chromosome}`)
@@ -464,9 +512,9 @@ export default function ChromoViz() {
         chr_id: chr.chromosome,
         chr_type: 'chromosome',
         chr_size_bp: +chr.size,
-        centromere_start: chr.centromere_start ? +chr.centromere_start : null,
-        centromere_end: chr.centromere_end ? +chr.centromere_end : null,
-        annotations: referenceGenomeData.geneAnnotations?.filter(
+        centromere_start: chr.centromere_start ? +chr.centromere_start : undefined,
+        centromere_end: chr.centromere_end ? +chr.centromere_end : undefined,
+        annotations: referenceData.geneAnnotations?.filter(
           gene => gene.chromosome === chr.chromosome
         ) || []
       }));
@@ -474,7 +522,7 @@ export default function ChromoViz() {
     if (selectedSpecies.length === 0 && selectedChromosomes.length === 0) {
       return {
         referenceData: [
-          ...referenceData.filter(d => d.species_name !== referenceSpecies),
+          ...speciesData.filter(d => d.species_name !== referenceSpecies),
           ...referenceChromosomes
         ],
         syntenyData
@@ -483,7 +531,7 @@ export default function ChromoViz() {
 
     // Filter for selected species and chromosomes
     const filteredReference = [
-      ...referenceData.filter(d => 
+      ...speciesData.filter(d => 
         (selectedSpecies.length === 0 || selectedSpecies.includes(d.species_name)) &&
         (selectedChromosomes.length === 0 || selectedChromosomes.includes(`${d.species_name}:${d.chr_id}`)) &&
         d.species_name !== referenceSpecies
@@ -510,7 +558,7 @@ export default function ChromoViz() {
       referenceData: filteredReference, 
       syntenyData: filteredSynteny 
     };
-  }, [referenceData, syntenyData, selectedSpecies, selectedChromosomes, referenceSpecies, referenceGenomeData]);
+  }, [speciesData, syntenyData, selectedSpecies, selectedChromosomes, referenceSpecies, referenceData]);
 
   const handleZoomIn = () => {
     if (!svgRef.current || !zoomBehaviorRef.current) return;
@@ -610,17 +658,7 @@ export default function ChromoViz() {
     setIsVerticalLayout(prev => !prev);
   };
 
-  const onDataLoad = {
-    synteny: handleSyntenyData,
-    species: handleSpeciesData,
-    reference: handleChromosomeData,
-    annotations: (data: any) => {
-      setReferenceGenomeData(prev => prev ? {
-        chromosomeSizes: prev.chromosomeSizes,
-        geneAnnotations: data
-      } : null);
-    }
-  };
+  const onDataLoad = handleDataLoad;
 
   // Add this useEffect to handle height adjustments
   useEffect(() => {
@@ -693,7 +731,7 @@ export default function ChromoViz() {
                   setSelectedChromosomes={setSelectedChromosomes}
                   speciesOptions={speciesOptions}
                   chromosomeOptions={chromosomeOptions}
-                  referenceGenomeData={referenceGenomeData}
+                  referenceGenomeData={referenceData}
                   syntenyData={syntenyData}
                   onDataLoad={onDataLoad}
                   isFullScreen={isFullScreen}
@@ -714,7 +752,7 @@ export default function ChromoViz() {
                           <ChromosomeSynteny
                             referenceData={filteredData.referenceData}
                             syntenyData={filteredData.syntenyData}
-                            referenceGenomeData={referenceGenomeData}
+                            referenceGenomeData={referenceData}
                             selectedSynteny={selectedSynteny}
                             onSyntenySelect={handleSyntenySelection}
                             width="100%"
@@ -759,8 +797,9 @@ export default function ChromoViz() {
                             </div>
 
                             <div className="flex flex-col sm:flex-row items-center gap-3 justify-center">
-                              <Sheet>
-                                <SheetTrigger asChild>
+                              <FileUploaderGroup 
+                                onDataLoad={onDataLoad}
+                                trigger={
                                   <Button 
                                     variant="outline" 
                                     size="lg"
@@ -769,59 +808,8 @@ export default function ChromoViz() {
                                     <Upload className="h-4 w-4" />
                                     Upload Files
                                   </Button>
-                                </SheetTrigger>
-                                <SheetContent className="w-full sm:max-w-md overflow-y-auto">
-                                  <SheetHeader>
-                                    <SheetTitle>Data Upload</SheetTitle>
-                                    <SheetDescription>
-                                      Upload your data files or use the example files provided
-                                    </SheetDescription>
-                                  </SheetHeader>
-                                  
-                                  <div className="mt-6 space-y-6">
-                                    <div className="space-y-4">
-                                      <h3 className="text-sm font-medium flex items-center gap-2">
-                                        <Upload className="h-4 w-4" />
-                                        Required Files
-                                      </h3>
-                                      <div className="space-y-4">
-                                        <CSVUploader 
-                                          type="synteny" 
-                                          onDataLoad={onDataLoad.synteny} 
-                                        />
-                                        <CSVUploader 
-                                          type="species" 
-                                          onDataLoad={onDataLoad.species} 
-                                        />
-                                        <CSVUploader 
-                                          type="reference" 
-                                          onDataLoad={onDataLoad.reference} 
-                                        />
-                                      </div>
-                                    </div>
-
-                                    <Separator />
-
-                                    <div className="space-y-4">
-                                      <h3 className="text-sm font-medium flex items-center gap-2">
-                                        <Upload className="h-4 w-4" />
-                                        Optional Files
-                                      </h3>
-                                      <CSVUploader 
-                                        type="annotations" 
-                                        onDataLoad={onDataLoad.annotations}
-                                        required={false}
-                                      />
-                                    </div>
-
-                                    <div className="pt-4">
-                                      <p className="text-xs text-muted-foreground">
-                                        All files should be in CSV format. Hover over the info icon on each uploader to see the required fields.
-                                      </p>
-                                    </div>
-                                  </div>
-                                </SheetContent>
-                              </Sheet>
+                                }
+                              />
 
                               <ExampleFilesDrawer onLoadExample={loadExampleData}>
                                 <Button 

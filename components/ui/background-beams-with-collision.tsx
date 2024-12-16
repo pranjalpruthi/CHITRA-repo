@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 
 export const BackgroundBeamsWithCollision = ({
@@ -10,10 +10,14 @@ export const BackgroundBeamsWithCollision = ({
 }) => {
   const beamsRef = useRef<HTMLDivElement>(null);
   const numBeams = 30;
-  const beams = Array.from({ length: numBeams });
+  const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
-    if (!beamsRef.current) return;
+    setIsClient(true);
+  }, []);
+
+  useEffect(() => {
+    if (!beamsRef.current || !isClient) return;
 
     const beamElements = beamsRef.current.children;
     const positions = new Array(beamElements.length).fill(null).map(() => ({
@@ -29,11 +33,9 @@ export const BackgroundBeamsWithCollision = ({
       positions.forEach((pos, i) => {
         if (!beamElements[i]) return;
 
-        // Update position
         pos.x += pos.dx;
         pos.y += pos.dy;
 
-        // Bounce off walls
         if (pos.x < 0 || pos.x > window.innerWidth) pos.dx *= -1;
         if (pos.y < 0 || pos.y > window.innerHeight) pos.dy *= -1;
 
@@ -51,7 +53,7 @@ export const BackgroundBeamsWithCollision = ({
         cancelAnimationFrame(animationFrameId);
       }
     };
-  }, []);
+  }, [isClient]);
 
   return (
     <div
@@ -60,11 +62,9 @@ export const BackgroundBeamsWithCollision = ({
         "fixed inset-0 opacity-30 pointer-events-none overflow-hidden",
         className
       )}
-      style={{
-        perspective: "1000px",
-      }}
+      style={{ perspective: "1000px" }}
     >
-      {beams.map((_, i) => (
+      {Array.from({ length: numBeams }).map((_, i) => (
         <div
           key={i}
           className="absolute w-[20vw] h-[20vw] rounded-full"
@@ -77,9 +77,9 @@ export const BackgroundBeamsWithCollision = ({
                 "rgba(255, 196, 20, 0.3)",
               ][i % 4]} 0%,
               transparent 70%)`,
-            transform: `translate(${Math.random() * 100}vw, ${
-              Math.random() * 100
-            }vh)`,
+            transform: isClient
+              ? `translate(${Math.random() * 100}vw, ${Math.random() * 100}vh)`
+              : "translate(0, 0)",
           }}
         />
       ))}
