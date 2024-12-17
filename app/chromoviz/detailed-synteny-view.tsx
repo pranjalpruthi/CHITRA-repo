@@ -53,6 +53,18 @@ interface SyntenyViewConfig {
     zoomExtent: [number, number];
     showTooltips: boolean;
   };
+  markers: {
+    tickLength: number;
+    textOffset: number;
+    fontSize: number;
+    strokeWidth: number;
+    markerRadius: number;
+    dashPattern: [number, number];
+    colors: {
+      reference: string;
+      query: string;
+    };
+  };
 }
 
 interface DetailedSyntenyViewProps {
@@ -65,6 +77,7 @@ interface DetailedSyntenyViewProps {
   onFullscreen?: (isFullscreen: boolean) => void;
   config?: Partial<SyntenyViewConfig>;
   onConfigChange?: (config: SyntenyViewConfig) => void;
+  showTooltips?: boolean;
 }
 
 const defaultConfig: SyntenyViewConfig = {
@@ -97,6 +110,18 @@ const defaultConfig: SyntenyViewConfig = {
     zoomExtent: [0.5, 5],
     showTooltips: true,
   },
+  markers: {
+    tickLength: 20,
+    textOffset: 30,
+    fontSize: 10,
+    strokeWidth: 1,
+    markerRadius: 2,
+    dashPattern: [2, 2],
+    colors: {
+      reference: '#3b82f6',
+      query: '#8b5cf6'
+    }
+  }
 };
 
 export function DetailedSyntenyView({
@@ -108,7 +133,8 @@ export function DetailedSyntenyView({
   isFullscreen = false,
   onFullscreen,
   config: userConfig,
-  onConfigChange
+  onConfigChange,
+  showTooltips = true,
 }: DetailedSyntenyViewProps & {
   onConfigChange?: (config: SyntenyViewConfig) => void;
 }) {
@@ -610,24 +636,27 @@ export function DetailedSyntenyView({
     // Replace addPositionTick function with new arc-based version
     const addPositionTick = (angle: number, position: number, isRef: boolean) => {
       const tickRadius = innerRadius + trackWidth;
-      const tickLength = 40;
-      const textOffset = 55;
+      const { markers } = config;
       
-      // Add extended tick line
       labelLayer.append('line')
         .attr('x1', tickRadius * Math.cos(angle - Math.PI / 2))
         .attr('y1', tickRadius * Math.sin(angle - Math.PI / 2))
-        .attr('x2', (tickRadius + tickLength) * Math.cos(angle - Math.PI / 2))
-        .attr('y2', (tickRadius + tickLength) * Math.sin(angle - Math.PI / 2))
-        .attr('stroke', isRef ? '#3b82f6' : '#8b5cf6')  // blue for ref, purple for query
-        .attr('stroke-width', 2)
-        .attr('stroke-dasharray', '4,4');  // dashed line
+        .attr('x2', (tickRadius + markers.tickLength) * Math.cos(angle - Math.PI / 2))
+        .attr('y2', (tickRadius + markers.tickLength) * Math.sin(angle - Math.PI / 2))
+        .attr('stroke', isRef ? markers.colors.reference : markers.colors.query)
+        .attr('stroke-width', markers.strokeWidth)
+        .attr('stroke-dasharray', `${markers.dashPattern[0]},${markers.dashPattern[1]}`);
 
-      // Add position text
-      const textX = (tickRadius + textOffset) * Math.cos(angle - Math.PI / 2);
-      const textY = (tickRadius + textOffset) * Math.sin(angle - Math.PI / 2);
+      const textX = (tickRadius + markers.textOffset) * Math.cos(angle - Math.PI / 2);
+      const textY = (tickRadius + markers.textOffset) * Math.sin(angle - Math.PI / 2);
       const labelAngle = (angle * 180 / Math.PI - 90) % 360;
       const rotateAngle = labelAngle > 90 && labelAngle < 270 ? labelAngle + 180 : labelAngle;
+      
+      const formattedPosition = position >= 1_000_000 
+        ? `${(position / 1_000_000).toFixed(1)}M`
+        : position >= 1_000 
+          ? `${(position / 1_000).toFixed(0)}K`
+          : position.toString();
       
       labelLayer.append('text')
         .attr('x', textX)
@@ -635,17 +664,16 @@ export function DetailedSyntenyView({
         .attr('text-anchor', 'middle')
         .attr('dominant-baseline', 'middle')
         .attr('transform', `rotate(${rotateAngle}, ${textX}, ${textY})`)
-        .attr('font-size', '14px')
-        .attr('font-weight', '500')
-        .attr('fill', isRef ? '#3b82f6' : '#8b5cf6')
-        .text(formatBase(position));
+        .attr('font-size', `${markers.fontSize}px`)
+        .attr('font-weight', '400')
+        .attr('fill', isRef ? markers.colors.reference : markers.colors.query)
+        .text(formattedPosition);
         
-      // Add small circular marker at the position
       labelLayer.append('circle')
         .attr('cx', tickRadius * Math.cos(angle - Math.PI / 2))
         .attr('cy', tickRadius * Math.sin(angle - Math.PI / 2))
-        .attr('r', 3)
-        .attr('fill', isRef ? '#3b82f6' : '#8b5cf6');
+        .attr('r', markers.markerRadius)
+        .attr('fill', isRef ? markers.colors.reference : markers.colors.query);
     };
 
     // Add circular scales
@@ -919,6 +947,7 @@ export function DetailedSyntenyView({
                       <TabsTrigger value="annotations">Annotations</TabsTrigger>
                       <TabsTrigger value="scale">Scale</TabsTrigger>
                       <TabsTrigger value="interaction">Interaction</TabsTrigger>
+                      <TabsTrigger value="markers">Markers</TabsTrigger>
                     </TabsList>
 
                     {/* Visual Tab */}
@@ -1242,6 +1271,204 @@ export function DetailedSyntenyView({
                         />
                       </div>
                     </TabsContent>
+
+                    {/* Markers Tab */}
+                    <TabsContent value="markers" className="space-y-4">
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="space-y-1.5">
+                          <Label className="text-xs">Tick Length</Label>
+                          <Slider
+                            value={[config.markers.tickLength]}
+                            onValueChange={([value]) =>
+                              handleConfigChange({
+                                markers: { 
+                                  ...config.markers, 
+                                  tickLength: value 
+                                }
+                              })
+                            }
+                            min={10}
+                            max={40}
+                            step={1}
+                            className="h-4"
+                          />
+                        </div>
+
+                        <div className="space-y-1.5">
+                          <Label className="text-xs">Text Offset</Label>
+                          <Slider
+                            value={[config.markers.textOffset]}
+                            onValueChange={([value]) =>
+                              handleConfigChange({
+                                markers: { 
+                                  ...config.markers, 
+                                  textOffset: value 
+                                }
+                              })
+                            }
+                            min={20}
+                            max={60}
+                            step={1}
+                            className="h-4"
+                          />
+                        </div>
+
+                        <div className="space-y-1.5">
+                          <Label className="text-xs">Font Size</Label>
+                          <Slider
+                            value={[config.markers.fontSize]}
+                            onValueChange={([value]) =>
+                              handleConfigChange({
+                                markers: { 
+                                  ...config.markers, 
+                                  fontSize: value 
+                                }
+                              })
+                            }
+                            min={8}
+                            max={16}
+                            step={1}
+                            className="h-4"
+                          />
+                        </div>
+
+                        <div className="space-y-1.5">
+                          <Label className="text-xs">Marker Radius</Label>
+                          <Slider
+                            value={[config.markers.markerRadius]}
+                            onValueChange={([value]) =>
+                              handleConfigChange({
+                                markers: { 
+                                  ...config.markers, 
+                                  markerRadius: value 
+                                }
+                              })
+                            }
+                            min={1}
+                            max={5}
+                            step={0.5}
+                            className="h-4"
+                          />
+                        </div>
+
+                        <div className="space-y-1.5">
+                          <Label className="text-xs">Stroke Width</Label>
+                          <Slider
+                            value={[config.markers.strokeWidth]}
+                            onValueChange={([value]) =>
+                              handleConfigChange({
+                                markers: { 
+                                  ...config.markers, 
+                                  strokeWidth: value 
+                                }
+                              })
+                            }
+                            min={0.5}
+                            max={3}
+                            step={0.5}
+                            className="h-4"
+                          />
+                        </div>
+
+                        <div className="space-y-1.5">
+                          <Label className="text-xs">Dash Pattern</Label>
+                          <div className="grid grid-cols-2 gap-2">
+                            <Input
+                              type="number"
+                              min={0}
+                              max={10}
+                              value={config.markers.dashPattern[0]}
+                              onChange={(e) =>
+                                handleConfigChange({
+                                  markers: {
+                                    ...config.markers,
+                                    dashPattern: [Number(e.target.value), config.markers.dashPattern[1]]
+                                  }
+                                })
+                              }
+                              className="h-8"
+                            />
+                            <Input
+                              type="number"
+                              min={0}
+                              max={10}
+                              value={config.markers.dashPattern[1]}
+                              onChange={(e) =>
+                                handleConfigChange({
+                                  markers: {
+                                    ...config.markers,
+                                    dashPattern: [config.markers.dashPattern[0], Number(e.target.value)]
+                                  }
+                                })
+                              }
+                              className="h-8"
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-2">
+                        <div className="space-y-1.5">
+                          <Label className="text-xs">Reference Color</Label>
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <Button
+                                variant="outline"
+                                className="w-full h-6"
+                                style={{ backgroundColor: config.markers.colors.reference }}
+                              />
+                            </PopoverTrigger>
+                            <PopoverContent className="w-64 p-2">
+                              <Input
+                                type="color"
+                                value={config.markers.colors.reference}
+                                onChange={(e) =>
+                                  handleConfigChange({
+                                    markers: {
+                                      ...config.markers,
+                                      colors: {
+                                        ...config.markers.colors,
+                                        reference: e.target.value
+                                      }
+                                    }
+                                  })
+                                }
+                              />
+                            </PopoverContent>
+                          </Popover>
+                        </div>
+
+                        <div className="space-y-1.5">
+                          <Label className="text-xs">Query Color</Label>
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <Button
+                                variant="outline"
+                                className="w-full h-6"
+                                style={{ backgroundColor: config.markers.colors.query }}
+                              />
+                            </PopoverTrigger>
+                            <PopoverContent className="w-64 p-2">
+                              <Input
+                                type="color"
+                                value={config.markers.colors.query}
+                                onChange={(e) =>
+                                  handleConfigChange({
+                                    markers: {
+                                      ...config.markers,
+                                      colors: {
+                                        ...config.markers.colors,
+                                        query: e.target.value
+                                      }
+                                    }
+                                  })
+                                }
+                              />
+                            </PopoverContent>
+                          </Popover>
+                        </div>
+                      </div>
+                    </TabsContent>
                   </Tabs>
                 </CardContent>
               </Card>
@@ -1267,6 +1494,7 @@ export function DetailedSyntenyView({
             hoveredBlock={hoveredBlock}
             hoveredChromosome={hoveredChromosome}
             selectedBlock={selectedBlock}
+            showTooltips={showTooltips}
           />
         </div>
       </div>

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { FileUploader, FileUploaderContent, FileUploaderItem, FileInput } from "@/components/extension/file-uploader";
 import { Button } from "@/components/ui/button";
-import { Upload, AlertCircle, CheckCircle2 } from "lucide-react";
+import { Upload, AlertCircle, CheckCircle2, FileText, TableProperties } from "lucide-react";
 import { toast } from "sonner";
 import * as d3 from 'd3';
 import {
@@ -24,6 +24,22 @@ import {
 } from "@/components/ui/sheet";
 import { Separator } from "@/components/ui/separator";
 import { FeatureTableConverter } from "@/components/chromoviz/feature-table-converter";
+import {
+  Drawer,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerDescription,
+  DrawerTrigger,
+  DrawerClose,
+} from "@/components/ui/drawer";
+import { X } from "lucide-react";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/components/ui/tabs";
 
 const FILE_CONFIGS = {
   synteny: {
@@ -181,8 +197,8 @@ const FileFormatInfo = ({ config }: { config: typeof FILE_CONFIGS[FileType] }) =
   <TooltipProvider>
     <Tooltip delayDuration={300}>
       <TooltipTrigger asChild>
-        <Button variant="ghost" size="icon" className="h-6 w-6 absolute top-2 right-2">
-          <HelpCircle className="h-4 w-4" />
+        <Button variant="ghost" size="icon" className="h-5 w-5 absolute top-2 right-2">
+          <HelpCircle className="h-3.5 w-3.5" />
           <span className="sr-only">File format info</span>
         </Button>
       </TooltipTrigger>
@@ -263,26 +279,32 @@ export function CSVUploader({ onDataLoad, type, required = true }: FileUploaderP
       value={files}
       onValueChange={handleFileChange}
       dropzoneOptions={dropZoneConfig}
-      className="relative space-y-2"
+      className="relative"
     >
       <motion.div
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.3 }}
       >
-        <FileInput className="border-2 border-dashed border-muted-foreground/25 rounded-lg hover:border-muted-foreground/50 transition-colors bg-gradient-to-br from-background to-muted/30 hover:from-background hover:to-muted/50">
-          <div className="flex flex-col items-center justify-center p-4 text-center relative">
+        <FileInput className="border border-dashed border-muted-foreground/25 rounded-lg hover:border-muted-foreground/50 transition-colors bg-gradient-to-br from-background to-muted/30 hover:from-background hover:to-muted/50">
+          <div className="flex items-center justify-between p-3 text-left relative">
             <motion.div
               className={`absolute inset-0 bg-gradient-to-br ${GRADIENT_CONFIGS[type].gradient} opacity-50 rounded-lg transition-colors duration-300 ${GRADIENT_CONFIGS[type].hover}`}
               initial={{ opacity: 0 }}
               animate={{ opacity: 0.5 }}
               transition={{ duration: 0.5 }}
             />
-            <Upload className="h-8 w-8 mb-2 text-muted-foreground relative z-10" />
-            <p className="text-sm font-medium relative z-10">{config.title}</p>
-            <p className="text-xs text-muted-foreground relative z-10">{config.description}</p>
+            <div className="flex items-center gap-3 relative z-10">
+              <Upload className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+              <div>
+                <p className="text-sm font-medium leading-none">{config.title}</p>
+                <p className="text-xs text-muted-foreground mt-1">{config.description}</p>
+              </div>
+            </div>
             {!required && (
-              <p className="text-xs text-muted-foreground mt-1 relative z-10">(Optional)</p>
+              <span className="text-[10px] text-muted-foreground px-1.5 py-0.5 rounded-full bg-muted/50 relative z-10">
+                Optional
+              </span>
             )}
           </div>
           <FileFormatInfo config={config} />
@@ -294,18 +316,18 @@ export function CSVUploader({ onDataLoad, type, required = true }: FileUploaderP
           <FileUploaderItem 
             key={i} 
             index={i}
-            className="flex items-center gap-2 text-sm"
+            className="flex items-center gap-2 text-xs p-2 mt-1.5"
           >
             {isLoading ? (
               <div className="animate-spin">
-                <Upload className="h-4 w-4" />
+                <Upload className="h-3.5 w-3.5" />
               </div>
             ) : isValid ? (
-              <CheckCircle2 className="h-4 w-4 text-green-500" />
+              <CheckCircle2 className="h-3.5 w-3.5 text-green-500" />
             ) : (
-              <AlertCircle className="h-4 w-4 text-red-500" />
+              <AlertCircle className="h-3.5 w-3.5 text-red-500" />
             )}
-            <span>{file.name}</span>
+            <span className="truncate">{file.name}</span>
           </FileUploaderItem>
         ))}
       </FileUploaderContent>
@@ -325,6 +347,7 @@ interface FileUploaderGroupProps {
 }
 
 export function FileUploaderGroup({ onDataLoad, trigger }: FileUploaderGroupProps) {
+  const [isOpen, setIsOpen] = useState(false);
   const [uploadedData, setUploadedData] = useState<{
     synteny?: any[];
     species?: any[];
@@ -332,31 +355,41 @@ export function FileUploaderGroup({ onDataLoad, trigger }: FileUploaderGroupProp
     annotations?: any[];
     breakpoints?: any[];
   }>({});
+  const [isReadyToVisualize, setIsReadyToVisualize] = useState(false);
 
   const handleDataLoad = (type: keyof typeof onDataLoad, data: any[]) => {
-    setUploadedData(prev => {
-      const newData = { ...prev, [type]: data };
-      
-      // Only process data when all required files are uploaded
-      if (newData.synteny && newData.species && newData.reference) {
-        // Call onDataLoad for each type in the correct order
-        onDataLoad.reference(newData.reference);
-        onDataLoad.species(newData.species);
-        onDataLoad.synteny(newData.synteny);
-        if (newData.annotations) {
-          onDataLoad.annotations(newData.annotations);
-        }
-        if (newData.breakpoints) {
-          onDataLoad.breakpoints?.(newData.breakpoints);
-        }
-      }
-      return newData;
-    });
+    setUploadedData(prev => ({
+      ...prev,
+      [type]: data
+    }));
   };
 
+  const handleVisualize = () => {
+    if (uploadedData.synteny && uploadedData.species && uploadedData.reference) {
+      onDataLoad.reference(uploadedData.reference);
+      onDataLoad.species(uploadedData.species);
+      onDataLoad.synteny(uploadedData.synteny);
+      if (uploadedData.annotations) {
+        onDataLoad.annotations(uploadedData.annotations);
+      }
+      if (uploadedData.breakpoints) {
+        onDataLoad.breakpoints?.(uploadedData.breakpoints);
+      }
+      setIsOpen(false);
+    }
+  };
+
+  const requiredFilesCount = Object.keys(uploadedData).filter(key => 
+    ['synteny', 'species', 'reference'].includes(key)
+  ).length;
+
+  const optionalFilesCount = Object.keys(uploadedData).filter(key => 
+    ['annotations', 'breakpoints'].includes(key)
+  ).length;
+
   return (
-    <Sheet>
-      <SheetTrigger asChild>
+    <Drawer open={isOpen} onOpenChange={setIsOpen}>
+      <DrawerTrigger asChild>
         {trigger || (
           <Button 
             variant="ghost" 
@@ -367,54 +400,280 @@ export function FileUploaderGroup({ onDataLoad, trigger }: FileUploaderGroupProp
             <span className="hidden sm:inline ml-1.5">Upload</span>
           </Button>
         )}
-      </SheetTrigger>
-      <SheetContent className="w-full sm:max-w-md overflow-y-auto">
-        <SheetHeader>
-          <SheetTitle>Data Upload</SheetTitle>
-          <SheetDescription>
-            Upload your data files or use the example files provided below
-          </SheetDescription>
-        </SheetHeader>
-        
-        <div className="mt-6 space-y-6">
-          <div className="space-y-4">
-            <h3 className="text-sm font-medium flex items-center gap-2">
-              <Upload className="h-4 w-4" />
-              Required Files
-            </h3>
-            <div className="space-y-2">
-              <CSVUploader type="synteny" onDataLoad={(data) => handleDataLoad('synteny', data)} />
-              <CSVUploader type="species" onDataLoad={(data) => handleDataLoad('species', data)} />
-              <CSVUploader type="reference" onDataLoad={(data) => handleDataLoad('reference', data)} />
+      </DrawerTrigger>
+      
+      <DrawerContent className="h-[85vh] max-h-[85vh] md:h-[90vh] md:max-h-[90vh] overflow-hidden">
+        <DrawerHeader className="pb-2 border-b border-gray-200 dark:border-gray-800">
+          <div className="flex items-center justify-between">
+            <div>
+              <DrawerTitle className="text-xl md:text-2xl">Data Upload</DrawerTitle>
+              <DrawerDescription className="text-sm text-gray-500 dark:text-gray-400 mt-2">
+                Upload required and optional files to create your visualization
+              </DrawerDescription>
+            </div>
+            <DrawerClose className="rounded-full p-2.5 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
+              <X className="h-5 w-5" />
+              <span className="sr-only">Close</span>
+            </DrawerClose>
+          </div>
+        </DrawerHeader>
+
+        {/* Mobile Layout with Tabs */}
+        <div className="lg:hidden h-[calc(100%-5rem)] overflow-hidden">
+          <Tabs defaultValue="required" className="h-full flex flex-col">
+            <TabsList className="w-full justify-start px-4 pt-2">
+              <TabsTrigger value="required" className="flex items-center gap-2">
+                <FileText className="h-4 w-4" />
+                Required
+              </TabsTrigger>
+              <TabsTrigger value="optional" className="flex items-center gap-2">
+                <FileText className="h-4 w-4" />
+                Optional
+              </TabsTrigger>
+              <TabsTrigger value="converter" className="flex items-center gap-2">
+                <TableProperties className="h-4 w-4" />
+                Converter
+              </TabsTrigger>
+            </TabsList>
+
+            <div className="flex-1 overflow-hidden">
+              <TabsContent value="required" className="h-full mt-0">
+                {/* Required Files Content */}
+                <div className="h-full flex flex-col">
+                  <div className="flex-1 overflow-auto p-4 space-y-3">
+                    {['synteny', 'species', 'reference'].map((type) => (
+                      <motion.div
+                        key={type}
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: ['synteny', 'species', 'reference'].indexOf(type) * 0.1 }}
+                      >
+                        <CSVUploader 
+                          type={type as keyof typeof FILE_CONFIGS} 
+                          onDataLoad={(data) => handleDataLoad(type as keyof typeof onDataLoad, data)} 
+                        />
+                      </motion.div>
+                    ))}
+                  </div>
+                  {/* Progress indicator for required files */}
+                  <div className="p-4 bg-white/80 dark:bg-gray-950/80 border-t border-gray-200 dark:border-gray-800">
+                    <div className="space-y-2">
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-600 dark:text-gray-400">Required Files</span>
+                        <span className="font-medium">{requiredFilesCount}/3</span>
+                      </div>
+                      <div className="h-1.5 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
+                        <motion.div
+                          className="h-full bg-blue-500"
+                          initial={{ width: "0%" }}
+                          animate={{ width: `${(requiredFilesCount / 3) * 100}%` }}
+                          transition={{ duration: 0.5 }}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </TabsContent>
+
+              <TabsContent value="optional" className="h-full mt-0">
+                {/* Optional Files Content */}
+                <div className="h-full flex flex-col">
+                  <div className="flex-1 overflow-auto p-4 space-y-3">
+                    {['annotations', 'breakpoints'].map((type) => (
+                      <motion.div
+                        key={type}
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: ['annotations', 'breakpoints'].indexOf(type) * 0.1 }}
+                      >
+                        <CSVUploader 
+                          type={type as keyof typeof FILE_CONFIGS} 
+                          onDataLoad={(data) => handleDataLoad(type as keyof typeof onDataLoad, data)}
+                          required={false}
+                        />
+                      </motion.div>
+                    ))}
+                  </div>
+                  {/* Progress indicator for optional files */}
+                  <div className="p-4 bg-white/80 dark:bg-gray-950/80 border-t border-gray-200 dark:border-gray-800">
+                    <div className="space-y-2">
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-600 dark:text-gray-400">Optional Files</span>
+                        <span className="font-medium">{optionalFilesCount}/2</span>
+                      </div>
+                      <div className="h-1.5 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
+                        <motion.div
+                          className="h-full bg-green-500"
+                          initial={{ width: "0%" }}
+                          animate={{ width: `${(optionalFilesCount / 2) * 100}%` }}
+                          transition={{ duration: 0.5 }}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </TabsContent>
+
+              <TabsContent value="converter" className="h-full mt-0">
+                {/* Feature Table Converter Content */}
+                <div className="h-full flex flex-col">
+                  <div className="flex-1 overflow-auto p-4">
+                    <motion.div
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.3 }}
+                    >
+                      <FeatureTableConverter />
+                    </motion.div>
+                  </div>
+                </div>
+              </TabsContent>
+            </div>
+          </Tabs>
+        </div>
+
+        {/* Desktop Layout - Three Columns */}
+        <div className="hidden lg:flex h-[calc(100%-5rem)] overflow-hidden">
+          {/* Left Column - Required Files */}
+          <div className="w-full lg:w-1/3 border-b lg:border-b-0 lg:border-r border-gray-200 dark:border-gray-800 overflow-auto">
+            <div className="p-4 border-b border-gray-200 dark:border-gray-800 bg-gradient-to-r from-gray-50/50 via-gray-50/30 to-transparent dark:from-gray-900/50 dark:via-gray-900/30 dark:to-transparent">
+              <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-2">
+                <FileText className="h-4 w-4" />
+                Required Files
+              </h3>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                These files are necessary for the visualization
+              </p>
+            </div>
+
+            <div className="p-4 space-y-3">
+              {['synteny', 'species', 'reference'].map((type) => (
+                <motion.div
+                  key={type}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: ['synteny', 'species', 'reference'].indexOf(type) * 0.1 }}
+                >
+                  <CSVUploader 
+                    type={type as keyof typeof FILE_CONFIGS} 
+                    onDataLoad={(data) => handleDataLoad(type as keyof typeof onDataLoad, data)} 
+                  />
+                </motion.div>
+              ))}
+            </div>
+
+            <div className="sticky bottom-0 p-4 bg-white/80 dark:bg-gray-950/80 border-t border-gray-200 dark:border-gray-800 backdrop-blur-sm">
+              <div className="space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600 dark:text-gray-400">Required Files</span>
+                  <span className="font-medium">{requiredFilesCount}/3</span>
+                </div>
+                <div className="h-1.5 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
+                  <motion.div
+                    className="h-full bg-blue-500"
+                    initial={{ width: "0%" }}
+                    animate={{ width: `${(requiredFilesCount / 3) * 100}%` }}
+                    transition={{ duration: 0.5 }}
+                  />
+                </div>
+              </div>
             </div>
           </div>
 
-          <Separator />
+          {/* Middle Column - Optional Files */}
+          <div className="w-full lg:w-1/3 border-b lg:border-b-0 lg:border-r border-gray-200 dark:border-gray-800 overflow-auto">
+            <div className="p-4 border-b border-gray-200 dark:border-gray-800 bg-gradient-to-r from-gray-50/50 via-gray-50/30 to-transparent dark:from-gray-900/50 dark:via-gray-900/30 dark:to-transparent">
+              <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-2">
+                <FileText className="h-4 w-4" />
+                Optional Files
+              </h3>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                Additional files to enhance the visualization
+              </p>
+            </div>
 
-          <div className="space-y-4">
-            <h3 className="text-sm font-medium flex items-center gap-2">
-              <Upload className="h-4 w-4" />
-              Optional Files
-            </h3>
-            <CSVUploader 
-              type="annotations" 
-              onDataLoad={(data) => handleDataLoad('annotations', data)}
-              required={false}
-            />
-            <CSVUploader 
-              type="breakpoints" 
-              onDataLoad={(data) => handleDataLoad('breakpoints', data)}
-              required={false}
-            />
+            <div className="p-4 space-y-3">
+              {['annotations', 'breakpoints'].map((type) => (
+                <motion.div
+                  key={type}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: ['annotations', 'breakpoints'].indexOf(type) * 0.1 }}
+                >
+                  <CSVUploader 
+                    type={type as keyof typeof FILE_CONFIGS} 
+                    onDataLoad={(data) => handleDataLoad(type as keyof typeof onDataLoad, data)}
+                    required={false}
+                  />
+                </motion.div>
+              ))}
+            </div>
+
+            <div className="sticky bottom-0 p-4 bg-white/80 dark:bg-gray-950/80 border-t border-gray-200 dark:border-gray-800 backdrop-blur-sm">
+              <div className="space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600 dark:text-gray-400">Optional Files</span>
+                  <span className="font-medium">{optionalFilesCount}/2</span>
+                </div>
+                <div className="h-1.5 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
+                  <motion.div
+                    className="h-full bg-green-500"
+                    initial={{ width: "0%" }}
+                    animate={{ width: `${(optionalFilesCount / 2) * 100}%` }}
+                    transition={{ duration: 0.5 }}
+                  />
+                </div>
+              </div>
+            </div>
           </div>
 
-          <Separator />
+          {/* Right Column - Feature Table Converter */}
+          <div className="w-full lg:w-1/3 overflow-auto">
+            <div className="p-4 border-b border-gray-200 dark:border-gray-800 bg-gradient-to-r from-gray-50/50 via-gray-50/30 to-transparent dark:from-gray-900/50 dark:via-gray-900/30 dark:to-transparent">
+              <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-2">
+                <TableProperties className="h-4 w-4" />
+                Feature Table Converter
+              </h3>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                Convert your feature table data into the required format
+              </p>
+            </div>
 
-          <div className="space-y-4">
-            <FeatureTableConverter />
+            <div className="p-4">
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3 }}
+              >
+                <FeatureTableConverter />
+              </motion.div>
+            </div>
           </div>
         </div>
-      </SheetContent>
-    </Sheet>
+
+        {/* Bottom Action Bar */}
+        <div className="sticky bottom-0 p-4 bg-white/80 dark:bg-gray-950/80 border-t border-gray-200 dark:border-gray-800 backdrop-blur-sm">
+          <div className="flex items-center justify-between">
+            <div className="text-sm text-gray-500 dark:text-gray-400">
+              {requiredFilesCount === 3 ? (
+                <span className="text-green-500 dark:text-green-400 flex items-center gap-2">
+                  <CheckCircle2 className="h-4 w-4" />
+                  All required files uploaded
+                </span>
+              ) : (
+                <span>{3 - requiredFilesCount} required files remaining</span>
+              )}
+            </div>
+            <Button
+              onClick={handleVisualize}
+              disabled={requiredFilesCount < 3}
+              className="bg-blue-500 hover:bg-blue-600"
+            >
+              Create Visualization
+            </Button>
+          </div>
+        </div>
+      </DrawerContent>
+    </Drawer>
   );
 }

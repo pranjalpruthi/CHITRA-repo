@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState, useCallback, RefObject } from "react";
 import * as d3 from "d3";
 import { Button } from "@/components/ui/button";
-import { ZoomIn, ZoomOut, RefreshCw, Maximize2, Minimize2, Save, ChevronDown, ChevronLeft, ChevronRight, ChevronUp, Circle, ArrowUp, ArrowDown, ArrowUpDown, ArrowLeftRight, ArrowRight, ArrowLeft, Settings2 } from "lucide-react";
+import { ZoomIn, ZoomOut, RefreshCw, Maximize2, Minimize2, Save, ChevronDown, ChevronLeft, ChevronRight, ChevronUp, Circle, ArrowUp, ArrowDown, ArrowUpDown, ArrowLeftRight, ArrowRight, ArrowLeft, Settings2, MoreVertical, Image } from "lucide-react";
 import { ChromosomeData, SyntenyData, ReferenceGenomeData, ChromosomeBreakpoint } from "../types";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
@@ -33,6 +33,16 @@ import {
   OPTIMIZATION_CONFIG
 } from "@/config/chromoviz.config";
 import { SettingsPanel } from "@/components/chromoviz/settings-panel";
+import { 
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuCheckboxItem
+} from "@/components/ui/dropdown-menu";
+import { Separator } from "@/components/ui/separator";
 
 // First, add these type definitions at the top
 type D3Selection = d3.Selection<SVGSVGElement, unknown, null, undefined>;
@@ -76,6 +86,7 @@ interface ChromosomeSyntenyProps {
   showAnnotations: boolean;
   setShowAnnotations: (show: boolean) => void;
   selectedChromosomes: string[];
+  showTooltips: boolean;
 }
 
 // Add this interface for gene annotations
@@ -184,6 +195,254 @@ interface RenderChromosomeParams {
   breakpoints?: ChromosomeBreakpoint[];
 }
 
+const ZOOM_LEVELS = {
+  OVERVIEW: 0.5,    // Show all chromosomes
+  CHROMOSOME: 1,    // Show individual chromosome details
+  REGION: 2,        // Show gene clusters
+  GENE: 3,          // Show individual genes
+  SEQUENCE: 4       // Show sequence details
+};
+
+interface ChromosomeNavProps {
+  chromosomes: ChromosomeData[];
+  onSelect: (chromosome: ChromosomeData) => void;
+}
+
+const ChromosomeNav = ({ chromosomes, onSelect }: ChromosomeNavProps) => (
+  <div className="absolute left-4 top-20 bg-background/80 backdrop-blur-sm border rounded-lg p-2 select-none">
+    <div className="text-xs font-medium mb-2">Jump to Chromosome</div>
+    <div className="grid grid-cols-3 gap-1">
+      {chromosomes.map(chr => (
+        <Button
+          key={chr.chr_id}
+          variant="ghost"
+          size="sm"
+          onClick={() => onSelect(chr)}
+          className="h-6 text-xs select-none focus:bg-transparent hover:bg-accent"
+        >
+          {chr.chr_id}
+        </Button>
+      ))}
+    </div>
+  </div>
+);
+
+// Add this component
+const ChromosomeScrollbar = ({ 
+  svgRef, 
+  containerRef, 
+  zoomBehaviorRef,
+  width,
+  height 
+}: {
+  svgRef: RefObject<SVGSVGElement>;
+  containerRef: RefObject<HTMLDivElement>;
+  zoomBehaviorRef: React.MutableRefObject<any>;
+  width: number;
+  height: number;
+}) => {
+  const scrollTrackRef = useRef<HTMLDivElement>(null);
+  const scrollThumbRef = useRef<HTMLDivElement>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [startX, setStartX] = useState(0);
+  const [scrollLeft, setScrollLeft] = useState(0);
+
+  // Calculate thumb width based on content vs viewport ratio
+  const getThumbWidth = useCallback(() => {
+    if (!containerRef.current || !svgRef.current) return 100;
+    const contentWidth = svgRef.current.getBBox().width;
+    const viewportWidth = containerRef.current.clientWidth;
+    const ratio = viewportWidth / contentWidth;
+    return Math.max(50, ratio * viewportWidth);
+  }, [containerRef, svgRef]);
+
+  const handleThumbMouseDown = useCallback((e: React.MouseEvent) => {
+    setIsDragging(true);
+    setStartX(e.clientX - scrollThumbRef.current!.offsetLeft);
+  }, []);
+
+  const handleMouseMove = useCallback((e: MouseEvent) => {
+    if (!isDragging || !scrollTrackRef.current || !scrollThumbRef.current || !svgRef.current) return;
+
+    e.preventDefault();
+    const trackRect = scrollTrackRef.current.getBoundingClientRect();
+    const thumbWidth = scrollThumbRef.current.clientWidth;
+    const x = e.clientX - trackRect.left - startX;
+    
+    const boundedX = Math.max(0, Math.min(x, trackRect.width - thumbWidth));
+    const scrollRatio = boundedX / (trackRect.width - thumbWidth);
+    
+    // Update D3 transform
+    if (zoomBehaviorRef.current) {
+      const transform = d3.zoomTransform(svgRef.current);
+      const newTransform = d3.zoomIdentity
+        .translate(-scrollRatio * (svgRef.current.getBBox().width - width), transform.y)
+        .scale(transform.k);
+      
+      d3.select(svgRef.current)
+        .transition()
+        .duration(0)
+        .call(zoomBehaviorRef.current.transform, newTransform);
+    }
+
+    setScrollLeft(boundedX);
+  }, [isDragging, startX, width, zoomBehaviorRef]);
+
+  const handleMouseUp = useCallback(() => {
+    setIsDragging(false);
+  }, []);
+
+  useEffect(() => {
+    if (isDragging) {
+      window.addEventListener('mousemove', handleMouseMove);
+      window.addEventListener('mouseup', handleMouseUp);
+    }
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [isDragging, handleMouseMove, handleMouseUp]);
+
+  return (
+    <div className="absolute bottom-4 left-4 right-4 h-6">
+      <div 
+        ref={scrollTrackRef}
+        className="relative w-full h-2 bg-muted rounded-full"
+      >
+        <div
+          ref={scrollThumbRef}
+          style={{ 
+            width: `${getThumbWidth()}px`,
+            left: scrollLeft
+          }}
+          className={cn(
+            "absolute top-0 h-full rounded-full bg-primary/50",
+            "cursor-grab hover:bg-primary/70 transition-colors",
+            isDragging && "cursor-grabbing bg-primary"
+          )}
+          onMouseDown={handleThumbMouseDown}
+        >
+          {/* Thumbnail preview */}
+          <div className="absolute -top-20 left-0 w-40 h-16 bg-background border rounded-lg overflow-hidden opacity-0 group-hover:opacity-100 transition-opacity">
+            <svg
+              width="100%"
+              height="100%"
+              viewBox={`0 0 ${width} ${height}`}
+              preserveAspectRatio="xMidYMid meet"
+            >
+              {/* Miniature version of chromosomes */}
+            </svg>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Add this menu component
+const ControlsMenu = ({
+  alignmentFilter,
+  setAlignmentFilter,
+  showAnnotations,
+  setShowAnnotations,
+  onZoomIn,
+  onZoomOut,
+  onReset,
+  onFullscreen,
+  isFullscreen,
+  handleSaveAsSVG,
+  handleExportImage,
+}: {
+  alignmentFilter: 'all' | 'forward' | 'reverse';
+  setAlignmentFilter: (filter: 'all' | 'forward' | 'reverse') => void;
+  showAnnotations: boolean;
+  setShowAnnotations: (show: boolean) => void;
+  onZoomIn: () => void;
+  onZoomOut: () => void;
+  onReset: () => void;
+  onFullscreen: () => void;
+  isFullscreen: boolean;
+  handleSaveAsSVG: () => void;
+  handleExportImage: (format: 'png' | 'jpg') => void;
+}) => (
+  <DropdownMenu>
+    <DropdownMenuTrigger asChild>
+      <Button variant="ghost" size="icon" className="h-7 w-7">
+        <MoreVertical className="h-4 w-4" />
+      </Button>
+    </DropdownMenuTrigger>
+    <DropdownMenuContent align="end" className="w-48">
+      <DropdownMenuLabel>Alignment</DropdownMenuLabel>
+      <DropdownMenuItem onClick={() => setAlignmentFilter('all')}>
+        <ArrowLeftRight className="h-4 w-4 mr-2" />
+        All Alignments
+      </DropdownMenuItem>
+      <DropdownMenuItem onClick={() => setAlignmentFilter('forward')}>
+        <ArrowRight className="h-4 w-4 mr-2" />
+        Forward Only
+      </DropdownMenuItem>
+      <DropdownMenuItem onClick={() => setAlignmentFilter('reverse')}>
+        <ArrowLeft className="h-4 w-4 mr-2" />
+        Reverse Only
+      </DropdownMenuItem>
+      
+      <DropdownMenuSeparator />
+      <DropdownMenuLabel>View</DropdownMenuLabel>
+      <DropdownMenuCheckboxItem
+        checked={showAnnotations}
+        onCheckedChange={setShowAnnotations}
+      >
+        Show Annotations
+      </DropdownMenuCheckboxItem>
+      
+      <DropdownMenuSeparator />
+      <DropdownMenuLabel>Zoom</DropdownMenuLabel>
+      <DropdownMenuItem onClick={onZoomIn}>
+        <ZoomIn className="h-4 w-4 mr-2" />
+        Zoom In
+      </DropdownMenuItem>
+      <DropdownMenuItem onClick={onZoomOut}>
+        <ZoomOut className="h-4 w-4 mr-2" />
+        Zoom Out
+      </DropdownMenuItem>
+      <DropdownMenuItem onClick={onReset}>
+        <RefreshCw className="h-4 w-4 mr-2" />
+        Reset View
+      </DropdownMenuItem>
+      
+      <DropdownMenuSeparator />
+      <DropdownMenuLabel>Export</DropdownMenuLabel>
+      <DropdownMenuItem onClick={handleSaveAsSVG}>
+        <Save className="h-4 w-4 mr-2" />
+        Save as SVG
+      </DropdownMenuItem>
+      <DropdownMenuItem onClick={() => handleExportImage('png')}>
+        <Image className="h-4 w-4 mr-2" />
+        Export as PNG
+      </DropdownMenuItem>
+      <DropdownMenuItem onClick={() => handleExportImage('jpg')}>
+        <Image className="h-4 w-4 mr-2" />
+        Export as JPG
+      </DropdownMenuItem>
+      
+      <DropdownMenuSeparator />
+      <DropdownMenuItem onClick={onFullscreen}>
+        {isFullscreen ? (
+          <>
+            <Minimize2 className="h-4 w-4 mr-2" />
+            Exit Fullscreen
+          </>
+        ) : (
+          <>
+            <Maximize2 className="h-4 w-4 mr-2" />
+            Enter Fullscreen
+          </>
+        )}
+      </DropdownMenuItem>
+    </DropdownMenuContent>
+  </DropdownMenu>
+);
+
 export function ChromosomeSynteny({
   referenceData,
   syntenyData,
@@ -205,6 +464,7 @@ export function ChromosomeSynteny({
   showAnnotations,
   setShowAnnotations,
   selectedChromosomes,
+  showTooltips,
 }: ChromosomeSyntenyProps) {
   const [zoom, setZoom] = useState(1);
   const [tooltipInfo, setTooltipInfo] = useState<TooltipInfo | null>(null);
@@ -413,6 +673,8 @@ export function ChromosomeSynteny({
   };
 
   const handleMouseOver = (event: any, link: SyntenyData) => {
+    if (!showTooltips) return; // Early return if tooltips are disabled
+    
     setTooltipInfo({
       x: event.clientX,
       y: event.clientY,
@@ -804,6 +1066,8 @@ export function ChromosomeSynteny({
     // Update the chromosome hover events to target the correct elements
     g.selectAll("path.chromosome-body")
       .on("mouseover", (event) => {
+        if (!showTooltips) return; // Early return if tooltips are disabled
+        
         const chr = referenceData.find(c => 
           c.chr_id === event.target.dataset.chr && 
           c.species_name === event.target.dataset.species
@@ -851,32 +1115,6 @@ export function ChromosomeSynteny({
           .attr("transform", `translate(${transform.x}, ${transform.y}) scale(${transform.k})`);
       });
 
-    // Add zoom controls
-    const zoomControls = svg.append("g")
-      .attr("class", "zoom-controls")
-      .attr("transform", `translate(${margin.left + 10}, ${margin.top + 10})`);
-
-    // Update zoom slider with proper typing
-    const zoomSlider = zoomControls.append("input")
-      .attr("type", "range")
-      .attr("min", "1")
-      .attr("max", "20")
-      .attr("step", "0.1")
-      .attr("value", "1")
-      .style("width", "100px")
-      .on("input", function(this: HTMLInputElement) {
-        const scale = parseFloat(this.value);
-        // Create a new transform with the desired scale
-        const transform = d3.zoomIdentity.scale(scale);
-        
-        // Apply the transform to the main container
-        g.attr("transform", `translate(0,0) scale(${scale})`);
-        
-        // Update other elements if needed
-        g.selectAll(".chromosome-body, .synteny-ribbon")
-          .attr("transform", `scale(${scale})`);
-      });
-
   }, [
     referenceData, 
     filteredSyntenyData, 
@@ -887,7 +1125,8 @@ export function ChromosomeSynteny({
     referenceGenomeData,
     showAnnotations,
     selectedChromosomes,
-    visualConfig
+    visualConfig,
+    showTooltips
   ]);
 
   // Add window resize handler
@@ -932,13 +1171,114 @@ export function ChromosomeSynteny({
 
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
+  const optimizeChromosomeLayout = (chromosomes: ChromosomeData[]) => {
+    // Group chromosomes by size ranges
+    const sizeRanges = d3.groups(chromosomes, d => {
+      const size = d.chr_size_bp;
+      if (size > 1e8) return 'large';
+      if (size > 1e7) return 'medium';
+      return 'small';
+    });
+
+    // Arrange chromosomes in rows based on size
+    return sizeRanges.map(([range, chrs]) => ({
+      range,
+      chromosomes: chrs,
+      row: range === 'large' ? 0 : range === 'medium' ? 1 : 2
+    }));
+  };
+
+  // Update detail level based on zoom
+  useEffect(() => {
+    const detailLevel = zoom < 1 ? 'overview' 
+      : zoom < 2 ? 'chromosome'
+      : zoom < 3 ? 'region'
+      : zoom < 4 ? 'gene'
+      : 'sequence';
+    
+    // Adjust rendering detail accordingly
+  }, [zoom]);
+
+  // Add this function to handle image export
+  const handleExportImage = useCallback(async (format: 'png' | 'jpg') => {
+    if (!svgRef.current) return;
+
+    try {
+      // Get SVG content
+      const svgElement = svgRef.current;
+      const svgData = new XMLSerializer().serializeToString(svgElement);
+      
+      // Create canvas
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      if (!ctx) throw new Error('Could not get canvas context');
+      
+      // Set canvas size to match SVG
+      const svgSize = svgElement.getBoundingClientRect();
+      canvas.width = svgSize.width * 2; // 2x for better quality
+      canvas.height = svgSize.height * 2;
+      
+      // Set background color based on theme
+      const isDarkMode = document.documentElement.classList.contains('dark');
+      ctx.fillStyle = isDarkMode ? '#020817' : '#ffffff';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      
+      // Create image from SVG
+      const blob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      
+      const img = new window.Image();
+      img.src = url;
+      
+      await new Promise((resolve, reject) => {
+        img.onload = () => {
+          ctx.scale(2, 2); // Scale up for better quality
+          ctx.drawImage(img, 0, 0);
+          
+          // Convert to desired format
+          const mimeType = format === 'png' ? 'image/png' : 'image/jpeg';
+          const quality = format === 'png' ? 1 : 0.95;
+          
+          canvas.toBlob((blob) => {
+            if (!blob) {
+              reject(new Error('Failed to create image blob'));
+              return;
+            }
+            
+            // Create download link
+            const downloadLink = document.createElement('a');
+            downloadLink.href = URL.createObjectURL(blob);
+            downloadLink.download = `chromoviz-overview-${new Date().toISOString().split('T')[0]}.${format}`;
+            document.body.appendChild(downloadLink);
+            downloadLink.click();
+            document.body.removeChild(downloadLink);
+            
+            // Cleanup
+            URL.revokeObjectURL(downloadLink.href);
+            URL.revokeObjectURL(url);
+            resolve(true);
+          }, mimeType, quality);
+        };
+        img.onerror = () => {
+          reject(new Error('Failed to load image'));
+        };
+      });
+    } catch (error) {
+      console.error('Error exporting image:', error);
+    }
+  }, [svgRef]);
+
   return (
     <div 
       ref={containerRef}
-      className={cn(
-        "relative w-full h-full overflow-hidden",
-        isFullscreen && "fixed inset-0 z-50 bg-background"
-      )}
+      className="w-full h-full relative select-none"
+      style={{ 
+        overflow: 'auto',
+        WebkitUserSelect: 'none',
+        MozUserSelect: 'none',
+        msUserSelect: 'none',
+        userSelect: 'none'
+      }}
     >
       <div className={cn(
         "absolute inset-0 transition-opacity duration-200",
@@ -951,39 +1291,42 @@ export function ChromosomeSynteny({
       )}>
         {/* Header Controls */}
         <div className={cn(
-          "absolute top-0 left-0 right-0 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 border-b border-border/20",
+          "absolute top-0 left-0 right-0 flex items-center justify-between gap-2 p-2 border-b border-border/20",
           "bg-background/10 backdrop-blur-md z-10"
         )}>
           {/* Left Side Controls */}
-          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 w-full sm:w-auto">
-            {/* Alignment Filter Buttons */}
-            <div className="flex items-center gap-1.5">
-              <AlignmentFilterButton
-                filter="all"
-                currentFilter={alignmentFilter}
-                onClick={setAlignmentFilter}
-                icon={ArrowLeftRight}
-                label="All"
-                iconOnly={true}
-              />
-              <AlignmentFilterButton
-                filter="forward"
-                currentFilter={alignmentFilter}
-                onClick={setAlignmentFilter}
-                icon={ArrowRight}
-                label="Forward"
-              />
-              <AlignmentFilterButton
-                filter="reverse"
-                currentFilter={alignmentFilter}
-                onClick={setAlignmentFilter}
-                icon={ArrowLeft}
-                label="Reverse"
-              />
-            </div>
+          <div className="flex items-center gap-2">
+            {/* Show full controls on larger screens */}
+            <div className="hidden md:flex items-center gap-2">
+              <div className="flex items-center gap-1">
+                <AlignmentFilterButton
+                  filter="all"
+                  currentFilter={alignmentFilter}
+                  onClick={setAlignmentFilter}
+                  icon={ArrowLeftRight}
+                  label="All"
+                  iconOnly={true}
+                />
+                <AlignmentFilterButton
+                  filter="forward"
+                  currentFilter={alignmentFilter}
+                  onClick={setAlignmentFilter}
+                  icon={ArrowRight}
+                  label="Forward"
+                  iconOnly={true}
+                />
+                <AlignmentFilterButton
+                  filter="reverse"
+                  currentFilter={alignmentFilter}
+                  onClick={setAlignmentFilter}
+                  icon={ArrowLeft}
+                  label="Reverse"
+                  iconOnly={true}
+                />
+              </div>
 
-            {/* Bottom Controls Row */}
-            <div className="flex items-center gap-4 w-full sm:w-auto">
+              <Separator orientation="vertical" className="h-6" />
+
               <div className="flex items-center gap-1.5">
                 <Switch
                   id="annotations-mode"
@@ -991,73 +1334,86 @@ export function ChromosomeSynteny({
                   onCheckedChange={setShowAnnotations}
                   className="scale-75"
                 />
-                <Label htmlFor="annotations-mode" className="text-xs text-muted-foreground whitespace-nowrap">
+                <Label htmlFor="annotations-mode" className="text-xs text-muted-foreground">
                   Annotations
                 </Label>
               </div>
-
-              <Badge variant="secondary" className="text-xs whitespace-nowrap">
-                {Math.round(zoom * 100)}%
-              </Badge>
             </div>
+
+            <Badge variant="secondary" className="text-xs">
+              {Math.round(zoom * 100)}%
+            </Badge>
           </div>
           
           {/* Right Side Controls */}
-          <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
-            <div className="relative">
-              <SettingsPanel
-                config={visualConfig}
-                onConfigChange={handleConfigChange as any}
-                isOpen={isSettingsOpen}
-                onOpenChange={setIsSettingsOpen}
-              />
-            </div>
+          <div className="flex items-center gap-1.5">
             <Button
-              variant="outline"
-              size="sm"
-              onClick={handleSaveAsSVG}
-              className="h-8 w-8 p-0"
-              title="Save as SVG"
+              variant="ghost"
+              size="icon"
+              onClick={() => setIsSettingsOpen(true)}
+              className="h-7 w-7"
             >
-              <Save className="h-4 w-4" />
+              <Settings2 className="h-4 w-4" />
             </Button>
-            <div className="flex items-center gap-1">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={onZoomOut}
-                className="h-8 w-8 p-0"
-              >
-                <ZoomOut className="h-4 w-4" />
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={onReset}
-                className="h-8 w-8 p-0"
-              >
-                <RefreshCw className="h-4 w-4" />
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={onZoomIn}
-                className="h-8 w-8 p-0"
-              >
-                <ZoomIn className="h-4 w-4" />
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={onFullscreen}
-                className="h-8 w-8 p-0"
-              >
-                {isFullscreen ? (
-                  <Minimize2 className="h-4 w-4" />
-                ) : (
-                  <Maximize2 className="h-4 w-4" />
-                )}
-              </Button>
+
+            {/* Show full controls on larger screens */}
+            <div className="hidden md:flex items-center gap-1.5">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon" className="h-7 w-7">
+                    <Save className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={() => handleSaveAsSVG()}>
+                    Save as SVG
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleExportImage('png')}>
+                    Export as PNG
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleExportImage('jpg')}>
+                    Export as JPG
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+
+              <Separator orientation="vertical" className="h-6" />
+
+              <div className="flex items-center gap-1">
+                <Button variant="ghost" size="icon" onClick={onZoomOut} className="h-7 w-7">
+                  <ZoomOut className="h-4 w-4" />
+                </Button>
+                <Button variant="ghost" size="icon" onClick={onReset} className="h-7 w-7">
+                  <RefreshCw className="h-4 w-4" />
+                </Button>
+                <Button variant="ghost" size="icon" onClick={onZoomIn} className="h-7 w-7">
+                  <ZoomIn className="h-4 w-4" />
+                </Button>
+                <Button variant="ghost" size="icon" onClick={onFullscreen} className="h-7 w-7">
+                  {isFullscreen ? (
+                    <Minimize2 className="h-4 w-4" />
+                  ) : (
+                    <Maximize2 className="h-4 w-4" />
+                  )}
+                </Button>
+              </div>
+            </div>
+
+            {/* Show three-dot menu on small screens */}
+            <div className="md:hidden">
+              <ControlsMenu
+                alignmentFilter={alignmentFilter}
+                setAlignmentFilter={setAlignmentFilter}
+                showAnnotations={showAnnotations}
+                setShowAnnotations={setShowAnnotations}
+                onZoomIn={onZoomIn}
+                onZoomOut={onZoomOut}
+                onReset={onReset}
+                onFullscreen={onFullscreen}
+                isFullscreen={isFullscreen}
+                handleSaveAsSVG={handleSaveAsSVG}
+                handleExportImage={handleExportImage}
+              />
             </div>
           </div>
         </div>
@@ -1086,15 +1442,18 @@ export function ChromosomeSynteny({
               />
             </div>
 
-            <Tooltip info={debouncedHoverInfo} />
-
-            {hoveredGene && (
-              <GeneTooltip
-                gene={hoveredGene.gene}
-                x={hoveredGene.x}
-                y={hoveredGene.y}
-              />
-            )}
+            {showTooltips && (
+              <>
+                <Tooltip info={debouncedHoverInfo} />
+                {hoveredGene && (
+                  <GeneTooltip
+                    gene={hoveredGene.gene}
+                    x={hoveredGene.x}
+                    y={hoveredGene.y}
+                  />
+                )}
+          </>
+        )}
 
             <div className="absolute left-4 bottom-20 z-20">
               <div className="inline-grid w-fit grid-cols-3 gap-1">
@@ -1173,6 +1532,15 @@ export function ChromosomeSynteny({
             </div>
           </div>
         </div>
+
+        {/* Add this component */}
+        <ChromosomeScrollbar
+          svgRef={svgRef}
+          containerRef={containerRef}
+          zoomBehaviorRef={zoomBehaviorRef}
+          width={dimensions.width}
+          height={dimensions.height}
+        />
       </div>
     </div>
   );

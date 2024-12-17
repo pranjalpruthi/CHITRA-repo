@@ -47,10 +47,12 @@ export default function HeroSection() {
             <div 
                 className="absolute inset-0 -z-20"
                 style={{
-                    backgroundImage: "url('/assets/hero-2.svg')",
+                    backgroundImage: "url('/assets/chitra-3.svg')",
                     backgroundSize: '90% auto',
                     backgroundPosition: '50% 70px',
                     backgroundRepeat: 'no-repeat',
+                    filter: 'blur(1px)',
+                    opacity: 0.9,
                 }}
             />
             <BackgroundBeamsWithCollision className="absolute inset-0 -z-20 opacity-20" />
@@ -153,20 +155,20 @@ export default function HeroSection() {
                         className="mt-6 flex items-center justify-center gap-3 w-full"
                     >
                         <Link href="/chromoviz" onClick={() => setIsPreviewLoading(true)}>
-                            <div className="relative overflow-hidden rounded-full dark:bg-zinc-900 bg-white shadow border dark:border-zinc-800 group border-zinc-400 p-0.5">
+                            <div className="relative overflow-hidden rounded-full shadow group p-0.5">
                                 <span className={cn(
                                     "absolute inset-[-1000%] animate-[spin_5s_linear_infinite_reverse]",
-                                    "dark:bg-[conic-gradient(from_90deg_at_50%_50%,#fff_0%,#09090B_7%)]",
-                                    "bg-[conic-gradient(from_90deg_at_50%_50%,#000_0%,#fff_5%)]",
-                                    isPreviewLoading ? "opacity-50" : "group-hover:bg-none"
+                                    "bg-[conic-gradient(from_90deg_at_50%_50%,#4f46e5_0%,#06b6d4_25%,#3b82f6_50%,#4f46e5_75%)] dark:bg-[conic-gradient(from_90deg_at_50%_50%,#1d4ed8_0%,#2563eb_25%,#3b82f6_50%,#60a5fa_75%)]",
+                                    isPreviewLoading ? "opacity-50" : "opacity-100"
                                 )} />
                                 <Button 
                                     variant="outline"
                                     className={cn(
-                                        "h-10 sm:h-12 px-6 sm:px-8 rounded-full font-medium backdrop-blur-xl",
-                                        "bg-zinc-50 dark:bg-zinc-900",
+                                        "h-10 sm:h-12 px-6 sm:px-8 rounded-full font-medium",
+                                        "bg-white/80 dark:bg-black/80 backdrop-blur-xl",
                                         "text-zinc-800 dark:text-zinc-200",
                                         "border-0 transition-colors duration-300",
+                                        "relative z-10",
                                         isPreviewLoading && "text-blue-500 dark:text-blue-400"
                                     )}
                                     disabled={isPreviewLoading}

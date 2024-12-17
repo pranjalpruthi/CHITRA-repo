@@ -17,6 +17,7 @@ import {
   ZoomIn,
   X,
   MousePointerClick,
+  MonitorUp,
   Minimize2,
   Maximize2,
   ZoomOut,
@@ -76,6 +77,7 @@ import { GuideSheet } from "@/components/chromoviz/guide";
 import { FloatingHUDBar } from "@/components/chromoviz/floating-hud-bar";
 import { ExampleFilesDrawer } from "@/components/chromoviz/example-files-drawer";
 import { FileUploaderGroup } from "@/components/chromoviz/file-uploader";
+import { config } from 'process';
 
 const parseCSVRow = (d: any): any => {
   return {
@@ -278,6 +280,7 @@ export default function ChromoViz() {
   const [isFullScreen, setIsFullScreen] = useState(false);
   const [containerHeight, setContainerHeight] = useState<number>(800);
   const mainCardRef = useRef<HTMLDivElement>(null);
+  const [showTooltips, setShowTooltips] = useState(true);
   
   // Initialize from localStorage
   useEffect(() => {
@@ -376,6 +379,7 @@ export default function ChromoViz() {
   const containerRef = useRef<HTMLDivElement>(null);
   const zoomBehaviorRef = useRef<any>(null);
   const [showAnnotations, setShowAnnotations] = useState(false);
+  const [showWelcomeCard, setShowWelcomeCard] = useState(true);
 
   // Get reference species from synteny data
   const referenceSpecies = React.useMemo(() => {
@@ -388,6 +392,7 @@ export default function ChromoViz() {
     setIsLoading(true);
     setError(null);
     setIsUsingExample(true);
+    setShowWelcomeCard(false);
     try {
       // Load required files first
       const [syntenyResponse, referenceResponse, refChromosomeSizes] = 
@@ -433,6 +438,7 @@ export default function ChromoViz() {
     synteny: (data: SyntenyData[]) => {
       console.log('Loading synteny data:', data);
       setSyntenyData(data);
+      setShowWelcomeCard(false);
     },
     species: (data: ChromosomeData[]) => {
       console.log('Loading species data:', data);
@@ -691,6 +697,18 @@ export default function ChromoViz() {
     };
   }, []);
 
+  const handleResetToWelcome = () => {
+    setSyntenyData([]);
+    setSpeciesData([]);
+    setReferenceData(null);
+    setGeneAnnotations([]);
+    setBreakpointsData([]);
+    setSelectedSpecies([]);
+    setSelectedChromosomes([]);
+    setShowWelcomeCard(true);
+    setIsUsingExample(true);
+  };
+
   if (error) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[50vh] p-4">
@@ -709,11 +727,11 @@ export default function ChromoViz() {
   return (
     <PageWrapper>
       <div className={cn(
-        "relative w-full h-screen bg-background",
-        isFullScreen ? "fixed inset-0 z-50 backdrop-blur-md p-0" : "pt-8 sm:pt-12"
+        "relative w-full bg-background",
+        isFullScreen ? "fixed inset-0 z-50 backdrop-blur-md p-0" : "py-8 sm:py-12"
       )}>
         <div className={cn(
-          "w-full h-[calc(100vh-theme(spacing.20))] px-4 sm:px-6",
+          "w-full h-[calc(100vh-theme(spacing.32))] px-4 sm:px-6",
           isFullScreen && "h-screen p-0"
         )}>
           <motion.div 
@@ -749,6 +767,9 @@ export default function ChromoViz() {
                   onDataLoad={onDataLoad}
                   isFullScreen={isFullScreen}
                   onToggleFullScreen={() => setIsFullScreen(!isFullScreen)}
+                  showTooltips={showTooltips}
+                  onToggleTooltips={() => setShowTooltips(!showTooltips)}
+                  onResetToWelcome={handleResetToWelcome}
                 />
 
                 {/* Responsive Layout for Visualization and Details */}
@@ -760,7 +781,7 @@ export default function ChromoViz() {
                         <div className="p-4 flex-1">
                           <Skeleton className="h-full w-full" />
                         </div>
-                      ) : syntenyData.length > 0 ? (
+                      ) : syntenyData.length > 0 && !showWelcomeCard ? (
                         <div className="flex-1 min-h-0">
                           <ChromosomeSynteny
                             referenceData={filteredData.referenceData}
@@ -783,6 +804,7 @@ export default function ChromoViz() {
                             showAnnotations={showAnnotations}
                             setShowAnnotations={setShowAnnotations}
                             selectedChromosomes={selectedChromosomes}
+                            showTooltips={showTooltips}
                           />
                         </div>
                       ) : (
@@ -790,93 +812,99 @@ export default function ChromoViz() {
                           <motion.div 
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
-                            className="text-center space-y-6"
+                            className="text-center space-y-12 max-w-4xl w-full"
                           >
-                            <div className="space-y-3">
-                              <div className="relative w-16 h-16 mx-auto">
-                                <div className="absolute inset-0 bg-blue-400/20 dark:bg-blue-500/20 blur-xl rounded-full" />
-                                <div className="relative flex items-center justify-center w-full h-full bg-white/50 dark:bg-gray-900/50 backdrop-blur-sm rounded-full border border-blue-200 dark:border-blue-800">
-                                  <Upload className="h-8 w-8 text-blue-500 dark:text-blue-400" />
+                            {/* Header */}
+                            <div className="space-y-4">
+                              <div className="relative w-20 h-20 mx-auto">
+                                <div className="absolute inset-0 bg-blue-400/20 dark:bg-blue-500/20 blur-2xl rounded-full" />
+                                <div className="relative flex items-center justify-center w-full h-full 
+                                  bg-white/50 dark:bg-gray-900/50 backdrop-blur-sm rounded-full 
+                                  border border-blue-200 dark:border-blue-800 
+                                  shadow-lg shadow-blue-500/20"
+                                >
+                                  <MonitorUp className="h-10 w-10 text-blue-500 dark:text-blue-400" />
                                 </div>
                               </div>
-                              <div>
-                                <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">
-                                  No Data Available
-                                </h3>
-                                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1 max-w-sm mx-auto">
-                                  Get started by uploading your data files or explore our example datasets
-                                </p>
-                              </div>
+                              
+                              <h3 className="text-2xl font-semibold text-gray-900 dark:text-gray-100">
+                                Welcome to Chitra
+                              </h3>
+                              <p className="text-base text-gray-500 dark:text-gray-400 max-w-lg mx-auto">
+                                Get started by exploring our example datasets or upload your own files
+                              </p>
                             </div>
 
-                            <div className="flex flex-col sm:flex-row items-center gap-3 justify-center">
+                            {/* Example Sets Grid */}
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                              {[
+                                {
+                                  id: 'set1',
+                                  name: 'Basic Synteny',
+                                  description: 'Simple synteny visualization between two species',
+                                  color: 'bg-blue-400'
+                                },
+                                {
+                                  id: 'set2',
+                                  name: 'Multi-Species',
+                                  description: 'Complex synteny relationships across multiple species',
+                                  color: 'bg-emerald-400',
+                                  badge: 'Gene Annotations'
+                                },
+                                {
+                                  id: 'set3',
+                                  name: 'Annotated Genome',
+                                  description: 'Detailed genome annotations with gene information',
+                                  color: 'bg-purple-400',
+                                  badge: 'Gene Annotations'
+                                }
+                              ].map((set) => (
+                                <motion.button
+                                  key={set.id}
+                                  onClick={() => loadExampleData(`/example/${set.id}`)}
+                                  className="w-full text-left p-4 rounded-lg transition-all border border-gray-200 dark:border-gray-800
+                                    hover:bg-gray-50 dark:hover:bg-gray-800/50 group"
+                                  whileHover={{ scale: 1.02 }}
+                                  whileTap={{ scale: 0.98 }}
+                                >
+                                  <div className="flex items-start gap-3">
+                                    <div className={`w-2.5 h-2.5 rounded-full mt-1.5 flex-shrink-0 ${set.color}`} />
+                                    <div className="flex-1">
+                                      <div className="font-medium text-base group-hover:text-blue-500 dark:group-hover:text-blue-400 transition-colors">
+                                        {set.name}
+                                      </div>
+                                      <div className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                                        {set.description}
+                                      </div>
+                                      {set.badge && (
+                                        <div className="flex flex-wrap gap-2 mt-2">
+                                          <span className="inline-flex items-center rounded-full bg-gray-100 dark:bg-gray-800 
+                                            px-2.5 py-0.5 text-xs font-medium text-gray-600 dark:text-gray-400">
+                                            {set.badge}
+                                          </span>
+                                        </div>
+                                      )}
+                                    </div>
+                                  </div>
+                                </motion.button>
+                              ))}
+                            </div>
+
+                            {/* Upload Button */}
+                            <div className="pt-4">
                               <FileUploaderGroup 
                                 onDataLoad={onDataLoad}
                                 trigger={
                                   <Button 
                                     variant="outline" 
                                     size="lg"
-                                    className="min-w-[160px] gap-2"
+                                    className="min-w-[200px] gap-2 h-12 text-base hover:bg-gray-50 dark:hover:bg-gray-800"
                                   >
-                                    <Upload className="h-4 w-4" />
-                                    Upload Files
+                                    <Upload className="h-5 w-5" />
+                                    Upload Your Files
                                   </Button>
                                 }
                               />
-
-                              <ExampleFilesDrawer onLoadExample={loadExampleData}>
-                                <Button 
-                                  variant="default"
-                                  size="lg"
-                                  className="min-w-[160px] gap-2 bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600"
-                                >
-                                  <FileText className="h-4 w-4" />
-                                  Try Examples
-                                </Button>
-                              </ExampleFilesDrawer>
-                            </div>
-
-                            <div className="pt-8">
-                              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-3xl mx-auto px-4">
-                                {[
-                                  {
-                                    icon: FileText,
-                                    title: "Example Datasets",
-                                    description: "Explore pre-configured datasets to understand the visualization capabilities"
-                                  },
-                                  {
-                                    icon: Upload,
-                                    title: "Upload Your Data",
-                                    description: "Import your own synteny data files for custom genome visualization"
-                                  },
-                                  {
-                                    icon: TableProperties,
-                                    title: "Interactive View",
-                                    description: "Analyze genomic relationships with our interactive visualization tools"
-                                  }
-                                ].map((feature, i) => (
-                                  <motion.div
-                                    key={i}
-                                    initial={{ opacity: 0, y: 20 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    transition={{ delay: 0.2 + i * 0.1 }}
-                                    className="relative group"
-                                  >
-                                    <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 to-indigo-500/10 rounded-lg blur-xl transition-all duration-300 group-hover:scale-110 opacity-0 group-hover:opacity-100" />
-                                    <div className="relative p-4 text-center space-y-3">
-                                      <div className="w-10 h-10 mx-auto rounded-lg bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center">
-                                        <feature.icon className="h-5 w-5 text-blue-500 dark:text-blue-400" />
-                                      </div>
-                                      <h4 className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                                        {feature.title}
-                                      </h4>
-                                      <p className="text-xs text-gray-500 dark:text-gray-400">
-                                        {feature.description}
-                                      </p>
-                                    </div>
-                                  </motion.div>
-                                ))}
-                              </div>
                             </div>
                           </motion.div>
                         </div>
@@ -911,6 +939,7 @@ export default function ChromoViz() {
                             onToggleSelection={handleSyntenyToggle}
                             isFullscreen={isDetailedViewFullscreen}
                             onFullscreen={setIsDetailedViewFullscreen}
+                            showTooltips={showTooltips}
                           />
                         </CardContent>
                       </Card>

@@ -57,6 +57,9 @@ export default function RootLayout({
               defaultTheme="system"
               enableSystem
               disableTransitionOnChange
+              storageKey="chitra-theme"
+              forcedTheme={undefined}
+              themes={['light', 'dark', 'system']}
             >
               {children}
               <Toaster />

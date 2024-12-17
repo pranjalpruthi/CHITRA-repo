@@ -210,7 +210,7 @@ export function renderChromosome({
 
   if (body && 'on' in body) {
     (body as d3.Selection<any, unknown, null, undefined>)
-      .on("mouseover", (e) => onHover(e, {
+      .on("click", (e) => onHover(e, {
         type: 'chromosome',
         data: getGeneTooltip(chr)
       }))

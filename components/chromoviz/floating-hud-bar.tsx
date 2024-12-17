@@ -11,7 +11,10 @@ import {
   Pin,
   PinOff,
   Maximize2,
-  Minimize2
+  Minimize2,
+  MessageCircle,
+  MessageCircleOff,
+  RotateCcw
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import AiButton from "@/components/animata/button/ai-button";
@@ -47,6 +50,9 @@ interface FloatingHUDBarProps {
   };
   isFullScreen?: boolean;
   onToggleFullScreen?: () => void;
+  showTooltips: boolean;
+  onToggleTooltips: () => void;
+  onResetToWelcome: () => void;
 }
 
 export function FloatingHUDBar({
@@ -64,7 +70,10 @@ export function FloatingHUDBar({
   syntenyData,
   onDataLoad,
   isFullScreen = false,
-  onToggleFullScreen = () => {}
+  onToggleFullScreen = () => {},
+  showTooltips,
+  onToggleTooltips,
+  onResetToWelcome
 }: FloatingHUDBarProps) {
   const [isPinned, setIsPinned] = useState(true);
 
@@ -165,8 +174,28 @@ export function FloatingHUDBar({
               </Button>
             </FilterDrawer>
 
-            {/* Separator */}
+            {/* Separator before tooltip toggle */}
             <Separator orientation="vertical" className="h-6 mx-1 bg-white/20 hidden sm:block" />
+
+            {/* Tooltip Toggle Button */}
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={onToggleTooltips}
+              className="h-8 px-2 text-xs hover:bg-white/10 hover:text-white transition-colors group"
+            >
+              {showTooltips ? (
+                <>
+                  <MessageCircle className="h-3.5 w-3.5 group-hover:text-blue-400" />
+                  <span className="hidden sm:inline ml-1.5">Hide Tips</span>
+                </>
+              ) : (
+                <>
+                  <MessageCircleOff className="h-3.5 w-3.5 group-hover:text-blue-400" />
+                  <span className="hidden sm:inline ml-1.5">Show Tips</span>
+                </>
+              )}
+            </Button>
 
             {/* 5. Guide Button */}
             <GuideSheet>
@@ -180,7 +209,17 @@ export function FloatingHUDBar({
               </Button>
             </GuideSheet>
 
-            {/* 6. Fullscreen Button */}
+            {/* Reset Button */}
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={onResetToWelcome}
+              className="h-8 w-8 rounded-full bg-background/80 backdrop-blur-sm ring-1 ring-black/5 dark:ring-white/10 shadow-sm hover:shadow-md transition-all duration-200"
+            >
+              <RotateCcw className="h-4 w-4" />
+            </Button>
+
+            {/* Fullscreen Button */}
             <Button
               variant="ghost"
               size="icon"

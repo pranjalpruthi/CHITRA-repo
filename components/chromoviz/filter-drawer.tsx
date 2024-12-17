@@ -1,12 +1,11 @@
 'use client'
 
 import React from 'react'
-import { Database, X } from 'lucide-react'
+import { Database, X, Filter, ChevronRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { MultiSelect } from '@/components/ui/multi-select'
 import { Label } from '@/components/ui/label'
-import { Separator } from '@/components/ui/separator'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import {
   Drawer,
@@ -40,6 +39,8 @@ interface FilterSectionProps {
   total: number
   onClear: () => void
   children: React.ReactNode
+  description?: string
+  icon?: React.ReactNode
 }
 
 const FilterSection = ({
@@ -47,7 +48,9 @@ const FilterSection = ({
   count,
   total,
   onClear,
-  children
+  children,
+  description,
+  icon
 }: FilterSectionProps) => {
   const handleClear = React.useCallback((e: React.MouseEvent) => {
     e.preventDefault();
@@ -56,26 +59,42 @@ const FilterSection = ({
   }, [onClear]);
 
   return (
-    <div className="space-y-3">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Label className="text-sm font-medium">{title}</Label>
-          <FilterBadge count={count} total={total} />
+    <motion.div 
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="rounded-lg border border-border/50 dark:border-border/30 bg-card dark:bg-card/50 p-4 space-y-4"
+    >
+      <div className="space-y-1.5">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            {icon}
+            <div>
+              <Label className="text-base font-medium">{title}</Label>
+              {description && (
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  {description}
+                </p>
+              )}
+            </div>
+            <FilterBadge count={count} total={total} />
+          </div>
+          {count > 0 && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleClear}
+              className="h-8 px-2 text-xs hover:bg-destructive/10 hover:text-destructive"
+            >
+              <X className="h-3.5 w-3.5 mr-1.5" />
+              Clear
+            </Button>
+          )}
         </div>
-        {count > 0 && (
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleClear}
-            className="h-7 px-2 text-xs hover:bg-destructive/10 hover:text-destructive"
-          >
-            <X className="h-3 w-3 mr-1" />
-            Clear
-          </Button>
-        )}
       </div>
-      {children}
-    </div>
+      <div className="relative">
+        {children}
+      </div>
+    </motion.div>
   );
 };
 
@@ -192,214 +211,239 @@ export const FilterDrawer = ({
     });
   };
 
+  const totalSelectedFilters = selectedSpecies.length + selectedChromosomes.length;
+
   return (
     <Drawer>
       <DrawerTrigger asChild>
-        {children}
+        <div>
+          {children}
+          {totalSelectedFilters > 0 && (
+            <Badge 
+              variant="secondary" 
+              className="absolute -top-2 -right-2 h-5 min-w-[20px] flex items-center justify-center"
+            >
+              {totalSelectedFilters}
+            </Badge>
+          )}
+        </div>
       </DrawerTrigger>
-      <DrawerContent className="fixed bottom-0 left-0 right-0 rounded-t-[10px] bg-white dark:bg-background/40 backdrop-blur-xl border-t border-border/50 dark:border-border/30 shadow-lg">
-        <div className="mx-auto w-full max-w-none md:max-w-none">
-          {/* Handle - only show on mobile */}
-          <div className="sticky top-0 flex w-full items-center justify-center bg-transparent pt-3 md:hidden">
-            <div className="h-1 w-10 rounded-full bg-zinc-200 dark:bg-border/20" />
-          </div>
-
-          <div className="h-[85vh] md:h-[75vh] overflow-y-auto overscroll-contain px-3 md:px-4">
-            <DrawerHeader className="pb-4 sticky top-0 bg-white dark:bg-background/40 backdrop-blur-xl z-10 border-b border-border/50 dark:border-border/30">
-              <DrawerTitle className="text-lg md:text-xl font-semibold text-foreground flex items-center gap-2">
-                <Database className="h-4 w-4 text-blue-500 dark:text-blue-400" />
+      
+      <DrawerContent className="h-[85vh] max-h-[85vh] md:h-[90vh] md:max-h-[90vh] overflow-hidden">
+        <DrawerHeader className="border-b border-border/50 dark:border-border/30">
+          <div className="flex items-center justify-between">
+            <div className="space-y-1">
+              <DrawerTitle className="text-xl flex items-center gap-2">
+                <Filter className="h-5 w-5 text-primary" />
                 Data Filters
+                {totalSelectedFilters > 0 && (
+                  <Badge variant="secondary" className="ml-2">
+                    {totalSelectedFilters} active
+                  </Badge>
+                )}
               </DrawerTitle>
-              <DrawerDescription className="text-xs md:text-sm text-muted-foreground">
-                Configure which species and chromosomes to display
+              <DrawerDescription>
+                Configure visualization parameters and data selection
               </DrawerDescription>
-            </DrawerHeader>
-            
-            <div className="space-y-6 md:grid md:grid-cols-2 md:gap-6 md:space-y-0 py-4">
-              {/* Species Filter Section */}
-              <div className="space-y-6">
-                <FilterSection
-                  title="Species"
-                  count={selectedSpecies.length}
-                  total={speciesOptions.length}
-                  onClear={() => {
-                    setSelectedSpecies([]);
-                    const remainingChromosomes = selectedChromosomes.filter(chr => 
-                      chr.startsWith('ref:')
-                    );
-                    setSelectedChromosomes(remainingChromosomes);
-                  }}
-                >
-                  <MultiSelect
-                    value={selectedSpecies}
-                    options={speciesOptions}
-                    onValueChange={setSelectedSpecies}
-                    placeholder="Filter by species..."
-                    className="mt-1.5"
-                    disabled={isLoading}
-                    maxCount={2}
-                    modalPopover={true}
-                  />
-                </FilterSection>
+            </div>
+            <DrawerClose className="rounded-full p-2.5 hover:bg-gray-100 dark:hover:bg-gray-800">
+              <X className="h-5 w-5" />
+            </DrawerClose>
+          </div>
+        </DrawerHeader>
 
-                {/* Reference Chromosomes Section */}
-                {referenceGenomeData?.chromosomeSizes && (
+        <div className="flex-1 overflow-hidden">
+          <ScrollArea className="h-full px-6">
+            <div className="py-6">
+              {/* Main Grid Layout */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+                {/* Left Column - Species and Reference Selection */}
+                <div className="space-y-6">
+                  {/* Species Filter Section */}
                   <FilterSection
-                    title="Reference Chromosomes"
-                    count={selectedChromosomes.filter(chr => chr.startsWith('ref:')).length}
-                    total={referenceGenomeData.chromosomeSizes.length}
+                    title="Species Selection"
+                    description="Choose which species to include in the visualization"
+                    count={selectedSpecies.length}
+                    total={speciesOptions.length}
+                    icon={<Database className="h-4 w-4 text-blue-500" />}
                     onClear={() => {
-                      setSelectedChromosomes([]);
+                      setSelectedSpecies([]);
+                      const remainingChromosomes = selectedChromosomes.filter(chr => 
+                        chr.startsWith('ref:')
+                      );
+                      setSelectedChromosomes(remainingChromosomes);
                     }}
                   >
                     <MultiSelect
-                      value={selectedChromosomes.filter(chr => chr.startsWith('ref:'))}
-                      options={referenceGenomeData.chromosomeSizes.map(chr => ({
-                        label: chr.chromosome,
-                        value: `ref:${chr.chromosome}`
-                      }))}
-                      onValueChange={(values) => {
-                        // When reference chromosomes change, update selection but keep existing query selections
-                        const currentQueryChrs = selectedChromosomes.filter(chr => !chr.startsWith('ref:'));
-                        setSelectedChromosomes([...values, ...currentQueryChrs]);
-                      }}
-                      placeholder="Select reference chromosomes..."
-                      className="mt-1.5"
+                      value={selectedSpecies}
+                      options={speciesOptions}
+                      onValueChange={setSelectedSpecies}
+                      placeholder="Filter by species..."
                       disabled={isLoading}
-                      maxCount={10}
+                      maxCount={2}
                       modalPopover={true}
                     />
                   </FilterSection>
-                )}
 
-                {/* Connected Query Chromosomes Section - Read Only Display */}
-                {connectedQueryChromosomes.length > 0 && (
+                  {/* Reference Chromosomes Section */}
+                  {referenceGenomeData?.chromosomeSizes && (
+                    <FilterSection
+                      title="Reference Chromosomes"
+                      description="Select chromosomes from the reference genome"
+                      count={selectedChromosomes.filter(chr => chr.startsWith('ref:')).length}
+                      total={referenceGenomeData.chromosomeSizes.length}
+                      icon={<ChevronRight className="h-4 w-4 text-emerald-500" />}
+                      onClear={() => setSelectedChromosomes([])}
+                    >
+                      <MultiSelect
+                        value={selectedChromosomes.filter(chr => chr.startsWith('ref:'))}
+                        options={referenceGenomeData.chromosomeSizes.map(chr => ({
+                          label: chr.chromosome,
+                          value: `ref:${chr.chromosome}`
+                        }))}
+                        onValueChange={(values) => {
+                          const currentQueryChrs = selectedChromosomes.filter(chr => !chr.startsWith('ref:'));
+                          setSelectedChromosomes([...values, ...currentQueryChrs]);
+                        }}
+                        placeholder="Select reference chromosomes..."
+                        disabled={isLoading}
+                        maxCount={10}
+                        modalPopover={true}
+                      />
+                    </FilterSection>
+                  )}
+                </div>
+
+                {/* Middle Column - Connected Chromosomes */}
+                <div className="space-y-6">
+                  {/* Connected Query Chromosomes Section */}
+                  {connectedQueryChromosomes.length > 0 && (
+                    <FilterSection
+                      title="Connected Query Chromosomes"
+                      description="Chromosomes connected to selected reference chromosomes"
+                      count={connectedQueryChromosomes.length}
+                      total={connectedQueryChromosomes.length}
+                      icon={<ChevronRight className="h-4 w-4 text-violet-500" />}
+                      onClear={() => {}}
+                    >
+                      <div className="grid grid-cols-1 gap-2 mt-2">
+                        {connectedQueryChromosomes.map((chr) => (
+                          <motion.div
+                            key={chr.value}
+                            initial={{ opacity: 0, y: 5 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className="flex items-center gap-2 p-2.5 rounded-md bg-muted/50 border border-border/50 hover:bg-muted/80 transition-colors"
+                          >
+                            <Badge variant="outline" className="text-xs flex-1">
+                              {chr.label}
+                            </Badge>
+                          </motion.div>
+                        ))}
+                      </div>
+                    </FilterSection>
+                  )}
+                </div>
+
+                {/* Right Column - Species Chromosomes */}
+                <div className="lg:col-span-2 xl:col-span-1">
                   <FilterSection
-                    title="Connected Query Chromosomes"
-                    count={connectedQueryChromosomes.length}
-                    total={connectedQueryChromosomes.length}
-                    onClear={() => {}}
+                    title="Species Chromosomes"
+                    description="Select chromosomes from each species"
+                    count={selectedChromosomes.filter(chr => !chr.startsWith('ref:')).length}
+                    total={Object.values(chromosomeOptions).flat().filter(chr => !chr.value.startsWith('ref:')).length}
+                    icon={<ChevronRight className="h-4 w-4 text-rose-500" />}
+                    onClear={() => {
+                      const refChromosomes = selectedChromosomes.filter(chr => chr.startsWith('ref:'));
+                      setSelectedChromosomes(refChromosomes);
+                    }}
                   >
-                    <div className="mt-2 space-y-2">
-                      {connectedQueryChromosomes.map((chr) => (
-                        <div key={chr.value} className="flex items-center gap-2 text-sm">
-                          <Badge variant="outline" className="text-xs">
-                            {chr.label}
-                          </Badge>
-                        </div>
-                      ))}
+                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-1 gap-4">
+                      {Object.entries(chromosomeOptions).map(([species, chromosomes]) => {
+                        if (species === 'Reference') return null;
+                        if (selectedSpecies.length > 0 && !selectedSpecies.includes(species)) return null;
+
+                        const selectedCount = selectedChromosomes.filter(chr => 
+                          chr.startsWith(`${species}:`)
+                        ).length;
+
+                        return (
+                          <motion.div
+                            key={species}
+                            initial={{ opacity: 0, y: 5 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className="rounded-md border border-border/50 p-3 space-y-3 bg-muted/30"
+                          >
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-2">
+                                <Label className="text-sm font-medium">
+                                  {species.replace('_', ' ')}
+                                </Label>
+                                <FilterBadge count={selectedCount} total={chromosomes.length} />
+                              </div>
+                              {selectedCount > 0 && (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => {
+                                    const otherChromosomes = selectedChromosomes.filter(chr => 
+                                      !chr.startsWith(`${species}:`)
+                                    );
+                                    setSelectedChromosomes(otherChromosomes);
+                                  }}
+                                  className="h-7 px-2 text-xs"
+                                >
+                                  Clear
+                                </Button>
+                              )}
+                            </div>
+                            <MultiSelect
+                              value={selectedChromosomes.filter(chr => 
+                                chr.startsWith(`${species}:`)
+                              )}
+                              options={chromosomes}
+                              onValueChange={(values) => {
+                                const otherChromosomes = selectedChromosomes.filter(chr => 
+                                  !chr.startsWith(`${species}:`)
+                                );
+                                setSelectedChromosomes([...otherChromosomes, ...values]);
+                              }}
+                              placeholder={`Select chromosomes...`}
+                              disabled={isLoading}
+                              maxCount={2}
+                              modalPopover={true}
+                            />
+                          </motion.div>
+                        );
+                      })}
                     </div>
                   </FilterSection>
-                )}
-              </div>
-
-              {/* Species Chromosomes Sections */}
-              <div className="space-y-6">
-                {/* Species Chromosomes Section */}
-                <FilterSection
-                  title="Species Chromosomes"
-                  count={selectedChromosomes.filter(chr => !chr.startsWith('ref:')).length}
-                  total={Object.values(chromosomeOptions).flat().filter(chr => !chr.value.startsWith('ref:')).length}
-                  onClear={() => {
-                    const refChromosomes = selectedChromosomes.filter(chr => chr.startsWith('ref:'));
-                    setSelectedChromosomes(refChromosomes);
-                  }}
-                >
-                  <div className="space-y-4 mt-1.5">
-                    {Object.entries(chromosomeOptions).map(([species, chromosomes]) => {
-                      if (species === 'Reference') return null;
-                      if (selectedSpecies.length > 0 && !selectedSpecies.includes(species)) {
-                        return null;
-                      }
-
-                      const selectedCount = selectedChromosomes.filter(chr => 
-                        chr.startsWith(`${species}:`)
-                      ).length;
-
-                      return (
-                        <motion.div
-                          key={species}
-                          initial={{ opacity: 0, y: 5 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          exit={{ opacity: 0, y: -5 }}
-                          transition={{ duration: 0.15 }}
-                          className="space-y-2 bg-zinc-50 dark:bg-background/20 hover:bg-zinc-100 dark:hover:bg-accent/10 p-3 rounded-lg border border-border/50 dark:border-border/30 shadow-sm"
-                        >
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                              <Label className="text-sm font-medium">
-                                {species.replace('_', ' ')}
-                              </Label>
-                              <FilterBadge 
-                                count={selectedCount} 
-                                total={chromosomes.length} 
-                              />
-                            </div>
-                            {selectedCount > 0 && (
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => {
-                                  const otherChromosomes = selectedChromosomes.filter(chr => 
-                                    !chr.startsWith(`${species}:`)
-                                  );
-                                  setSelectedChromosomes(otherChromosomes);
-                                }}
-                                className="h-7 px-2 text-xs"
-                              >
-                                Clear
-                              </Button>
-                            )}
-                          </div>
-                          <MultiSelect
-                            value={selectedChromosomes.filter(chr => 
-                              chr.startsWith(`${species}:`)
-                            )}
-                            options={chromosomes}
-                            onValueChange={(values) => {
-                              const otherChromosomes = selectedChromosomes.filter(chr => 
-                                !chr.startsWith(`${species}:`)
-                              );
-                              setSelectedChromosomes([...otherChromosomes, ...values]);
-                            }}
-                            placeholder={`Select chromosomes...`}
-                            className="mt-1.5"
-                            disabled={isLoading}
-                            maxCount={2}
-                            modalPopover={true}
-                          />
-                        </motion.div>
-                      );
-                    })}
-                  </div>
-                </FilterSection>
+                </div>
               </div>
             </div>
-          </div>
-
-          <DrawerFooter className="px-4 py-3 border-t border-border/50 dark:border-border/30 bg-white dark:bg-background/40 backdrop-blur-xl">
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                className="flex-1 bg-background/40 dark:bg-background/20 hover:bg-blue-500/20 dark:hover:bg-blue-500/10 hover:text-blue-500 border border-border/50 dark:border-border/30 shadow-sm backdrop-blur-md text-sm"
-                onClick={() => {
-                  // Reset selections to show all data
-                  setSelectedSpecies([]);
-                  setSelectedChromosomes([]);
-                }}
-                disabled={isLoading || (selectedSpecies.length === 0 && selectedChromosomes.length === 0)}
-              >
-                <Database className="h-3.5 w-3.5 mr-1.5" />
-                Show all
-              </Button>
-              <DrawerClose asChild>
-                <Button className="flex-1 shadow-sm text-sm bg-primary/90 dark:bg-primary/80 hover:bg-primary/80 dark:hover:bg-primary/70">
-                  Done
-                </Button>
-              </DrawerClose>
-            </div>
-          </DrawerFooter>
+          </ScrollArea>
         </div>
+
+        <DrawerFooter className="border-t border-border/50 dark:border-border/30">
+          <div className="flex gap-3">
+            <Button
+              variant="outline"
+              className="flex-1 hover:bg-blue-500/10 hover:text-blue-500 border-border/50"
+              onClick={() => {
+                setSelectedSpecies([]);
+                setSelectedChromosomes([]);
+              }}
+              disabled={isLoading || (selectedSpecies.length === 0 && selectedChromosomes.length === 0)}
+            >
+              <Database className="h-4 w-4 mr-2" />
+              Show all
+            </Button>
+            <DrawerClose asChild>
+              <Button className="flex-1">
+                Apply Filters
+              </Button>
+            </DrawerClose>
+          </div>
+        </DrawerFooter>
       </DrawerContent>
     </Drawer>
   )

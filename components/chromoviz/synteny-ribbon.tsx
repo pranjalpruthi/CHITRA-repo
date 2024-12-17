@@ -1,6 +1,7 @@
 "use client";
 
 import * as d3 from "d3";
+import { throttle } from 'lodash';
 import { SyntenyData, ChromosomeData } from "@/app/types";
 
 interface SyntenyRibbonProps {
@@ -92,6 +93,18 @@ export function renderSyntenyRibbon({
   if (!shouldRenderRibbon()) {
     return null;
   }
+
+  // Check viewport visibility before rendering
+  const isInViewport = () => {
+    const bounds = g.node()?.getBoundingClientRect();
+    if (!bounds) return false;
+    return !(bounds.right < 0 || bounds.bottom < 0 || 
+            bounds.left > window.innerWidth || 
+            bounds.top > window.innerHeight);
+  };
+
+  // Skip rendering if not in viewport
+  if (!isInViewport()) return null;
 
   // Get chromosome positions
   const getXPosition = (species: string, chr: string, pos: number) => {
@@ -308,67 +321,37 @@ export function renderSyntenyRibbon({
     onSelect(link, newSelectedState);
   };
 
-  const handleGroupHover = () => {
-    const currentlySelected = blockGroup.attr("data-selected") === "true";
-    if (!currentlySelected) {
-      const svg = d3.select(g.node().parentNode);
-      const currentTransform = d3.zoomTransform(svg.node());
+  // Throttle expensive event handlers
+  const throttledOnMove = throttle(onMove, 16); // ~60fps
+  const throttledOnHover = throttle((e: any) => onHover(e, link), 16);
 
+  // Use requestAnimationFrame for smooth animations
+  const handleHover = (event: any) => {
+    requestAnimationFrame(() => {
       ribbon.attr("opacity", SYNTENY_COLORS.OPACITY.HOVER);
-      [sourceBlock, targetBlock].forEach(block => {
-        block
-          .attr("opacity", 1)
-          .attr("stroke-width", 3);
-      });
-
-      blockGroup.raise();
-      g.attr("transform", currentTransform.toString());
-    }
+      sourceBlock.attr("opacity", 1);
+      targetBlock.attr("opacity", 1);
+    });
+    throttledOnHover(event);
   };
 
   const handleGroupLeave = () => {
-    const currentlySelected = blockGroup.attr("data-selected") === "true";
-    setElementStates(currentlySelected); // Reuse the setElementStates function
-    onLeave();
+    requestAnimationFrame(() => {
+      if (!isSelected) {
+        ribbon.attr("opacity", SYNTENY_COLORS.OPACITY.DEFAULT);
+        sourceBlock.attr("opacity", 0.8);
+        targetBlock.attr("opacity", 0.8);
+      }
+      onLeave();
+    });
   };
 
-  // Attach events to all elements
-  const attachEvents = (element: d3.Selection<any, unknown, null, undefined>) => {
-    element
-      .on("mouseover.synteny", (event: MouseEvent) => {
-        // Get all blocks at the current mouse position
-        const mousePoint = d3.pointer(event);
-        const elementsAtPoint = document.elementsFromPoint(event.clientX, event.clientY)
-          .filter(el => el.classList.contains('synteny-group'))
-          .map(el => d3.select(el));
-
-        // Find the smallest block that contains the mouse point
-        const smallestBlock = elementsAtPoint
-          .sort((a, b) => {
-            const sizeA = parseFloat(a.attr('data-block-size'));
-            const sizeB = parseFloat(b.attr('data-block-size'));
-            return sizeA - sizeB;
-          })[0];
-
-        // Only trigger hover if this is the smallest block or no other blocks are present
-        if (!smallestBlock || smallestBlock.attr('data-synteny-id') === syntenyId) {
-          handleGroupHover();
-          onHover(event, link);
-        }
-      })
-      .on("mouseout.synteny", (event: MouseEvent) => {
-        // Only trigger mouseout if we're not entering another part of the same block
-        const toElement = event.relatedTarget as Element;
-        if (!toElement || !blockGroup.node()?.contains(toElement)) {
-          handleGroupLeave();
-        }
-      })
-      .on("mousemove.synteny", onMove)
-      .on("click.synteny", handleClick);
-  };
-
-  // Attach events to all elements
-  [ribbon, sourceBlock, targetBlock].forEach(attachEvents);
+  // Optimize event listeners
+  blockGroup
+    .on("mouseenter", handleHover)
+    .on("mousemove", throttledOnMove)
+    .on("mouseleave", handleGroupLeave)
+    .on("click", handleClick);
 
   return blockGroup;
 }
