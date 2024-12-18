@@ -26,21 +26,32 @@ interface SyntenyRibbonProps {
 }
 
 const SYNTENY_COLORS = {
-  FORWARD: '#2563eb33',
-  REVERSE: '#dc262633',
-  BLOCK_FORWARD: '#3b82f6',
-  BLOCK_REVERSE: '#ef4444',
+  FORWARD: '#2563eb1a',
+  REVERSE: '#dc26261a',
+  BLOCK_FORWARD: '#2563eb',
+  BLOCK_REVERSE: '#dc2626',
   STROKE_WIDTH: {
     SMALL: 1.5,
     MEDIUM: 2.5,
     LARGE: 3.5
   },
   OPACITY: {
-    DEFAULT: 0.6,
-    HOVER: 0.85,
-    SELECTED: 1.0,
+    DEFAULT: 0.45,
+    HOVER: 0.75,
+    SELECTED: 0.9,
     ACTIVE: 1.0
   }
+} as const;
+
+// Reduce throttle time for smoother interactions
+const THROTTLE_MS = 8; // Reduced from 16ms to 8ms for smoother updates
+
+// Add GPU acceleration and compositing hints
+const COMPOSITE_STYLES = {
+  transform: 'translate3d(0,0,0)', // Force GPU acceleration
+  backfaceVisibility: 'hidden',
+  perspective: '1000px',
+  willChange: 'transform, opacity' // Hint to browser about expected changes
 } as const;
 
 export function renderSyntenyRibbon({
@@ -153,16 +164,11 @@ export function renderSyntenyRibbon({
     .attr("class", `synteny-group ${isSelected ? 'selected' : ''}`)
     .attr("data-synteny-id", syntenyId)
     .attr("data-selected", isSelected ? "true" : "false")
-    .attr("data-block-size", width1 * width2) // Store block size for sorting
-    .style("pointer-events", "all") // Ensure all events are captured
     .style("user-select", "none")
-    .style("-webkit-user-select", "none")
-    .style("-moz-user-select", "none")
-    .style("-ms-user-select", "none");
+    .style("-webkit-user-select", "none");
 
-  // Set z-index based on block size (smaller blocks on top)
-  const zIndex = Math.round(1000000 - (width1 * width2)); // Invert size for z-index
-  blockGroup.style("z-index", zIndex);
+  // Modify transition timing to be more stable
+  const transition = "all 150ms cubic-bezier(0.4, 0.0, 0.2, 1)";
 
   // Source block
   const sourceBlock = blockGroup.append("rect")
@@ -254,38 +260,28 @@ export function renderSyntenyRibbon({
     .attr("opacity", isSelected ? SYNTENY_COLORS.OPACITY.SELECTED : SYNTENY_COLORS.OPACITY.DEFAULT)
     .attr("class", `synteny-ribbon ${isSelected ? 'selected' : ''}`)
     .attr("data-synteny-id", syntenyId)
-    .attr("stroke", isSelected ? (link.query_strand === '+' ? SYNTENY_COLORS.BLOCK_FORWARD : SYNTENY_COLORS.BLOCK_REVERSE) : 'none')
-    .attr("stroke-width", isSelected ? 2 : 0)
-    .attr("stroke-opacity", isSelected ? 0.8 : 0)
-    .style("transition", "opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1), stroke-width 0.2s ease-in-out")
-    .style("position", "relative") // Enable stacking context
-    .style("filter", "drop-shadow(0 4px 8px rgba(0, 0, 0, 0.25))");  // Increased shadow intensity
+    .style("transition", "opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1)");
 
   // Add CSS classes for hover management
   blockGroup.style("position", "relative")
     .style("mix-blend-mode", "normal"); // Changed from multiply for better visibility
 
-  // Initial state setup - Set initial opacities based on selection state
+  // Use requestAnimationFrame for state updates
   const setElementStates = (selected: boolean) => {
-    ribbon
-      .attr("opacity", selected ? SYNTENY_COLORS.OPACITY.SELECTED : SYNTENY_COLORS.OPACITY.DEFAULT)
-      .classed("selected", selected)
-      .attr("data-selected", selected ? "true" : "false")
-      .attr("stroke", selected ? (link.query_strand === '+' ? SYNTENY_COLORS.BLOCK_FORWARD : SYNTENY_COLORS.BLOCK_REVERSE) : 'none')
-      .attr("stroke-width", selected ? 2 : 0)
-      .attr("stroke-opacity", selected ? 0.8 : 0);
-
-    [sourceBlock, targetBlock].forEach(block => {
-      block
-        .attr("opacity", selected ? 1 : 0.8)
+    requestAnimationFrame(() => {
+      ribbon
+        .attr("opacity", selected ? SYNTENY_COLORS.OPACITY.SELECTED : SYNTENY_COLORS.OPACITY.DEFAULT)
         .classed("selected", selected)
-        .attr("data-selected", selected ? "true" : "false")
-        .attr("stroke-width", selected ? 3 : 2);
-    });
+        .attr("data-selected", selected ? "true" : "false");
 
-    blockGroup
-      .attr("data-selected", selected ? "true" : "false")
-      .classed("selected", selected);
+      [sourceBlock, targetBlock].forEach(block => {
+        block
+          .attr("opacity", selected ? 1 : 0.8)
+          .classed("selected", selected)
+          .attr("data-selected", selected ? "true" : "false")
+          .attr("stroke-width", selected ? 3 : 2);
+      });
+    });
   };
 
   // Set initial states
@@ -321,37 +317,37 @@ export function renderSyntenyRibbon({
     onSelect(link, newSelectedState);
   };
 
-  // Throttle expensive event handlers
-  const throttledOnMove = throttle(onMove, 16); // ~60fps
-  const throttledOnHover = throttle((e: any) => onHover(e, link), 16);
-
-  // Use requestAnimationFrame for smooth animations
-  const handleHover = (event: any) => {
-    requestAnimationFrame(() => {
+  // Simplified hover handling
+  const handleGroupHover = () => {
+    if (blockGroup.attr("data-selected") !== "true") {
       ribbon.attr("opacity", SYNTENY_COLORS.OPACITY.HOVER);
-      sourceBlock.attr("opacity", 1);
-      targetBlock.attr("opacity", 1);
-    });
-    throttledOnHover(event);
+      [sourceBlock, targetBlock].forEach(block => {
+        block.attr("opacity", 1);
+      });
+      blockGroup.raise();
+    }
   };
 
+  // Simplified leave handling
   const handleGroupLeave = () => {
-    requestAnimationFrame(() => {
-      if (!isSelected) {
-        ribbon.attr("opacity", SYNTENY_COLORS.OPACITY.DEFAULT);
-        sourceBlock.attr("opacity", 0.8);
-        targetBlock.attr("opacity", 0.8);
-      }
-      onLeave();
-    });
+    const currentlySelected = blockGroup.attr("data-selected") === "true";
+    setElementStates(currentlySelected);
+    onLeave();
   };
 
-  // Optimize event listeners
-  blockGroup
-    .on("mouseenter", handleHover)
-    .on("mousemove", throttledOnMove)
-    .on("mouseleave", handleGroupLeave)
-    .on("click", handleClick);
+  // Attach events directly without throttling
+  const attachEvents = (element: d3.Selection<any, unknown, null, undefined>) => {
+    element
+      .on("mouseover.synteny", (event: MouseEvent) => {
+        handleGroupHover();
+        onHover(event, link);
+      })
+      .on("mouseout.synteny", handleGroupLeave)
+      .on("mousemove.synteny", onMove)
+      .on("click.synteny", handleClick);
+  };
+
+  [ribbon, sourceBlock, targetBlock].forEach(attachEvents);
 
   return blockGroup;
 }

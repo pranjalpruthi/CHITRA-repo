@@ -14,26 +14,8 @@ import { BlurIn } from "../ui/Blur-in";
 import { BackgroundBeamsWithCollision } from "../ui/background-beams-with-collision";
 
 export default function HeroSection() {
-    const [email, setEmail] = useState('');
     const [isLoading, setIsLoading] = useState(false);
-    const [isPreviewLoading, setIsPreviewLoading] = useState(false);
     const [isGithubHovered, setIsGithubHovered] = useState(false);
-
-    const handleBetaSignup = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setIsLoading(true);
-        
-        // Simulate API call - replace with your actual API endpoint
-        try {
-            await new Promise(resolve => setTimeout(resolve, 1000));
-            toast.success("Thanks for joining the beta waitlist!");
-            setEmail('');
-        } catch (error) {
-            toast.error("Something went wrong. Please try again.");
-        } finally {
-            setIsLoading(false);
-        }
-    };
 
     return (
         <div className="flex flex-col items-center justify-center leading-6 relative z-10 w-full 
@@ -44,17 +26,17 @@ export default function HeroSection() {
             overflow-hidden"
         >
             {/* Background SVG */}
-            <div 
+            {/* <div 
                 className="absolute inset-0 -z-20"
                 style={{
-                    backgroundImage: "url('/assets/chitra-3.svg')",
+                    backgroundImage: "url('/assets/chitra3.svg')",
                     backgroundSize: '90% auto',
                     backgroundPosition: '50% 70px',
                     backgroundRepeat: 'no-repeat',
                     filter: 'blur(1px)',
                     opacity: 0.9,
                 }}
-            />
+            /> */}
             <BackgroundBeamsWithCollision className="absolute inset-0 -z-20 opacity-20" />
             <Particles
                 className="absolute inset-0 -z-10"
@@ -68,40 +50,54 @@ export default function HeroSection() {
             />
 
             <div className="relative z-10 flex flex-col items-center w-full max-w-screen-xl mx-auto space-y-6 sm:space-y-8">
-                {/* Beta Badge */}
+                {/* Updated Badge with Pulse Indicator */}
                 <motion.div 
                     className="mb-4 sm:mb-6"
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.2 }}
                 >
-                    {/* ... existing Beta Badge content ... */}
+                    <div className={cn(
+                        "px-4 py-1.5",
+                        "text-sm font-medium",
+                        "bg-blue-500/5 text-blue-600 dark:text-blue-400",
+                        "border border-blue-500/20",
+                        "rounded-full",
+                        "flex items-center gap-2"
+                    )}>
+                        <span className="relative flex h-2 w-2">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span>
+                        </span>
+                        Visualize Chromosomal Data Like Never Before
+                    </div>
                 </motion.div>
 
-                {/* Title Section - Centered */}
+                {/* Enhanced Title Section */}
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.3 }}
-                    className="text-center space-y-4 max-w-[650px] mx-auto px-4"
+                    className="text-center space-y-6 max-w-[800px] mx-auto px-4"
                 >
                     <BlurIn>
-                        <span className="text-4xl sm:text-5xl font-bold bg-gradient-to-b from-foreground to-muted-foreground bg-clip-text text-transparent">
+                        <span className="text-5xl sm:text-6xl md:text-7xl font-bold bg-gradient-to-b from-foreground to-muted-foreground bg-clip-text text-transparent tracking-tight">
                             CHITRA
                         </span>
                     </BlurIn>
                     
-                    <div className="mt-3">
+                    <div className="mt-4">
                         <div className="inline-flex items-center justify-center">
                             <div className={cn(
-                                "px-4 py-1.5",
-                                "text-xs sm:text-sm md:text-base",
+                                "px-6 py-2.5",
+                                "text-base sm:text-lg md:text-xl",
                                 "text-muted-foreground/90",
                                 "bg-white/30 dark:bg-black/30 backdrop-blur-xl",
                                 "border border-white/20 dark:border-black/20",
                                 "rounded-full shadow-sm",
                                 "font-medium tracking-tight",
-                                "transition-all duration-300"
+                                "transition-all duration-300",
+                                "leading-relaxed"
                             )}>
                                 Chromosome Interactive Tool for Rearrangement Analysis
                             </div>
@@ -109,57 +105,19 @@ export default function HeroSection() {
                     </div>
                 </motion.div>
 
-                {/* Glass Card for Beta Signup Form and Buttons */}
+                {/* Updated Buttons Section */}
                 <div className="bg-white/30 dark:bg-black/30 backdrop-blur-sm border border-white/20 dark:border-black/20 rounded-full p-6 shadow-lg">
-                    {/* Beta Signup Form */}
-                    <motion.form 
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.4 }}
-                        onSubmit={handleBetaSignup}
-                        className="flex flex-col sm:flex-row gap-2.5 w-full max-w-md mx-auto"
-                    >
-                        <div className="flex-1">
-                            <Input
-                                type="email"
-                                placeholder="Enter your email"
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
-                                className="h-11 px-4 rounded-full bg-background/50 backdrop-blur-sm border-muted 
-                                    focus:ring-2 focus:ring-blue-500/20 transition-all duration-300
-                                    hover:border-blue-500/30"
-                                required
-                            />
-                        </div>
-                        <div className="relative overflow-hidden rounded-full">
-                            <RainbowButton
-                                type="submit"
-                                disabled={isLoading}
-                                className="h-11 px-6 rounded-full font-medium w-full sm:w-auto text-sm"
-                            >
-                                {isLoading ? "Joining..." : (
-                                    <>
-                                        Join Beta
-                                        <ArrowRight className="ml-2 h-3.5 w-3.5" />
-                                    </>
-                                )}
-                            </RainbowButton>
-                        </div>
-                    </motion.form>
-
-                    {/* Preview and GitHub Buttons */}
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.5 }}
-                        className="mt-6 flex items-center justify-center gap-3 w-full"
+                        className="flex items-center justify-center gap-3 w-full"
                     >
-                        <Link href="/chromoviz" onClick={() => setIsPreviewLoading(true)}>
+                        <Link href="/chromoviz">
                             <div className="relative overflow-hidden rounded-full shadow group p-0.5">
                                 <span className={cn(
                                     "absolute inset-[-1000%] animate-[spin_5s_linear_infinite_reverse]",
-                                    "bg-[conic-gradient(from_90deg_at_50%_50%,#4f46e5_0%,#06b6d4_25%,#3b82f6_50%,#4f46e5_75%)] dark:bg-[conic-gradient(from_90deg_at_50%_50%,#1d4ed8_0%,#2563eb_25%,#3b82f6_50%,#60a5fa_75%)]",
-                                    isPreviewLoading ? "opacity-50" : "opacity-100"
+                                    "bg-[conic-gradient(from_90deg_at_50%_50%,#4f46e5_0%,#06b6d4_25%,#3b82f6_50%,#4f46e5_75%)] dark:bg-[conic-gradient(from_90deg_at_50%_50%,#1d4ed8_0%,#2563eb_25%,#3b82f6_50%,#60a5fa_75%)]"
                                 )} />
                                 <Button 
                                     variant="outline"
@@ -168,25 +126,17 @@ export default function HeroSection() {
                                         "bg-white/80 dark:bg-black/80 backdrop-blur-xl",
                                         "text-zinc-800 dark:text-zinc-200",
                                         "border-0 transition-colors duration-300",
-                                        "relative z-10",
-                                        isPreviewLoading && "text-blue-500 dark:text-blue-400"
+                                        "relative z-10"
                                     )}
-                                    disabled={isPreviewLoading}
                                 >
-                                    {isPreviewLoading ? (
-                                        "Loading..."
-                                    ) : (
-                                        <>
-                                            Preview Demo
-                                            <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
-                                        </>
-                                    )}
+                                    Get Started
+                                    <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
                                 </Button>
                             </div>
                         </Link>
 
                         <Link 
-                            href="https://github.com/yourusername/yourrepo" 
+                            href="https://github.com/pranjalpruthi/CHITRA" 
                             target="_blank"
                             onMouseEnter={() => setIsGithubHovered(true)}
                             onMouseLeave={() => setIsGithubHovered(false)}

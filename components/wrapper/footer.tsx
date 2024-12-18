@@ -15,7 +15,7 @@ export default function Footer() {
     const isInView = useInView(ref);
     const [hasCopied, setHasCopied] = useState(false);
 
-    const citation = `Sharma, et al. (2024). CHITRA: CHromosome Interactive Tool for Rearrangement Analysis. GitHub repository`;
+    const citation = `P, et al. (2024). CHITRA: CHromosome Interactive Tool for Rearrangement Analysis. GitHub repository`;
 
     const handleCopyCitation = async () => {
         await navigator.clipboard.writeText(citation);
@@ -25,11 +25,11 @@ export default function Footer() {
     };
 
     return (
-        <footer className="relative border-t bg-black/95 backdrop-blur-xl">
-            <div className="mx-auto max-w-screen-xl px-4 py-6 sm:py-8">
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-6 sm:gap-8">
-                    {/* Logo and Brand Section - Updated */}
-                    <div className="sm:col-span-2 lg:col-span-5 space-y-3">
+        <footer className="relative mt-auto border-t bg-black/95 backdrop-blur-xl">
+            <div className="mx-auto max-w-screen-xl px-3 py-4 sm:px-4 sm:py-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-4">
+                    {/* Logo and Brand Section */}
+                    <div className="sm:col-span-2 lg:col-span-5 space-y-2">
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2">
                                 <HyperText 
@@ -40,28 +40,28 @@ export default function Footer() {
                             </div>
                         </div>
 
-                        {/* Simplified Logos */}
-                        <div className="flex gap-4 items-center">
+                        {/* Logos */}
+                        <div className="flex gap-3 items-center">
                             <Image
                                 src="/assets/logocloud.svg"
                                 alt="Logo Cloud"
-                                width={150}
-                                height={100}
+                                width={120}
+                                height={80}
                                 className="object-contain h-auto"
                             />
                             <Image
                                 src="/assets/rf.jpg"
                                 alt="Rockefeller Logo"
-                                width={150}
-                                height={100}
+                                width={120}
+                                height={80}
                                 className="object-contain h-auto"
                             />
                         </div>
                     </div>
 
-                    {/* Status and Citation Section - Apple-style */}
-                    <div className="lg:col-span-4 space-y-3">
-                        <div className="flex items-center gap-2 bg-zinc-900/50 rounded-full px-3 py-1.5 w-fit border border-white/[0.08]">
+                    {/* Status and Citation Section */}
+                    <div className="lg:col-span-4 space-y-2">
+                        <div className="flex items-center gap-2 bg-zinc-900/50 rounded-full px-2 py-1 w-fit border border-white/[0.08]">
                             <span className="relative flex h-2 w-2">
                                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
                                 <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
@@ -72,7 +72,7 @@ export default function Footer() {
                         <Button
                             variant="outline"
                             className={cn(
-                                "h-8 px-3 text-xs",
+                                "h-7 px-2 text-xs",
                                 "bg-zinc-900/50 hover:bg-zinc-800/50",
                                 "text-white/80 hover:text-white/90",
                                 "border-white/[0.08] hover:border-white/[0.12]",
@@ -83,22 +83,22 @@ export default function Footer() {
                         >
                             {hasCopied ? (
                                 <>
-                                    <CheckCheck className="mr-2 h-3 w-3" />
+                                    <CheckCheck className="mr-1 h-3 w-3" />
                                     Copied!
                                 </>
                             ) : (
                                 <>
-                                    <Copy className="mr-2 h-3 w-3" />
+                                    <Copy className="mr-1 h-3 w-3" />
                                     Copy Citation
                                 </>
                             )}
                         </Button>
                     </div>
 
-                    {/* Resources Section - Apple-style */}
-                    <div className="lg:col-span-3 space-y-3">
-                        <h3 className="text-sm font-medium text-white/90">Resources</h3>
-                        <ul className="space-y-1.5">
+                    {/* Resources Section */}
+                    <div className="lg:col-span-3 space-y-2">
+                        <h3 className="text-xs font-medium text-white/90">Resources</h3>
+                        <ul className="space-y-1">
                             {["Documentation", "API", "GitHub"].map((item) => (
                                 <li key={item}>
                                     <Link 
@@ -113,23 +113,23 @@ export default function Footer() {
                     </div>
                 </div>
 
-                {/* Bottom Section - Apple-style */}
+                {/* Bottom Section */}
                 <motion.div 
                     ref={ref}
                     initial={{ opacity: 0, y: 20 }}
                     animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
                     transition={{ duration: 0.5 }}
-                    className="mt-6 pt-4 border-t border-white/[0.08]"
+                    className="mt-4 pt-3 border-t border-white/[0.08]"
                 >
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div className="flex items-center gap-2">
-                            <Building className="h-8 w-8 text-white/60" />
+                            <Building className="h-6 w-6 text-white/60" />
                             <div>
                                 <p className="text-xs font-medium text-white/90">CSIR-IGIB</p>
                                 <p className="text-[10px] text-white/60">Lab of Bioinformatics and Big Data</p>
                             </div>
                         </div>
-                        <div className="flex flex-wrap gap-3 text-[10px] text-white/60 sm:justify-end">
+                        <div className="flex flex-wrap gap-2 text-[10px] text-white/60 sm:justify-end">
                             <Link href="/privacy" className="hover:text-white/90 transition-colors">
                                 Privacy Policy
                             </Link>
@@ -142,11 +142,11 @@ export default function Footer() {
                 </motion.div>
             </div>
 
-            {/* Add the subtle animated text at the bottom */}
-            <div className="relative h-24 w-full overflow-hidden opacity-[0.30] select-none pointer-events-none">
+            {/* Animated text - made more subtle */}
+            <div className="relative h-16 w-full overflow-hidden opacity-20 select-none pointer-events-none">
                 <AnimatedText 
                     text="CHITRA" 
-                    className="!text-[12vw] font-black tracking-tighter text-white/80"
+                    className="!text-[8vw] font-black tracking-tighter text-white/80"
                 />
             </div>
         </footer>

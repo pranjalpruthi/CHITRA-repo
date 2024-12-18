@@ -128,44 +128,34 @@ const AlignmentFilterButton = ({
   currentFilter, 
   onClick, 
   icon: Icon, 
-  label,
-  iconOnly = false
+  label 
 }: { 
   filter: 'all' | 'forward' | 'reverse';
   currentFilter: 'all' | 'forward' | 'reverse';
   onClick: (filter: 'all' | 'forward' | 'reverse') => void;
   icon: any;
   label: string;
-  iconOnly?: boolean;
 }) => {
   return (
     <button
       onClick={() => onClick(filter)}
       className={cn(
-        'group relative inline-flex h-8 items-center justify-center overflow-hidden rounded-md',
+        'group relative inline-flex h-7 items-center justify-center overflow-hidden rounded-md',
         'bg-background border transition-all duration-200',
         filter === currentFilter 
-          ? 'border-primary text-primary' 
-          : 'border-border hover:border-primary/50 text-muted-foreground',
-        iconOnly 
-          ? 'w-8' 
-          : filter === currentFilter 
-            ? 'w-24' 
-            : 'w-8 hover:w-24'
+          ? 'border-primary text-primary w-24' 
+          : 'border-border hover:border-primary/50 text-muted-foreground w-7 hover:w-24'
       )}
     >
-      {!iconOnly && (
-        <div className={cn(
-          'inline-flex whitespace-nowrap transition-all duration-200',
-          filter === currentFilter ? '-translate-x-2 opacity-100' : 'opacity-0 group-hover:-translate-x-2 group-hover:opacity-100'
-        )}>
-          {label}
-        </div>
-      )}
       <div className={cn(
-        "transition-all duration-200",
-        iconOnly ? "static" : "absolute right-2"
+        'inline-flex whitespace-nowrap transition-all duration-200',
+        filter === currentFilter 
+          ? '-translate-x-2 opacity-100' 
+          : 'opacity-0 group-hover:-translate-x-2 group-hover:opacity-100'
       )}>
+        {label}
+      </div>
+      <div className="absolute right-2">
         <Icon className="h-4 w-4" />
       </div>
     </button>
@@ -257,6 +247,8 @@ const ChromosomeScrollbar = ({
   }, [containerRef, svgRef]);
 
   const handleThumbMouseDown = useCallback((e: React.MouseEvent) => {
+    e.preventDefault(); // Prevent default selection
+    e.stopPropagation(); // Stop event propagation
     setIsDragging(true);
     setStartX(e.clientX - scrollThumbRef.current!.offsetLeft);
   }, []);
@@ -265,6 +257,7 @@ const ChromosomeScrollbar = ({
     if (!isDragging || !scrollTrackRef.current || !scrollThumbRef.current || !svgRef.current) return;
 
     e.preventDefault();
+    e.stopPropagation();
     const trackRect = scrollTrackRef.current.getBoundingClientRect();
     const thumbWidth = scrollThumbRef.current.clientWidth;
     const x = e.clientX - trackRect.left - startX;
@@ -304,31 +297,47 @@ const ChromosomeScrollbar = ({
   }, [isDragging, handleMouseMove, handleMouseUp]);
 
   return (
-    <div className="absolute bottom-4 left-4 right-4 h-6">
+    <div 
+      className="absolute bottom-4 left-4 right-4 h-6 select-none"
+      onMouseDown={(e) => e.stopPropagation()} // Prevent selection events
+    >
       <div 
         ref={scrollTrackRef}
-        className="relative w-full h-2 bg-muted rounded-full"
+        className="relative w-full h-2 bg-muted rounded-full select-none"
+        onMouseDown={(e) => e.stopPropagation()} // Prevent selection events
       >
         <div
           ref={scrollThumbRef}
           style={{ 
             width: `${getThumbWidth()}px`,
-            left: scrollLeft
+            left: scrollLeft,
+            userSelect: 'none', // Prevent text selection
+            WebkitUserSelect: 'none',
+            MozUserSelect: 'none',
+            msUserSelect: 'none'
           }}
           className={cn(
             "absolute top-0 h-full rounded-full bg-primary/50",
             "cursor-grab hover:bg-primary/70 transition-colors",
+            "select-none touch-none", // Prevent selection and touch events
             isDragging && "cursor-grabbing bg-primary"
           )}
           onMouseDown={handleThumbMouseDown}
+          onDragStart={(e) => e.preventDefault()} // Prevent drag events
         >
           {/* Thumbnail preview */}
-          <div className="absolute -top-20 left-0 w-40 h-16 bg-background border rounded-lg overflow-hidden opacity-0 group-hover:opacity-100 transition-opacity">
+          <div 
+            className={cn(
+              "absolute -top-20 left-0 w-40 h-16 bg-background border rounded-lg overflow-hidden",
+              "opacity-0 group-hover:opacity-100 transition-opacity select-none pointer-events-none"
+            )}
+          >
             <svg
               width="100%"
               height="100%"
               viewBox={`0 0 ${width} ${height}`}
               preserveAspectRatio="xMidYMid meet"
+              className="select-none pointer-events-none"
             >
               {/* Miniature version of chromosomes */}
             </svg>
@@ -1204,38 +1213,87 @@ export function ChromosomeSynteny({
     if (!svgRef.current) return;
 
     try {
-      // Get SVG content
       const svgElement = svgRef.current;
-      const svgData = new XMLSerializer().serializeToString(svgElement);
+      const clone = svgElement.cloneNode(true) as SVGSVGElement;
+      const bbox = svgElement.getBBox();
       
-      // Create canvas
+      // Add padding (50px on each side)
+      const padding = 50;
+      const totalWidth = bbox.width + (padding * 2);
+      const totalHeight = bbox.height + (padding * 2) + 30; // Extra 30px for credits
+      
+      // Check dark mode once at the beginning
+      const isDarkMode = document.documentElement.classList.contains('dark');
+      
+      // Update clone dimensions with padding
+      clone.setAttribute('width', `${totalWidth}`);
+      clone.setAttribute('height', `${totalHeight}`);
+      clone.setAttribute('viewBox', `${bbox.x - padding} ${bbox.y - padding} ${totalWidth} ${totalHeight}`);
+      
+      // Inline styles
+      const styles = document.styleSheets;
+      let stylesText = '';
+      for (let i = 0; i < styles.length; i++) {
+        try {
+          const rules = styles[i].cssRules || styles[i].rules;
+          for (let j = 0; j < rules.length; j++) {
+            stylesText += rules[j].cssText + '\n';
+          }
+        } catch (e) {
+          console.warn('Could not read styles', e);
+        }
+      }
+      
+      // Add styles with dark mode consideration
+      const styleElement = document.createElement('style');
+      styleElement.textContent = `
+        ${stylesText}
+        ${isDarkMode ? `
+          text, .text-foreground { 
+            fill: #ffffff !important;
+            color: #ffffff !important;
+          }
+          .text-muted-foreground {
+            fill: #a1a1aa !important;
+            color: #a1a1aa !important;
+          }
+        ` : ''}
+      `;
+      clone.insertBefore(styleElement, clone.firstChild);
+
+      const svgData = new XMLSerializer().serializeToString(clone);
+      const svgBlob = new Blob([
+        '<?xml version="1.0" standalone="no"?>\r\n',
+        svgData
+      ], { type: 'image/svg+xml;charset=utf-8' });
+      
       const canvas = document.createElement('canvas');
       const ctx = canvas.getContext('2d');
       if (!ctx) throw new Error('Could not get canvas context');
       
-      // Set canvas size to match SVG
-      const svgSize = svgElement.getBoundingClientRect();
-      canvas.width = svgSize.width * 2; // 2x for better quality
-      canvas.height = svgSize.height * 2;
+      const scale2x = 2;
+      canvas.width = totalWidth * scale2x;
+      canvas.height = totalHeight * scale2x;
       
-      // Set background color based on theme
-      const isDarkMode = document.documentElement.classList.contains('dark');
+      // Use the same isDarkMode value for background
       ctx.fillStyle = isDarkMode ? '#020817' : '#ffffff';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
       
-      // Create image from SVG
-      const blob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
-      const url = URL.createObjectURL(blob);
-      
-      const img = new window.Image();
-      img.src = url;
+      const url = URL.createObjectURL(svgBlob);
+      const img = document.createElement('img') as HTMLImageElement;
       
       await new Promise((resolve, reject) => {
         img.onload = () => {
-          ctx.scale(2, 2); // Scale up for better quality
-          ctx.drawImage(img, 0, 0);
+          ctx.scale(scale2x, scale2x);
+          ctx.drawImage(img, 0, 0, totalWidth, totalHeight);
           
-          // Convert to desired format
+          // Add credits with same isDarkMode value
+          ctx.scale(0.5, 0.5);
+          ctx.fillStyle = isDarkMode ? '#a1a1aa' : '#94a3b8';
+          ctx.font = '24px system-ui, sans-serif';
+          ctx.textAlign = 'right';
+          ctx.fillText('© 2024 CHITRA', totalWidth * 2 - 20, totalHeight * 2 - 20);
+          
           const mimeType = format === 'png' ? 'image/png' : 'image/jpeg';
           const quality = format === 'png' ? 1 : 0.95;
           
@@ -1245,23 +1303,20 @@ export function ChromosomeSynteny({
               return;
             }
             
-            // Create download link
             const downloadLink = document.createElement('a');
             downloadLink.href = URL.createObjectURL(blob);
-            downloadLink.download = `chromoviz-overview-${new Date().toISOString().split('T')[0]}.${format}`;
+            downloadLink.download = `chromoviz-full-${new Date().toISOString().split('T')[0]}.${format}`;
             document.body.appendChild(downloadLink);
             downloadLink.click();
             document.body.removeChild(downloadLink);
             
-            // Cleanup
             URL.revokeObjectURL(downloadLink.href);
             URL.revokeObjectURL(url);
             resolve(true);
           }, mimeType, quality);
         };
-        img.onerror = () => {
-          reject(new Error('Failed to load image'));
-        };
+        img.onerror = () => reject(new Error('Failed to load image'));
+        img.src = url;
       });
     } catch (error) {
       console.error('Error exporting image:', error);
@@ -1298,14 +1353,13 @@ export function ChromosomeSynteny({
           <div className="flex items-center gap-2">
             {/* Show full controls on larger screens */}
             <div className="hidden md:flex items-center gap-2">
-              <div className="flex items-center gap-1">
+              <div className="flex items-center gap-1.5">
                 <AlignmentFilterButton
                   filter="all"
                   currentFilter={alignmentFilter}
                   onClick={setAlignmentFilter}
                   icon={ArrowLeftRight}
                   label="All"
-                  iconOnly={true}
                 />
                 <AlignmentFilterButton
                   filter="forward"
@@ -1313,7 +1367,6 @@ export function ChromosomeSynteny({
                   onClick={setAlignmentFilter}
                   icon={ArrowRight}
                   label="Forward"
-                  iconOnly={true}
                 />
                 <AlignmentFilterButton
                   filter="reverse"
@@ -1321,22 +1374,7 @@ export function ChromosomeSynteny({
                   onClick={setAlignmentFilter}
                   icon={ArrowLeft}
                   label="Reverse"
-                  iconOnly={true}
                 />
-              </div>
-
-              <Separator orientation="vertical" className="h-6" />
-
-              <div className="flex items-center gap-1.5">
-                <Switch
-                  id="annotations-mode"
-                  checked={showAnnotations}
-                  onCheckedChange={setShowAnnotations}
-                  className="scale-75"
-                />
-                <Label htmlFor="annotations-mode" className="text-xs text-muted-foreground">
-                  Annotations
-                </Label>
               </div>
             </div>
 
@@ -1419,7 +1457,7 @@ export function ChromosomeSynteny({
         </div>
 
         {/* Main Content Area */}
-        <div className="relative flex-1 h-[calc(100%)]">
+        <div className="relative flex-1 h-[calc(100vh-6rem)]">
           <div className="w-full h-full">
             <svg
               ref={svgRef}
@@ -1431,7 +1469,7 @@ export function ChromosomeSynteny({
               preserveAspectRatio="xMidYMid meet"
             />
             
-            <div className="absolute bottom-20 right-4 z-20">
+            <div className="absolute bottom-16 right-4 z-20 hidden md:block scale-90">
               <MiniMap
                 mainSvgRef={svgRef}
                 zoomBehaviorRef={zoomBehaviorRef}
@@ -1455,7 +1493,7 @@ export function ChromosomeSynteny({
           </>
         )}
 
-            <div className="absolute left-4 bottom-20 z-20">
+            <div className="absolute left-4 bottom-16 z-20 hidden md:block scale-90">
               <div className="inline-grid w-fit grid-cols-3 gap-1">
                 <div></div>
                 <Button
@@ -1468,11 +1506,11 @@ export function ChromosomeSynteny({
                   onTouchStart={() => startContinuousPan('up')}
                   onTouchEnd={stopContinuousPan}
                   className={cn(
-                    "h-8 w-8 transition-colors",
+                    "h-7 w-7 transition-colors",
                     isPanningRef.current && "bg-blue-500/10 border-blue-500/50"
                   )}
                 >
-                  <ChevronUp className="h-4 w-4" />
+                  <ChevronUp className="h-3.5 w-3.5" />
                 </Button>
                 <div></div>
                 <Button
@@ -1485,11 +1523,11 @@ export function ChromosomeSynteny({
                   onTouchStart={() => startContinuousPan('left')}
                   onTouchEnd={stopContinuousPan}
                   className={cn(
-                    "h-8 w-8 transition-colors",
+                    "h-7 w-7 transition-colors",
                     isPanningRef.current && "bg-blue-500/10 border-blue-500/50"
                   )}
                 >
-                  <ChevronLeft className="h-4 w-4" />
+                  <ChevronLeft className="h-3.5 w-3.5" />
                 </Button>
                 <div className="flex items-center justify-center">
                   <Circle className="h-4 w-4 opacity-60" />
@@ -1504,11 +1542,11 @@ export function ChromosomeSynteny({
                   onTouchStart={() => startContinuousPan('right')}
                   onTouchEnd={stopContinuousPan}
                   className={cn(
-                    "h-8 w-8 transition-colors",
+                    "h-7 w-7 transition-colors",
                     isPanningRef.current && "bg-blue-500/10 border-blue-500/50"
                   )}
                 >
-                  <ChevronRight className="h-4 w-4" />
+                  <ChevronRight className="h-3.5 w-3.5" />
                 </Button>
                 <div></div>
                 <Button
@@ -1521,11 +1559,11 @@ export function ChromosomeSynteny({
                   onTouchStart={() => startContinuousPan('down')}
                   onTouchEnd={stopContinuousPan}
                   className={cn(
-                    "h-8 w-8 transition-colors",
+                    "h-7 w-7 transition-colors",
                     isPanningRef.current && "bg-blue-500/10 border-blue-500/50"
                   )}
                 >
-                  <ChevronDown className="h-4 w-4" />
+                  <ChevronDown className="h-3.5 w-3.5" />
                 </Button>
                 <div></div>
               </div>

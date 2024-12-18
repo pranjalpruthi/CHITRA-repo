@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useEffect, useState } from 'react';
+import { useRef, useEffect, useState, useCallback } from 'react';
 import * as d3 from 'd3';
 import { SyntenyData, ChromosomeData } from '../types';
 import { Card, CardContent } from '@/components/ui/card';
@@ -21,6 +21,12 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 
 // Add configuration types
 interface SyntenyViewConfig {
@@ -221,32 +227,158 @@ export function DetailedSyntenyView({
     setZoom(1);
   };
 
-  const handleSaveAsSVG = () => {
+  // Replace the existing handleSaveAsSVG function with these new export functions
+  const handleExportImage = useCallback(async (format: 'png' | 'jpg') => {
     if (!svgRef.current) return;
 
-    // Get SVG content
+    try {
+      const svgElement = svgRef.current;
+      const clone = svgElement.cloneNode(true) as SVGSVGElement;
+      const bbox = svgElement.getBBox();
+      
+      // Add padding (50px on each side)
+      const padding = 50;
+      const totalWidth = bbox.width + (padding * 2);
+      const totalHeight = bbox.height + (padding * 2) + 30; // Extra 30px for credits
+      
+      // Check dark mode once at the beginning
+      const isDarkMode = document.documentElement.classList.contains('dark');
+      
+      // Update clone dimensions with padding
+      clone.setAttribute('width', `${totalWidth}`);
+      clone.setAttribute('height', `${totalHeight}`);
+      clone.setAttribute('viewBox', `${bbox.x - padding} ${bbox.y - padding} ${totalWidth} ${totalHeight}`);
+      
+      // Add styles with dark mode consideration
+      const styleElement = document.createElement('style');
+      styleElement.textContent = `
+        ${isDarkMode ? `
+          text, .text-foreground, .chromosome-label { 
+            fill: #ffffff !important;
+            color: #ffffff !important;
+          }
+          .text-muted-foreground {
+            fill: #a1a1aa !important;
+            color: #a1a1aa !important;
+          }
+        ` : ''}
+      `;
+      clone.insertBefore(styleElement, clone.firstChild);
+
+      const svgData = new XMLSerializer().serializeToString(clone);
+      const svgBlob = new Blob([
+        '<?xml version="1.0" standalone="no"?>\r\n',
+        svgData
+      ], { type: 'image/svg+xml;charset=utf-8' });
+      
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      if (!ctx) throw new Error('Could not get canvas context');
+      
+      const scale2x = 2;
+      canvas.width = totalWidth * scale2x;
+      canvas.height = totalHeight * scale2x;
+      
+      // Use the same isDarkMode value for background
+      ctx.fillStyle = isDarkMode ? '#020817' : '#ffffff';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      
+      const url = URL.createObjectURL(svgBlob);
+      const img = document.createElement('img') as HTMLImageElement;
+      
+      await new Promise((resolve, reject) => {
+        img.onload = () => {
+          ctx.scale(scale2x, scale2x);
+          ctx.drawImage(img, 0, 0, totalWidth, totalHeight);
+          
+          // Add credits
+          ctx.scale(0.5, 0.5);
+          ctx.fillStyle = isDarkMode ? '#a1a1aa' : '#94a3b8';
+          ctx.font = '24px system-ui, sans-serif';
+          ctx.textAlign = 'right';
+          ctx.fillText('© 2024 CHITRA', totalWidth * 2 - 20, totalHeight * 2 - 20);
+          
+          const mimeType = format === 'png' ? 'image/png' : 'image/jpeg';
+          const quality = format === 'png' ? 1 : 0.95;
+          
+          canvas.toBlob((blob) => {
+            if (!blob) {
+              reject(new Error('Failed to create image blob'));
+              return;
+            }
+            
+            const downloadLink = document.createElement('a');
+            downloadLink.href = URL.createObjectURL(blob);
+            downloadLink.download = `chromoviz-synteny-${new Date().toISOString().split('T')[0]}.${format}`;
+            document.body.appendChild(downloadLink);
+            downloadLink.click();
+            document.body.removeChild(downloadLink);
+            
+            URL.revokeObjectURL(downloadLink.href);
+            URL.revokeObjectURL(url);
+            resolve(true);
+          }, mimeType, quality);
+        };
+        img.onerror = () => reject(new Error('Failed to load image'));
+        img.src = url;
+      });
+    } catch (error) {
+      console.error('Error exporting image:', error);
+    }
+  }, [svgRef]);
+
+  const handleSaveAsSVG = useCallback(() => {
+    if (!svgRef.current) return;
+
     const svgElement = svgRef.current;
-    const svgContent = new XMLSerializer().serializeToString(svgElement);
+    const clone = svgElement.cloneNode(true) as SVGSVGElement;
+    const bbox = svgElement.getBBox();
     
-    // Add XML declaration and SVG namespace
+    // Add padding (50px on each side)
+    const padding = 50;
+    const totalWidth = bbox.width + (padding * 2);
+    const totalHeight = bbox.height + (padding * 2) + 30; // Extra 30px for credits
+    
+    // Check dark mode
+    const isDarkMode = document.documentElement.classList.contains('dark');
+    
+    // Update clone dimensions with padding
+    clone.setAttribute('width', `${totalWidth}`);
+    clone.setAttribute('height', `${totalHeight}`);
+    clone.setAttribute('viewBox', `${bbox.x - padding} ${bbox.y - padding} ${totalWidth} ${totalHeight}`);
+    
+    // Add styles for dark mode
+    const styleElement = document.createElement('style');
+    styleElement.textContent = `
+      ${isDarkMode ? `
+        text, .text-foreground, .chromosome-label { 
+          fill: #ffffff !important;
+          color: #ffffff !important;
+        }
+        .text-muted-foreground {
+          fill: #a1a1aa !important;
+          color: #a1a1aa !important;
+        }
+      ` : ''}
+    `;
+    clone.insertBefore(styleElement, clone.firstChild);
+
+    const svgData = new XMLSerializer().serializeToString(clone);
     const svgBlob = new Blob([
       '<?xml version="1.0" standalone="no"?>\r\n',
-      svgContent
+      svgData
     ], { type: 'image/svg+xml;charset=utf-8' });
     
-    // Create download link
     const downloadLink = document.createElement('a');
     downloadLink.href = URL.createObjectURL(svgBlob);
     downloadLink.download = `chromoviz-synteny-${new Date().toISOString().split('T')[0]}.svg`;
     
-    // Trigger download
     document.body.appendChild(downloadLink);
     downloadLink.click();
     document.body.removeChild(downloadLink);
     
-    // Clean up
     URL.revokeObjectURL(downloadLink.href);
-  };
+  }, [svgRef]);
 
   const refChromosome = selectedBlock ? referenceData.find(d => 
     d.species_name === selectedBlock.ref_species && d.chr_id === selectedBlock.ref_chr
@@ -782,15 +914,24 @@ export function DetailedSyntenyView({
               </>
             )}
           </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleSaveAsSVG}
-            className="h-8 px-3 gap-2"
-          >
-            <Save className="h-4 w-4" />
-            Save
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" className="h-7 w-7">
+                <Save className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => handleSaveAsSVG()}>
+                Save as SVG
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleExportImage('png')}>
+                Export as PNG
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleExportImage('jpg')}>
+                Export as JPG
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
           <Button
             variant="outline"
             size="sm"

@@ -408,7 +408,18 @@ export function HoverTooltip({
   className,
   showTooltips = true
 }: HoverTooltipProps) {
-  if (!showTooltips) return null;
+  const [isRendered, setIsRendered] = React.useState(false);
+
+  React.useEffect(() => {
+    if (hoveredBlock || hoveredChromosome) {
+      setIsRendered(true);
+    } else {
+      const timer = setTimeout(() => setIsRendered(false), 200);
+      return () => clearTimeout(timer);
+    }
+  }, [hoveredBlock, hoveredChromosome]);
+
+  if (!showTooltips || !isRendered) return null;
 
   const tooltipVariants = {
     hidden: { 
@@ -416,8 +427,7 @@ export function HoverTooltip({
       y: 10,
       scale: 0.95,
       transition: {
-        type: "spring",
-        duration: 0.2
+        duration: 0.1
       }
     },
     visible: { 
@@ -426,21 +436,27 @@ export function HoverTooltip({
       scale: 1,
       transition: {
         type: "spring",
-        stiffness: 400,
-        damping: 30,
-        mass: 0.8
+        stiffness: 500,
+        damping: 25,
+        mass: 0.6
       }
     }
   };
 
   const contentVariants = {
-    hidden: { opacity: 0, y: 5 },
+    hidden: { 
+      opacity: 0, 
+      y: 5,
+      transition: {
+        duration: 0.1
+      }
+    },
     visible: { 
       opacity: 1, 
       y: 0,
       transition: {
-        delay: 0.1,
-        duration: 0.2
+        duration: 0.15,
+        delay: 0.05
       }
     }
   };
@@ -460,7 +476,7 @@ export function HoverTooltip({
 
   return (
     <div className="relative">
-      <AnimatePresence mode="wait">
+      <AnimatePresence mode="sync">
         {hoveredBlock && (
           <motion.div
             key="block-tooltip"
@@ -528,7 +544,7 @@ export function HoverTooltip({
         )}
       </AnimatePresence>
 
-      <AnimatePresence mode="wait">
+      <AnimatePresence mode="sync">
         {hoveredChromosome && !hoveredBlock && (
           <motion.div
             key="chromosome-tooltip"

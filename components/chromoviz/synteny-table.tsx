@@ -279,30 +279,36 @@ export function SyntenyTable({ selectedSynteny, onToggleSelection, onExport }: S
             ref={buttonRef}
             onClick={() => setIsOpen(!isOpen)}
             className={cn(
-              "relative h-16 w-16 rounded-full p-0 overflow-hidden",
+              "relative rounded-full p-0 overflow-hidden",
               "bg-white/95 dark:bg-black/80 backdrop-blur-xl",
               "border-none shadow-lg hover:shadow-xl",
               "transition-all duration-300 ease-out",
               "hover:scale-105 active:scale-95",
               "cursor-grab active:cursor-grabbing",
+              "h-16 w-16 md:w-auto md:px-6",
+              "hover:text-white",
               hasNewSelection && "ring-2 ring-blue-500 ring-offset-4 dark:ring-offset-gray-950"
             )}
           >
-            <div className="relative flex items-center justify-center">
-              <TableIcon className="h-5 w-5 text-gray-700 dark:text-white" />
+            <div className="relative flex items-center justify-center gap-2">
+              <TableIcon className="h-5 w-5 text-gray-700 dark:text-white hover:text-white transition-colors" />
+              <span className="hidden md:inline-block font-medium text-gray-700 dark:text-white hover:text-white transition-colors">
+                Selected Blocks
+              </span>
               
               {selectedSynteny.length > 0 && (
                 <motion.div
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
-                  className="absolute -top-1 -right-1"
+                  className="absolute -top-1 md:static md:scale-100"
                 >
                   <Badge 
                     variant="secondary"
                     className={cn(
                       "h-5 min-w-5 rounded-full px-1.5 flex items-center justify-center",
                       "bg-blue-500 text-white border-2 border-white dark:border-gray-950",
-                      "text-xs font-semibold"
+                      "text-xs font-semibold",
+                      "md:border-0"
                     )}
                   >
                     {selectedSynteny.length}

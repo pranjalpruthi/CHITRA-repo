@@ -211,12 +211,13 @@ export function FloatingHUDBar({
 
             {/* Reset Button */}
             <Button
-              variant="outline"
-              size="icon"
+              variant="ghost"
+              size="sm"
               onClick={onResetToWelcome}
-              className="h-8 w-8 rounded-full bg-background/80 backdrop-blur-sm ring-1 ring-black/5 dark:ring-white/10 shadow-sm hover:shadow-md transition-all duration-200"
+              className="h-8 px-2 text-xs hover:bg-white/10 hover:text-white transition-colors group"
             >
-              <RotateCcw className="h-4 w-4" />
+              <RotateCcw className="h-3.5 w-3.5 group-hover:text-blue-400" />
+              <span className="hidden sm:inline ml-1.5">Go Home</span>
             </Button>
 
             {/* Fullscreen Button */}

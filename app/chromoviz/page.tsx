@@ -705,6 +705,7 @@ export default function ChromoViz() {
     setBreakpointsData([]);
     setSelectedSpecies([]);
     setSelectedChromosomes([]);
+    setSelectedSynteny([]);
     setShowWelcomeCard(true);
     setIsUsingExample(true);
   };
@@ -727,18 +728,18 @@ export default function ChromoViz() {
   return (
     <PageWrapper>
       <div className={cn(
-        "relative w-full bg-background",
-        isFullScreen ? "fixed inset-0 z-50 backdrop-blur-md p-0" : "py-8 sm:py-12"
+        "relative w-full bg-background flex-1 flex flex-col",
+        isFullScreen ? "fixed inset-0 z-50 backdrop-blur-md p-0" : "py-4 sm:py-6"
       )}>
         <div className={cn(
-          "w-full h-[calc(100vh-theme(spacing.32))] px-4 sm:px-6",
+          "flex-1 flex flex-col w-full px-4 sm:px-6",
           isFullScreen && "h-screen p-0"
         )}>
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             className={cn(
-              "h-full w-full max-w-[2000px] mx-auto flex flex-col",
+              "flex-1 w-full max-w-[2000px] mx-auto flex flex-col",
               isFullScreen && "backdrop-blur-md"
             )}
           >

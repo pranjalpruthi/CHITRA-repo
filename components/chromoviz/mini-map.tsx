@@ -31,8 +31,8 @@ export function MiniMap({
   dimensions,
   zoom,
   isFullscreen = false,
-  width = 200,
-  height = 150,
+  width = 160,
+  height = 120,
 }: MiniMapProps) {
   const miniMapRef = useRef<SVGSVGElement>(null);
   const { theme } = useTheme();
@@ -59,34 +59,29 @@ export function MiniMap({
       translationX = (width - dimensions.width * scale) / 2;
     }
 
-    // Theme-aware colors
+    // Theme-aware colors with more subtle styling
     const backgroundColor = theme === 'dark' ? 'hsl(var(--background))' : 'hsl(var(--background))';
     const borderColor = theme === 'dark' ? 'hsl(var(--border))' : 'hsl(var(--border))';
-    const viewportColor = theme === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
-    const ribbonOpacity = theme === 'dark' ? 0.15 : 0.25;
+    const viewportColor = theme === 'dark' ? 'rgba(255, 255, 255, 0.15)' : 'rgba(0, 0, 0, 0.15)';
+    const ribbonOpacity = theme === 'dark' ? 0.12 : 0.2;
 
-    // Create container group with proper positioning
     const container = miniMap.append("g")
       .attr("transform", `translate(${translationX}, ${translationY})`);
 
-    // Create mini-map background
     container.append("rect")
       .attr("width", dimensions.width * scale)
       .attr("height", dimensions.height * scale)
       .attr("fill", backgroundColor)
       .attr("stroke", borderColor)
-      .attr("stroke-width", 1);
+      .attr("stroke-width", 0.5);
 
-    // Create visualization group
     const miniG = container.append("g")
       .attr("transform", `scale(${scale})`);
 
-    // Clone and simplify main visualization
     const mainContent = mainSvgRef.current.querySelector("g");
     if (mainContent) {
       const clone = mainContent.cloneNode(true) as SVGGElement;
       
-      // Adjust visual properties for mini-map
       d3.select(clone)
         .selectAll("text, .gene-annotation, .tooltip")
         .remove();
@@ -94,18 +89,17 @@ export function MiniMap({
       d3.select(clone)
         .selectAll(".synteny-ribbon")
         .attr("opacity", ribbonOpacity)
-        .attr("stroke-width", 0.5);
+        .attr("stroke-width", 0.25);
 
       d3.select(clone)
         .selectAll(".chromosome")
-        .attr("stroke-width", 0.5)
-        .attr("stroke", theme === 'dark' ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.3)');
+        .attr("stroke-width", 0.25)
+        .attr("stroke", theme === 'dark' ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.2)');
 
       miniG.node()?.appendChild(clone);
     }
 
-    // Add viewport rectangle
-    const viewport = container.append("rect")
+    container.append("rect")
       .attr("class", "viewport-rect")
       .attr("width", viewportRect.width * scale)
       .attr("height", viewportRect.height * scale)
@@ -113,10 +107,9 @@ export function MiniMap({
       .attr("y", viewportRect.y * scale)
       .attr("fill", "none")
       .attr("stroke", viewportColor)
-      .attr("stroke-width", 1)
+      .attr("stroke-width", 0.5)
       .style("pointer-events", "none");
 
-    // Update drag behavior with improved positioning
     const dragBehavior = d3.drag<SVGSVGElement, unknown>()
       .on("drag", (event) => {
         if (!zoomBehaviorRef.current) return;
@@ -124,7 +117,6 @@ export function MiniMap({
         const x = (event.x - translationX) / scale;
         const y = (event.y - translationY) / scale;
         
-        // Ensure we stay within bounds
         const boundedX = Math.max(0, Math.min(x, dimensions.width - viewportRect.width));
         const boundedY = Math.max(0, Math.min(y, dimensions.height - viewportRect.height));
         
@@ -143,7 +135,7 @@ export function MiniMap({
 
   return (
     <div className={cn(
-      "absolute bottom-4 right-4",
+      "absolute bottom-3 right-3",
       isFullscreen && "z-10"
     )}>
       <svg
@@ -151,9 +143,11 @@ export function MiniMap({
         width={width}
         height={height}
         className={cn(
-          "rounded-lg shadow-lg",
-          "border border-border",
-          "bg-background/80 backdrop-blur-sm"
+          "rounded-md",
+          "shadow-md",
+          "border border-border/50",
+          "bg-background/70 backdrop-blur-sm",
+          "hover:bg-background/80 transition-colors"
         )}
         style={{
           cursor: 'move'

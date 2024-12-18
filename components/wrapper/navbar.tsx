@@ -63,22 +63,30 @@ export default function NavBar() {
   }, [])
 
   return (
-    <div className="fixed top-0 left-0 right-0 z-50">
+    <div className="fixed top-0 left-0 right-0 z-50 h-[60px]">
       <header 
         className={clsx(
-          "w-full transition-all duration-200",
+          "w-full transition-all duration-200 h-full relative",
           isHomePage ? [
             "max-w-2xl mx-auto mt-4",
             isScrolled 
-              ? "bg-background/60 backdrop-blur-xl border border-border/40 shadow-sm rounded-full border border-white/[0.1] dark:border-white/[0.05]"
-              : "bg-background/5 backdrop-blur-sm rounded-full"
+              ? "bg-background/40 backdrop-blur-[16px] brightness-[1.1] border border-white/[0.1] dark:border-white/[0.05] rounded-full"
+              : "bg-background/30 backdrop-blur-[16px] rounded-full"
           ] : [
             isScrolled 
-              ? "bg-background/60 backdrop-blur-xl border-b border-border/40"
-              : "bg-background/5 backdrop-blur-sm"
+              ? "bg-background/40 backdrop-blur-[16px] brightness-[1.1] border-b border-white/[0.1] dark:border-white/[0.05]"
+              : "bg-background/30 backdrop-blur-[16px]"
           ]
         )}
       >
+        {/* Add bottom glass edge */}
+        <div className={clsx(
+          "absolute inset-x-0 -bottom-[1px] h-[1px]",
+          "bg-gradient-to-r from-transparent via-white/[0.15] to-transparent",
+          "backdrop-blur-[8px]",
+          isHomePage && "rounded-full"
+        )} />
+
         <div className={clsx(
           "flex h-14 lg:h-[55px] items-center justify-between px-4 md:px-6 lg:px-8",
           isHomePage && "px-6"
