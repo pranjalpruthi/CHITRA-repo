@@ -14,14 +14,14 @@ import Link from "next/link";
 export default function SideBySide() {
   const tabs = [
     {
-      title: "Synteny Analysis",
-      value: "synteny",
+      title: "Chromosome Visualization",
+      value: "visualization",
       content: (
         <BackgroundGradient className="rounded-[22px] p-1 overflow-hidden" animate={false}>
           <div className="w-full overflow-hidden relative h-full rounded-[20px] bg-white/[0.7] dark:bg-black/[0.7] backdrop-blur-xl border border-white/[0.2] dark:border-white/[0.1]">
             <Image
               src="https://utfs.io/f/69a12ab1-4d57-4913-90f9-38c6aca6c373-1txg2.png"
-              alt="Chitra Synteny Analysis"
+              alt="Chitra Chromosome Visualization"
               width={1200}
               height={800}
               className="object-cover w-full h-full rounded-[18px]"
@@ -32,14 +32,14 @@ export default function SideBySide() {
       ),
     },
     {
-      title: "Breakpoint Detection",
-      value: "breakpoints",
+      title: "Multi-Species Comparison",
+      value: "comparison",
       content: (
         <BackgroundGradient className="rounded-[22px] p-1 overflow-hidden">
           <div className="w-full overflow-hidden relative h-full rounded-[20px] bg-white/[0.7] dark:bg-black/[0.7] backdrop-blur-xl border border-white/[0.2] dark:border-white/[0.1]">
             <Image
               src="https://utfs.io/f/69a12ab1-4d57-4913-90f9-38c6aca6c373-1txg2.png"
-              alt="Chitra Breakpoint Detection"
+              alt="Chitra Multi-Species Comparison"
               width={1200}
               height={800}
               className="object-cover w-full h-full rounded-[18px]"
@@ -50,14 +50,14 @@ export default function SideBySide() {
       ),
     },
     {
-      title: "Gene Annotation",
-      value: "annotation",
+      title: "Syntenic Relationships",
+      value: "synteny",
       content: (
         <BackgroundGradient className="rounded-[22px] p-1 overflow-hidden">
           <div className="w-full overflow-hidden relative h-full rounded-[20px] bg-white/[0.7] dark:bg-black/[0.7] backdrop-blur-xl border border-white/[0.2] dark:border-white/[0.1]">
             <Image
               src="https://utfs.io/f/69a12ab1-4d57-4913-90f9-38c6aca6c373-1txg2.png"
-              alt="Chitra Gene Annotation"
+              alt="Chitra Syntenic Relationships"
               width={1200}
               height={800}
               className="object-cover w-full h-full rounded-[18px]"
@@ -68,14 +68,14 @@ export default function SideBySide() {
       ),
     },
     {
-      title: "Multi-Species Analysis",
-      value: "multi-species",
+      title: "Interactive Analysis",
+      value: "analysis",
       content: (
         <BackgroundGradient className="rounded-[22px] p-1 overflow-hidden">
           <div className="w-full overflow-hidden relative h-full rounded-[20px] bg-white/[0.7] dark:bg-black/[0.7] backdrop-blur-xl border border-white/[0.2] dark:border-white/[0.1]">
             <Image
               src="https://utfs.io/f/69a12ab1-4d57-4913-90f9-38c6aca6c373-1txg2.png"
-              alt="Chitra Multi-Species Analysis"
+              alt="Chitra Interactive Analysis"
               width={1200}
               height={800}
               className="object-cover w-full h-full rounded-[18px]"
@@ -114,21 +114,19 @@ export default function SideBySide() {
       
       <div className="relative">
         <div className="text-center mb-12">
-          
-          
           <h2 className="text-4xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-gray-900 to-gray-600 dark:from-white dark:to-gray-400 mb-4">
-            Chitra: Interactive Chromosome Analysis
+            Visualize Genomic Data with Precision
           </h2>
           <p className="text-xl text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
-            Advanced visualization and analysis of synteny data, breakpoints, and gene annotations across multiple species.
+            Transform your genomic data into interactive, publication-ready visualizations with Chitra's powerful rendering engine.
           </p>
         </div>
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 lg:grid-cols-3 max-w-6xl mx-auto mb-12">
           <GradientBentoCard
             icon={<Dna className="w-5 h-5 text-indigo-500" />}
-            title="Synteny Analysis"
-            description="Visualize and analyze syntenic relationships between chromosomes across different species with our interactive visualization tools."
+            title="Chromosome Visualization"
+            description="Create stunning, interactive visualizations of chromosomal data with customizable layouts and styling options."
             className={`sm:col-span-1 sm:row-span-2 p-4 sm:p-6 h-full 
               bg-gradient-to-br from-indigo-500/10 via-blue-500/10 to-sky-500/10
               dark:from-indigo-400/10 dark:via-blue-400/10 dark:to-sky-400/10
@@ -141,15 +139,8 @@ export default function SideBySide() {
           />
           <GradientBentoCard
             icon={<GitBranch className="w-5 h-5 text-rose-500" />}
-            title={
-              <div className="flex items-center gap-2">
-                Breakpoint Detection
-                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-rose-100 text-rose-800 dark:bg-rose-900 dark:text-rose-200">
-                  Beta
-                </span>
-              </div>
-            }
-            description="Identify chromosomal breakpoints and structural variations with precision using our advanced detection algorithms."
+            title="Syntenic Relationships"
+            description="Explore and visualize syntenic relationships between different species with intuitive, interactive displays."
             className={`sm:col-span-1 p-4 sm:p-6 h-full 
               bg-gradient-to-br from-rose-500/10 via-pink-500/10 to-red-500/10
               dark:from-rose-400/10 dark:via-pink-400/10 dark:to-red-400/10
@@ -162,15 +153,8 @@ export default function SideBySide() {
           />
           <GradientBentoCard
             icon={<Database className="w-5 h-5 text-teal-500" />}
-            title={
-              <div className="flex items-center gap-2">
-                Gene Annotation
-                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200">
-                  <span className="mr-1">🚧</span> In Progress
-                </span>
-              </div>
-            }
-            description="Comprehensive gene annotation tools for detailed genomic analysis and interpretation."
+            title="Data Integration"
+            description="Import and integrate various genomic data formats seamlessly for comprehensive visualization and analysis."
             className={`sm:col-span-1 p-4 sm:p-6 h-full 
               bg-gradient-to-br from-teal-500/10 via-emerald-500/10 to-green-500/10
               dark:from-teal-400/10 dark:via-emerald-400/10 dark:to-green-400/10
@@ -183,8 +167,8 @@ export default function SideBySide() {
           />
           <GradientBentoCard
             icon={<Microscope className="w-5 h-5 text-violet-500" />}
-            title="Multi-Species Analysis"
-            description="Compare genomic features across multiple species simultaneously with advanced comparative analysis tools."
+            title="Interactive Analysis"
+            description="Perform dynamic analysis with real-time updates and interactive features for deeper insights into your genomic data."
             className={`sm:col-span-2 p-4 sm:p-6 h-full 
               bg-gradient-to-br from-violet-500/10 via-purple-500/10 to-fuchsia-500/10
               dark:from-violet-400/10 dark:via-purple-400/10 dark:to-fuchsia-400/10
