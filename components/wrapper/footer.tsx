@@ -15,7 +15,7 @@ export default function Footer() {
     const isInView = useInView(ref);
     const [hasCopied, setHasCopied] = useState(false);
 
-    const citation = `P, et al. (2024). CHITRA: CHromosome Interactive Tool for Rearrangement Analysis. GitHub repository`;
+    const citation = `Pruthi, P., Narayan, J., Agarwal, P., Shukla, N., & Bhatia, A. (2024). CHITRA: Chromosome Interactive Tool for Rearrangement Analysis. CSIR-IGIB.`;
 
     const handleCopyCitation = async () => {
         await navigator.clipboard.writeText(citation);

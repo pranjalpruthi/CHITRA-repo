@@ -3,7 +3,7 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { BookOpen } from "lucide-react";
+import { BookOpen, Loader2 } from "lucide-react";
 import {
     Drawer,
     DrawerClose,
@@ -63,14 +63,36 @@ const staggerContainer = {
 
 export function GuideSheet({ children }: { children?: React.ReactNode }) {
     const [isOpen, setIsOpen] = React.useState(false);
+    const [isLoading, setIsLoading] = React.useState(false);
+
+    const handleOpenGuide = () => {
+        setIsLoading(true);
+        setIsOpen(true);
+        // Simulate loading time for content
+        setTimeout(() => setIsLoading(false), 500);
+    };
 
     return (
         <Drawer open={isOpen} onOpenChange={setIsOpen} direction="bottom">
             <DrawerTrigger asChild>
                 {children || (
-                    <Button variant="ghost" className="hover:bg-accent/50 h-9">
-                        <BookOpen className="h-4 w-4 mr-2" />
-                        Guide
+                    <Button 
+                        variant="ghost" 
+                        className="hover:bg-accent/50 h-9"
+                        onClick={handleOpenGuide}
+                        disabled={isLoading}
+                    >
+                        {isLoading ? (
+                            <>
+                                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                Loading...
+                            </>
+                        ) : (
+                            <>
+                                <BookOpen className="h-4 w-4 mr-2" />
+                                Guide
+                            </>
+                        )}
                     </Button>
                 )}
             </DrawerTrigger>

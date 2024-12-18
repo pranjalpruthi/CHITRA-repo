@@ -36,6 +36,11 @@ const nextConfig = {
       hostname: 'i1.rgstatic.net',
       port: '',
       pathname: '/**'
+    }, {
+      protocol: 'https',
+      hostname: 'media.licdn.com',
+      port: '',
+      pathname: '/**'
     }]
   }
 };

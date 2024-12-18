@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
-import { Github, Twitter, Linkedin, Globe, BookOpen, GraduationCap } from "lucide-react";
+import { Github, Twitter, Linkedin, Globe, BookOpen, GraduationCap, Mail } from "lucide-react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -22,6 +22,7 @@ interface TeamMember {
     website?: string;
     scholar?: string;
     researchgate?: string;
+    email?: string;
   };
 }
 
@@ -36,7 +37,8 @@ const team: TeamMember[] = [
       github: "https://github.com/pranjalpruthi",
       linkedin: "https://www.linkedin.com/in/pranjal-pruthi/",
       twitter: "https://x.com/pranjalpruthi",
-      website: "https://pranjal.mmm.page"
+      website: "https://pranjal.mmm.page",
+      email: "mail@pbro.in"
     }
   },
   {
@@ -59,8 +61,20 @@ const team: TeamMember[] = [
     avatar: "bg-gradient-to-br from-rose-400 to-orange-500",
     image: "https://pbs.twimg.com/profile_images/1526164953585295360/3WX0lSZn_400x400.jpg",
     links: {
-      researchgate: "https://www.researchgate.net/profile/Preeti-Agarwal",
-      scholar: "https://scholar.google.com"
+      researchgate: "https://www.researchgate.net/profile/Preeti-Agarwal-16",
+      scholar: "https://scholar.google.com/citations?user=8u8WcwoAAAAJ&hl=en"
+    }
+  },
+  {
+    name: "Nityendra Shukla",
+    role: "Research Scientist - I",
+    bio: "Department of Medical Mycology, Vallabhbhai Patel Chest Institute, University of Delhi",
+    avatar: "bg-gradient-to-br from-emerald-500 to-teal-500",
+    image: "https://media.licdn.com/dms/image/v2/C4D03AQFEmJi_aBDJdQ/profile-displayphoto-shrink_800_800/profile-displayphoto-shrink_800_800/0/1658210701985?e=1740009600&v=beta&t=8p7yySN_7wQN7xNBSCAwO41qZ0d8HP2oOyECJQQ4g0o",
+    links: {
+      researchgate: "https://www.researchgate.net/profile/Nityendra-Shukla-2",
+      website: "https://jitendralab.igib.res.in/profile/nityendra21",
+      email: "nitinshukla218@gmail.com"
     }
   },
   {
@@ -70,7 +84,7 @@ const team: TeamMember[] = [
     avatar: "bg-gradient-to-br from-cyan-500 to-blue-500",
     image: "https://i1.rgstatic.net/ii/profile.image/11431281223771539-1707933700618_Q512/Ajay-Bhatia-5.jpg",
     links: {
-      researchgate: "https://www.researchgate.net/profile/Ajay-Bhatia",
+      researchgate: "https://www.researchgate.net/profile/Ajay-Bhatia-5",
       scholar: "https://scholar.google.com"
     }
   }
@@ -98,9 +112,15 @@ const teamMembers = [
   },
   {
     id: 4,
+    name: "Nityendra Shukla",
+    designation: "Research Scientist",
+    image: team[3].image,
+  },
+  {
+    id: 5,
     name: "Ajay Bhatia",
     designation: "Data Analyst",
-    image: team[3].image,
+    image: team[4].image,
   },
 ];
 
@@ -222,7 +242,7 @@ export function AboutSheet({ children }: { children?: React.ReactNode }) {
                 <Separator className="my-4" />
 
                 {/* Team Members */}
-                {[team[0], team[2], team[3]].map((member) => (
+                {[team[0], team[2], team[3], team[4]].map((member) => (
                   <motion.div
                     key={member.name}
                     variants={fadeIn}
@@ -271,6 +291,11 @@ export function AboutSheet({ children }: { children?: React.ReactNode }) {
                             <BookOpen className="h-4 w-4" />
                           </Link>
                         )}
+                        {member.links.email && (
+                          <Link href={`mailto:${member.links.email}`} className="text-muted-foreground hover:text-primary">
+                            <Mail className="h-4 w-4" />
+                          </Link>
+                        )}
                       </div>
                     </div>
                   </motion.div>
@@ -299,7 +324,7 @@ export function AboutSheet({ children }: { children?: React.ReactNode }) {
             <motion.div variants={fadeIn}>
               <h3 className="text-lg font-semibold mb-2">Citation</h3>
               <code className="block text-sm bg-muted p-4 rounded-md">
-                Pruthi, P., & Narayan, J. (2024). CHITRA: CHromosome Interactive Tool for Rearrangement Analysis. CSIR-IGIB.
+                Pruthi, P., Narayan, J., Agarwal, P., Shukla, N., & Bhatia, A. (2024). CHITRA: Chromosome Interactive Tool for Rearrangement Analysis. CSIR-IGIB.
               </code>
             </motion.div>
           </div>
