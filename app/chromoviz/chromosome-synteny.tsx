@@ -136,6 +136,28 @@ const AlignmentFilterButton = ({
   icon: any;
   label: string;
 }) => {
+  const getColorClasses = (type: 'all' | 'forward' | 'reverse') => {
+    switch(type) {
+      case 'forward':
+        return {
+          active: 'border-blue-500 text-blue-500',
+          hover: 'hover:border-blue-500/50 hover:text-blue-500'
+        };
+      case 'reverse':
+        return {
+          active: 'border-red-500 text-red-500',
+          hover: 'hover:border-red-500/50 hover:text-red-500'
+        };
+      default:
+        return {
+          active: 'border-primary text-primary',
+          hover: 'hover:border-primary/50 hover:text-primary'
+        };
+    }
+  };
+
+  const colors = getColorClasses(filter);
+
   return (
     <button
       onClick={() => onClick(filter)}
@@ -143,8 +165,8 @@ const AlignmentFilterButton = ({
         'group relative inline-flex h-7 items-center justify-center overflow-hidden rounded-md',
         'bg-background border transition-all duration-200',
         filter === currentFilter 
-          ? 'border-primary text-primary w-24' 
-          : 'border-border hover:border-primary/50 text-muted-foreground w-7 hover:w-24'
+          ? colors.active + ' w-24' 
+          : 'border-border ' + colors.hover + ' text-muted-foreground w-7 hover:w-24'
       )}
     >
       <div className={cn(

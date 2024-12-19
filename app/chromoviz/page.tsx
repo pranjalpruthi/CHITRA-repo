@@ -24,6 +24,7 @@ import {
   BookOpen,
   FileText,
   TableProperties,
+  RotateCcw,
 } from "lucide-react";
 import * as d3 from 'd3';
 import { SyntenyData, ChromosomeData, ReferenceGenomeData, GeneAnnotation, ChromosomeBreakpoint } from '../types';
@@ -78,6 +79,7 @@ import { FloatingHUDBar } from "@/components/chromoviz/floating-hud-bar";
 import { ExampleFilesDrawer } from "@/components/chromoviz/example-files-drawer";
 import { FileUploaderGroup } from "@/components/chromoviz/file-uploader";
 import { config } from 'process';
+import { TipsCarousel } from "@/components/chromoviz/tips-carousel";
 
 const parseCSVRow = (d: any): any => {
   return {
@@ -281,6 +283,7 @@ export default function ChromoViz() {
   const [containerHeight, setContainerHeight] = useState<number>(800);
   const mainCardRef = useRef<HTMLDivElement>(null);
   const [showTooltips, setShowTooltips] = useState(true);
+  const [currentBlockIndex, setCurrentBlockIndex] = useState<number>(0);
   
   // Initialize from localStorage
   useEffect(() => {
@@ -771,13 +774,40 @@ export default function ChromoViz() {
                   showTooltips={showTooltips}
                   onToggleTooltips={() => setShowTooltips(!showTooltips)}
                   onResetToWelcome={handleResetToWelcome}
+                  speciesData={speciesData}
                 />
+
 
                 {/* Responsive Layout for Visualization and Details */}
                 <div className="grid grid-cols-12 gap-4 flex-1 min-h-0">
                   {/* Main Visualization Area */}
                   <div className={selectedSynteny.length > 0 ? "col-span-12 lg:col-span-8 h-full" : "col-span-12 h-full"}>
                     <Card className="h-full flex flex-col" ref={mainCardRef}>
+                      {/* Modified Card Header with integrated Tips */}
+                      {referenceData && !showWelcomeCard && (
+                        <CardHeader className="p-4 border-b">
+                          <div className="flex items-center justify-between gap-4">
+                            <div className="flex items-center gap-4">
+                              <CardTitle className="text-lg font-medium">Chromosome Visualization</CardTitle>
+                              {/* Compact Tips Carousel remains */}
+                              <div className="h-8 border-l pl-4">
+                                <TipsCarousel variant="compact" className="w-[300px]" />
+                              </div>
+                            </div>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={handleResetToWelcome}
+                              className="h-8 px-2 text-xs font-medium bg-red-500/20 text-red-600 dark:text-red-400 
+                                hover:bg-red-500/30 transition-colors group [&_svg]:stroke-red-500"
+                            >
+                              <RotateCcw className="h-3.5 w-3.5 mr-1.5" />
+                              Go Back
+                            </Button>
+                          </div>
+                        </CardHeader>
+                      )}
+
                       {isLoading ? (
                         <div className="p-4 flex-1">
                           <Skeleton className="h-full w-full" />
@@ -912,30 +942,27 @@ export default function ChromoViz() {
                               <FileUploaderGroup 
                                 onDataLoad={onDataLoad}
                                 trigger={
-                                  <Button 
+                                  <AiButton 
                                     className="min-w-[200px] h-12 relative bg-blue-500/10 dark:bg-blue-500/20 
-                                      hover:bg-blue-500/20 dark:hover:bg-blue-500/30 transition-colors
-                                      text-blue-700 dark:text-blue-300 hover:text-blue-800 dark:hover:text-blue-200"
-                                    variant="outline"
-                                    size="lg"
+                                      hover:bg-blue-500/20 dark:hover:bg-blue-500/30 transition-colors"
+                                    color="blue"
                                   >
-                                    <Upload className="h-5 w-5 mr-2" />
+                                    <Upload className="h-5 w-5" />
                                     <span className="text-base">Upload Your Files</span>
-                                  </Button>
+                                  </AiButton>
                                 }
                               />
 
                               <ExampleFilesDrawer onLoadExample={loadExampleData}>
-                                <Button
-                                  variant="outline"
-                                  size="lg"
+                                <AiButton
+                                  variant="simple"
+                                  color="amber"
                                   className="min-w-[200px] h-12 relative bg-amber-500/10 dark:bg-amber-500/20 
-                                    hover:bg-amber-500/20 dark:hover:bg-amber-500/30 transition-colors
-                                    text-amber-700 dark:text-amber-300 hover:text-amber-800 dark:hover:text-amber-200"
+                                    hover:bg-amber-500/20 dark:hover:bg-amber-500/30 transition-colors"
                                 >
-                                  <FileText className="h-5 w-5 mr-2" />
+                                  <FileText className="h-5 w-5" />
                                   <span className="text-base">More Examples</span>
-                                </Button>
+                                </AiButton>
                               </ExampleFilesDrawer>
                             </div>
                           </motion.div>
@@ -964,7 +991,7 @@ export default function ChromoViz() {
                         </CardHeader>
                         <CardContent className="p-0 h-[calc(100%-4rem)]">
                           <DetailedSyntenyView
-                            selectedBlock={selectedSynteny[0]}
+                            selectedBlock={selectedSynteny[currentBlockIndex]}
                             referenceData={filteredData.referenceData}
                             onBlockClick={handleSyntenyToggle}
                             selectedSynteny={selectedSynteny}
@@ -982,6 +1009,16 @@ export default function ChromoViz() {
                     <SyntenyTable 
                       selectedSynteny={selectedSynteny}
                       onToggleSelection={handleSyntenyToggle}
+                      onSelectBlock={(block) => {
+                        // Simply set the current block index instead of reordering
+                        const index = selectedSynteny.findIndex(b => 
+                          b.ref_chr === block.ref_chr && 
+                          b.query_chr === block.query_chr && 
+                          b.ref_start === block.ref_start
+                        );
+                        setCurrentBlockIndex(index); // You'll need to add this state
+                      }}
+                      currentBlockIndex={currentBlockIndex} // Add this prop
                       onExport={(data) => downloadCSV(
                         data,
                         `synteny-blocks-${new Date().toISOString().split('T')[0]}.csv`

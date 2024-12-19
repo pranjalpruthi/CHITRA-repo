@@ -3,7 +3,7 @@
 import ModeToggle from '@/components/mode-toggle'
 import { UserProfile } from '@/components/user-profile'
 import config from '@/config'
-import { ChevronRight, HomeIcon, Info, BookOpen, FileText } from 'lucide-react'
+import { ChevronRight, HomeIcon, Info, BookOpen, FileText, Copy } from 'lucide-react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import clsx from 'clsx'
@@ -13,6 +13,15 @@ import { AboutSheet } from "@/components/chromoviz/about"
 import { GuideSheet } from "@/components/chromoviz/guide"
 import { Button } from "@/components/ui/button"
 import { ShareDrawer } from "@/components/share-drawer"
+import { useToast } from "@/components/ui/use-toast"
+
+const CITATION = `@article{chitra2024,
+  title={Chitra: Interactive Visualization of Chromosome-Scale Synteny},
+  author={Your Authors},
+  journal={Your Journal},
+  year={2024},
+  doi={your-doi}
+}`
 
 function Breadcrumbs() {
   const pathname = usePathname()
@@ -43,6 +52,39 @@ function Breadcrumbs() {
         )
       })}
     </div>
+  )
+}
+
+function CopyButton() {
+  const { toast } = useToast()
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(CITATION)
+      toast({
+        title: "Citation copied",
+        description: "The citation has been copied to your clipboard.",
+        duration: 2000,
+      })
+    } catch (err) {
+      toast({
+        title: "Failed to copy",
+        description: "Please try again or copy manually.",
+        variant: "destructive",
+        duration: 2000,
+      })
+    }
+  }
+
+  return (
+    <Button 
+      variant="ghost" 
+      className="h-8 hover:bg-background/80 text-sm"
+      onClick={handleCopy}
+    >
+      <Copy className="h-4 w-4 md:mr-2" />
+      <span className="hidden md:inline">Cite</span>
+    </Button>
   )
 }
 
@@ -129,6 +171,7 @@ export default function NavBar() {
                   <span className="hidden md:inline">Docs</span>
                 </Button>
               </Link>
+              <CopyButton />
             </div>
           </div>
 

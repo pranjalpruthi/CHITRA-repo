@@ -1,7 +1,7 @@
 'use client'
 
-import { motion } from "framer-motion";
-import React, { useState } from "react";
+import { motion, useMotionValue, useTransform } from "framer-motion";
+import React, { useState, useEffect } from "react";
 import { 
   ArrowRight, 
   FileText,
@@ -15,7 +15,13 @@ import {
   MessageCircle,
   MessageCircleOff,
   RotateCcw,
-  X
+  X,
+  Upload,
+  Home,
+  GripVertical,
+  LayoutGrid,
+  LayoutPanelTop,
+  Database
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import AiButton from "@/components/animata/button/ai-button";
@@ -24,7 +30,9 @@ import { FilterDrawer } from '@/components/chromoviz/filter-drawer';
 import { GuideSheet } from "@/components/chromoviz/guide";
 import { FileUploaderGroup } from '@/components/chromoviz/file-uploader';
 import { ExampleFilesDrawer } from "@/components/chromoviz/example-files-drawer";
+import { DataViewerDrawer } from "./data-viewer-drawer";
 import { cn } from "@/lib/utils";
+import { ChromosomeData, SyntenyData } from "@/app/types";
 
 interface FloatingHUDBarProps {
   onGenerateVisualization: () => void;
@@ -54,6 +62,7 @@ interface FloatingHUDBarProps {
   showTooltips: boolean;
   onToggleTooltips: () => void;
   onResetToWelcome: () => void;
+  speciesData?: ChromosomeData[];
 }
 
 export function FloatingHUDBar({
@@ -74,37 +83,36 @@ export function FloatingHUDBar({
   onToggleFullScreen = () => {},
   showTooltips,
   onToggleTooltips,
-  onResetToWelcome
+  onResetToWelcome,
+  speciesData,
 }: FloatingHUDBarProps) {
-  const [isPinned, setIsPinned] = useState(true);
-  const [isVisible, setIsVisible] = useState(true);
+  const x = useMotionValue(0);
+  const y = useMotionValue(0);
+  const [isVertical, setIsVertical] = useState(false);
+  const [forceVertical, setForceVertical] = useState(false);
 
-  const handleUnpin = () => {
-    setIsPinned(false);
-    setIsVisible(true);
+  // Check position relative to window edge
+  useEffect(() => {
+    const unsubscribeX = x.onChange((latest) => {
+      const windowWidth = window.innerWidth;
+      if (!forceVertical) {
+        setIsVertical(latest > windowWidth - 100);
+      }
+    });
+
+    return () => {
+      unsubscribeX();
+    };
+  }, [x, forceVertical]);
+
+  // Update isVertical when forceVertical changes
+  useEffect(() => {
+    setIsVertical(forceVertical);
+  }, [forceVertical]);
+
+  const toggleLayout = () => {
+    setForceVertical(!forceVertical);
   };
-
-  const handlePin = () => {
-    setIsPinned(true);
-    setIsVisible(true);
-  };
-
-  const handleClose = () => {
-    setIsVisible(false);
-  };
-
-  if (!isVisible) {
-    return (
-      <Button
-        variant="ghost"
-        size="sm"
-        onClick={() => setIsVisible(true)}
-        className="fixed bottom-4 right-4 h-8 w-8 p-1 rounded-full bg-white dark:bg-gray-800 shadow-md hover:scale-110 transition-transform z-50"
-      >
-        <ArrowRight className="h-4 w-4 text-gray-500" />
-      </Button>
-    );
-  }
 
   return (
     <motion.div
@@ -115,73 +123,124 @@ export function FloatingHUDBar({
         stiffness: 200,
         damping: 20
       }}
-      drag={!isPinned}
+      drag
       dragMomentum={false}
       dragElastic={0.1}
-      whileHover={{ scale: isPinned ? 1 : 1.02 }}
+      whileHover={{ scale: 1.02 }}
       whileDrag={{ scale: 1.05 }}
-      className={cn(
-        "fixed mx-auto w-fit z-50",
-        isPinned 
-          ? "bottom-4 sm:bottom-8 inset-x-0"
-          : "cursor-grab active:cursor-grabbing"
-      )}
+      style={{ x, y }}
+      className="fixed bottom-4 sm:bottom-8 inset-x-0 mx-auto w-fit z-50 cursor-grab active:cursor-grabbing"
     >
       <div className="relative">
-        <div className="absolute inset-0 bg-indigo-300/30 dark:bg-blue-500/30 blur-2xl rounded-2xl" />
-        <div className="absolute inset-0 bg-blue-300/20 dark:bg-blue-400/20 blur-xl rounded-2xl" />
+        <div className={cn(
+          "absolute inset-0 blur-2xl rounded-2xl",
+          isVertical 
+            ? "bg-gradient-to-b from-blue-500/20 to-purple-500/20" 
+            : "bg-gradient-to-r from-blue-500/20 via-indigo-500/20 to-purple-500/20"
+        )} />
+        <div className={cn(
+          "absolute inset-0 blur-xl rounded-2xl opacity-50",
+          isVertical 
+            ? "bg-gradient-to-t from-blue-400/10 to-purple-400/10" 
+            : "bg-gradient-to-l from-blue-400/10 via-indigo-400/10 to-purple-400/10"
+        )} />
         
-        <div className="relative bg-white/90 dark:bg-black/50 backdrop-blur-md border-[1.5px] border-indigo-200 dark:border-white/20 rounded-2xl px-2 sm:px-4 py-1.5 sm:py-2 shadow-lg hover:shadow-xl transition-all duration-300">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={isPinned ? handleUnpin : handlePin}
-            className="absolute left-1/2 -translate-x-1/2 -bottom-3 h-6 w-6 p-0.5 rounded-full bg-white dark:bg-gray-800 shadow-md hover:scale-110 transition-transform"
-          >
-            {isPinned ? (
-              <Pin className="h-3.5 w-3.5 text-blue-500" />
-            ) : (
-              <PinOff className="h-3.5 w-3.5 text-gray-500" />
-            )}
-          </Button>
+        <div className={cn(
+          "relative bg-white/80 dark:bg-black/40 backdrop-blur-md border-[1.5px] border-indigo-200/50 dark:border-white/20 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300",
+          "ring-2 ring-blue-500/30 dark:ring-blue-600/30",
+          isVertical 
+            ? "px-2 py-3" 
+            : "px-2 sm:px-4 py-1.5 sm:py-2"
+        )}>
+          <div className={cn(
+            "flex items-center gap-1 sm:gap-2 [&>*]:!text-gray-700 dark:[&>*]:!text-white [&_svg]:!stroke-gray-600 dark:[&_svg]:!stroke-white",
+            isVertical ? "flex-col" : "flex-row justify-center"
+          )}>
+            {/* Reset/Go Back Button */}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onResetToWelcome}
+              className={cn(
+                "transition-colors group",
+                isVertical 
+                  ? "h-8 w-8 p-0" 
+                  : "h-8 px-2 text-xs font-medium",
+                referenceGenomeData 
+                  ? "bg-red-500/20 text-red-600 dark:text-red-400 hover:bg-red-500/30 [&_svg]:stroke-red-500"
+                  : "hover:bg-gray-100 dark:hover:bg-gray-800 [&_svg]:stroke-gray-500"
+              )}
+            >
+              {referenceGenomeData ? (
+                <RotateCcw className="h-3.5 w-3.5" />
+              ) : (
+                <Home className="h-3.5 w-3.5" />
+              )}
+              {!isVertical && (
+                <span className="hidden sm:inline ml-1.5">
+                  {referenceGenomeData ? "Go Back" : "Main"}
+                </span>
+              )}
+            </Button>
 
-          <div className="flex items-center justify-center gap-1 sm:gap-2 [&>*]:!text-gray-700 dark:[&>*]:!text-white [&_svg]:!stroke-gray-600 dark:[&_svg]:!stroke-white">
-            {/* 1. Upload Button */}
-            <FileUploaderGroup onDataLoad={onDataLoad} />
+            {/* Upload Button */}
+            <FileUploaderGroup onDataLoad={onDataLoad}>
+              <Button 
+                variant="ghost" 
+                size="sm"
+                className={cn(
+                  "bg-blue-500/20 text-blue-600 dark:text-blue-400 hover:bg-blue-500/30 transition-colors group [&_svg]:stroke-blue-500",
+                  isVertical 
+                    ? "h-8 w-8 p-0" 
+                    : "h-8 px-2 text-xs font-medium"
+                )}
+              >
+                <Upload className="h-3.5 w-3.5" />
+                {!isVertical && <span className="hidden sm:inline ml-1.5">Upload</span>}
+              </Button>
+            </FileUploaderGroup>
 
-            {/* 2. Generate Button */}
+            {/* Generate Button */}
             <Button 
               variant="ghost" 
               size="sm" 
               onClick={onGenerateVisualization}
               disabled={!canGenerateVisualization || isLoading}
-              className="h-8 px-2 text-xs hover:bg-white/10 hover:text-white transition-colors group"
+              className={cn(
+                "hover:bg-white/10 hover:text-white transition-colors group",
+                isVertical 
+                  ? "h-8 w-8 p-0" 
+                  : "h-8 px-2 text-xs"
+              )}
             >
               {isLoading ? (
-                <>
-                  <RefreshCw className="h-3.5 w-3.5 animate-spin group-hover:text-blue-400" />
-                  <span className="hidden sm:inline ml-1.5">Gen...</span>
-                </>
+                <RefreshCw className="h-3.5 w-3.5 animate-spin group-hover:text-blue-400" />
               ) : (
-                <>
-                  <ArrowRight className="h-3.5 w-3.5 group-hover:text-blue-400" />
-                  <span className="hidden sm:inline ml-1.5">Generate</span>
-                </>
+                <ArrowRight className="h-3.5 w-3.5 group-hover:text-blue-400" />
+              )}
+              {!isVertical && !isLoading && (
+                <span className="hidden sm:inline ml-1.5">Generate</span>
               )}
             </Button>
 
-            {/* 3. Example Files Button */}
+            {/* Example Files Button */}
             <ExampleFilesDrawer onLoadExample={onLoadExample}>
-              <AiButton 
-                variant="simple"
-                className="h-8 px-2 text-xs hover:bg-white/10 hover:text-white transition-colors group"
+              <Button 
+                variant="ghost" 
+                size="sm"
+                className={cn(
+                  "hover:bg-white/10 hover:text-white transition-colors group",
+                  isVertical 
+                    ? "h-8 w-8 p-0" 
+                    : "h-8 px-2 text-xs"
+                )}
               >
                 <FileText className="h-3.5 w-3.5 group-hover:text-blue-400" />
-                <span className="hidden sm:inline ml-1.5">Quick Demos</span>
-              </AiButton>
+                {!isVertical && <span className="hidden sm:inline ml-1.5">Examples</span>}
+              </Button>
             </ExampleFilesDrawer>
 
-            {/* 4. Filter Button */}
+            {/* Filter Button */}
             <FilterDrawer
               selectedSpecies={selectedSpecies}
               setSelectedSpecies={setSelectedSpecies}
@@ -195,58 +254,106 @@ export function FloatingHUDBar({
             >
               <Button 
                 variant="ghost" 
-                size="sm" 
-                className="h-8 px-2 text-xs hover:bg-white/10 hover:text-white transition-colors group"
+                size="sm"
+                className={cn(
+                  "bg-purple-500/20 text-purple-600 dark:text-purple-400 hover:bg-purple-500/30 transition-colors group [&_svg]:stroke-purple-500",
+                  isVertical 
+                    ? "h-8 w-8 p-0" 
+                    : "h-8 px-2 text-xs font-medium"
+                )}
               >
-                <TableProperties className="h-3.5 w-3.5 group-hover:text-blue-400" />
-                <span className="hidden sm:inline ml-1.5">Filter</span>
+                <TableProperties className="h-3.5 w-3.5" />
+                {!isVertical && <span className="hidden sm:inline ml-1.5">Filter</span>}
               </Button>
             </FilterDrawer>
 
-            {/* Separator before tooltip toggle */}
-            <Separator orientation="vertical" className="h-6 mx-1 bg-white/20 hidden sm:block" />
+            {/* Separator */}
+            {!isVertical && (
+              <Separator orientation="vertical" className="h-6 mx-1 bg-white/20 hidden sm:block" />
+            )}
 
             {/* Tooltip Toggle Button */}
             <Button 
               variant="ghost" 
               size="sm" 
               onClick={onToggleTooltips}
-              className="h-8 px-2 text-xs hover:bg-white/10 hover:text-white transition-colors group"
+              className={cn(
+                "transition-colors group",
+                isVertical 
+                  ? "h-8 w-8 p-0" 
+                  : "h-8 px-2 text-xs font-medium",
+                showTooltips 
+                  ? "bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/30 [&_svg]:stroke-emerald-500"
+                  : "bg-gray-500/20 text-gray-600 dark:text-gray-400 hover:bg-gray-500/30 [&_svg]:stroke-gray-500"
+              )}
             >
               {showTooltips ? (
-                <>
-                  <MessageCircle className="h-3.5 w-3.5 group-hover:text-blue-400" />
-                  <span className="hidden sm:inline ml-1.5">Hide Tips</span>
-                </>
+                <MessageCircle className="h-3.5 w-3.5" />
               ) : (
-                <>
-                  <MessageCircleOff className="h-3.5 w-3.5 group-hover:text-blue-400" />
-                  <span className="hidden sm:inline ml-1.5">Show Tips</span>
-                </>
+                <MessageCircleOff className="h-3.5 w-3.5" />
+              )}
+              {!isVertical && (
+                <span className="hidden sm:inline ml-1.5">
+                  {showTooltips ? "Hide Tips" : "Show Tips"}
+                </span>
               )}
             </Button>
 
-            {/* 5. Guide Button */}
+            {/* Guide Button */}
             <GuideSheet>
               <Button 
                 variant="ghost" 
-                size="sm" 
-                className="h-8 px-2 text-xs hover:bg-white/10 hover:text-white transition-colors group"
+                size="sm"
+                className={cn(
+                  "hover:bg-white/10 hover:text-white transition-colors group",
+                  isVertical 
+                    ? "h-8 w-8 p-0" 
+                    : "h-8 px-2 text-xs"
+                )}
               >
                 <BookOpen className="h-3.5 w-3.5 group-hover:text-blue-400" />
-                <span className="hidden sm:inline ml-1.5">Guide</span>
+                {!isVertical && <span className="hidden sm:inline ml-1.5">Guide</span>}
               </Button>
             </GuideSheet>
 
-            {/* Reset Button */}
+            {/* View Data Button */}
+            <DataViewerDrawer
+              syntenyData={syntenyData as SyntenyData[]} 
+              speciesData={speciesData}
+              referenceData={referenceGenomeData}
+              isVertical={isVertical}
+            >
+              <Button 
+                variant="ghost" 
+                size="sm"
+                className={cn(
+                  "bg-amber-500/20 text-amber-600 dark:text-amber-400 hover:bg-amber-500/30 transition-colors group [&_svg]:stroke-amber-500",
+                  isVertical 
+                    ? "h-8 w-8 p-0" 
+                    : "h-8 px-2 text-xs font-medium"
+                )}
+              >
+                <Database className="h-3.5 w-3.5" />
+                {!isVertical && <span className="hidden sm:inline ml-1.5">View Data</span>}
+              </Button>
+            </DataViewerDrawer>
+
+            {/* Layout Toggle Button - Add before Fullscreen */}
             <Button
               variant="ghost"
-              size="sm"
-              onClick={onResetToWelcome}
-              className="h-8 px-2 text-xs hover:bg-white/10 hover:text-white transition-colors group"
+              size="icon"
+              onClick={toggleLayout}
+              className={cn(
+                "hover:bg-accent hover:text-accent-foreground transition-colors",
+                isVertical ? "h-8 w-8" : "h-8 w-8",
+                forceVertical && "bg-accent/50"
+              )}
             >
-              <RotateCcw className="h-3.5 w-3.5 group-hover:text-blue-400" />
-              <span className="hidden sm:inline ml-1.5">Go Home</span>
+              {isVertical ? (
+                <LayoutGrid className="h-4 w-4" />
+              ) : (
+                <LayoutPanelTop className="h-4 w-4" />
+              )}
             </Button>
 
             {/* Fullscreen Button */}
@@ -254,7 +361,10 @@ export function FloatingHUDBar({
               variant="ghost"
               size="icon"
               onClick={onToggleFullScreen}
-              className="hover:bg-accent hover:text-accent-foreground"
+              className={cn(
+                "hover:bg-accent hover:text-accent-foreground",
+                isVertical ? "h-8 w-8" : "h-8 w-8"
+              )}
             >
               {isFullScreen ? (
                 <Minimize2 className="h-4 w-4" />
@@ -262,20 +372,17 @@ export function FloatingHUDBar({
                 <Maximize2 className="h-4 w-4" />
               )}
             </Button>
+
+            {/* Drag Handle */}
+            <div className={cn(
+              "flex items-center cursor-grab active:cursor-grabbing",
+              isVertical ? "pt-1" : "pl-1 pr-0.5"
+            )}>
+              <GripVertical className="h-4 w-4 opacity-50 hover:opacity-100 transition-opacity" />
+            </div>
           </div>
         </div>
       </div>
-
-      {!isPinned && (
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={handleClose}
-          className="absolute -top-3 -right-3 h-6 w-6 p-0.5 rounded-full bg-white dark:bg-gray-800 shadow-md hover:scale-110 transition-transform"
-        >
-          <X className="h-3.5 w-3.5 text-gray-500" />
-        </Button>
-      )}
     </motion.div>
   );
 }

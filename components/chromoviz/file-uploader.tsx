@@ -40,9 +40,17 @@ import {
   TabsList,
   TabsTrigger,
 } from "@/components/ui/tabs";
-import AiButton from "@/components/animata/button/ai-button";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Eye } from "lucide-react";
 
-const FILE_CONFIGS = {
+export const FILE_CONFIGS = {
   synteny: {
     title: "Synteny Data",
     description: "Upload synteny_data.csv file",
@@ -344,10 +352,53 @@ interface FileUploaderGroupProps {
     annotations: (data: any) => void;
     breakpoints?: (data: any) => void;
   };
+  children?: React.ReactNode;
   trigger?: React.ReactNode;
 }
 
-export function FileUploaderGroup({ onDataLoad, trigger }: FileUploaderGroupProps) {
+export function DataViewer({ data, title }: { data: any[]; title: string }) {
+  if (!data?.length) return null;
+
+  const columns = Object.keys(data[0]);
+  const firstFiveRows = data.slice(0, 5);
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <h3 className="text-sm font-medium">{title}</h3>
+        <span className="text-xs text-muted-foreground">
+          Showing 5 of {data.length} rows
+        </span>
+      </div>
+      <div className="border rounded-lg overflow-hidden">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              {columns.map((column) => (
+                <TableHead key={column} className="text-xs">
+                  {column}
+                </TableHead>
+              ))}
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {firstFiveRows.map((row, i) => (
+              <TableRow key={i}>
+                {columns.map((column) => (
+                  <TableCell key={column} className="text-xs">
+                    {String(row[column])}
+                  </TableCell>
+                ))}
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+    </div>
+  );
+}
+
+export function FileUploaderGroup({ onDataLoad, children, trigger }: FileUploaderGroupProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [uploadedData, setUploadedData] = useState<{
     synteny?: any[];
@@ -391,14 +442,10 @@ export function FileUploaderGroup({ onDataLoad, trigger }: FileUploaderGroupProp
   return (
     <Drawer open={isOpen} onOpenChange={setIsOpen}>
       <DrawerTrigger asChild>
-        {trigger || (
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            className="h-8 px-2 text-xs hover:bg-white/10 hover:text-white transition-colors group"
-          >
-            <Upload className="h-3.5 w-3.5 group-hover:text-blue-400" />
-            <span className="hidden sm:inline ml-1.5">Upload</span>
+        {children || trigger || (
+          <Button variant="outline">
+            <Upload className="mr-2 h-4 w-4" />
+            Upload Files
           </Button>
         )}
       </DrawerTrigger>
@@ -665,14 +712,15 @@ export function FileUploaderGroup({ onDataLoad, trigger }: FileUploaderGroupProp
                 <span>{3 - requiredFilesCount} required files remaining</span>
               )}
             </div>
-            <AiButton
-              onClick={handleVisualize}
-              disabled={requiredFilesCount < 3}
-              className="min-w-[180px] h-10"
-              color="blue"
-            >
-              <span className="text-base">Create Visualization</span>
-            </AiButton>
+            <div className="flex items-center gap-2">
+              <Button
+                onClick={handleVisualize}
+                disabled={requiredFilesCount < 3}
+                className="bg-blue-500 hover:bg-blue-600"
+              >
+                Create Visualization
+              </Button>
+            </div>
           </div>
         </div>
       </DrawerContent>

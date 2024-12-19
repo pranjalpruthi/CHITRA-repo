@@ -216,17 +216,7 @@ export const FilterDrawer = ({
   return (
     <Drawer>
       <DrawerTrigger asChild>
-        <div>
-          {children}
-          {totalSelectedFilters > 0 && (
-            <Badge 
-              variant="secondary" 
-              className="absolute -top-2 -right-2 h-5 min-w-[20px] flex items-center justify-center"
-            >
-              {totalSelectedFilters}
-            </Badge>
-          )}
-        </div>
+        {children}
       </DrawerTrigger>
       
       <DrawerContent className="h-[85vh] max-h-[85vh] md:h-[90vh] md:max-h-[90vh] overflow-hidden">
