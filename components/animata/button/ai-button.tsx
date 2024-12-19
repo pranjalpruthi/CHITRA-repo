@@ -9,6 +9,7 @@ interface AiButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   children: React.ReactNode;
   disabled?: boolean;
   variant?: 'default' | 'simple';
+  color?: 'blue' | 'green' | 'purple' | 'amber' | 'rose';
 }
 
 const defaultOptions: ISourceOptions = {
@@ -113,9 +114,50 @@ const defaultOptions: ISourceOptions = {
   ],
 };
 
-function AiButton({ children, className, disabled, variant = 'default', ...props }: AiButtonProps) {
+let buttonIdCounter = 0;
+
+const particleColors = {
+  blue: ["#7c3aed", "#bae6fd", "#a78bfa", "#93c5fd", "#0284c7", "#fafafa", "#38bdf8"],
+  green: ["#22c55e", "#86efac", "#4ade80", "#bbf7d0", "#16a34a"],
+  purple: ["#a855f7", "#e9d5ff", "#c084fc", "#f3e8ff", "#9333ea"],
+  amber: ["#f59e0b", "#fcd34d", "#fbbf24", "#fef3c7", "#d97706"],
+  rose: ["#e11d48", "#fecdd3", "#fb7185", "#ffe4e6", "#be123c"]
+};
+
+const gradientConfigs = {
+  blue: {
+    default: "bg-white/90 dark:bg-black/50 border-indigo-200/50 dark:border-white/20",
+    simple: "border-blue-200/50 dark:border-blue-800/20"
+  },
+  green: {
+    default: "bg-white/90 dark:bg-black/50 border-green-200/50 dark:border-white/20",
+    simple: "border-green-200/50 dark:border-green-800/20"
+  },
+  purple: {
+    default: "bg-white/90 dark:bg-black/50 border-purple-200/50 dark:border-white/20",
+    simple: "border-purple-200/50 dark:border-purple-800/20"
+  },
+  amber: {
+    default: "bg-white/90 dark:bg-black/50 border-amber-200/50 dark:border-white/20",
+    simple: "border-amber-200/50 dark:border-amber-800/20"
+  },
+  rose: {
+    default: "bg-white/90 dark:bg-black/50 border-rose-200/50 dark:border-white/20",
+    simple: "border-rose-200/50 dark:border-rose-800/20"
+  }
+};
+
+function AiButton({ 
+  children, 
+  className, 
+  disabled, 
+  variant = 'default', 
+  color = 'blue',
+  ...props 
+}: AiButtonProps) {
   const [particleState, setParticlesReady] = useState<"loaded" | "ready">();
   const [isHovering, setIsHovering] = useState(false);
+  const [buttonId] = useState(() => `ai-button-${buttonIdCounter++}`);
 
   useEffect(() => {
     initParticlesEngine(async (engine) => {
@@ -129,28 +171,25 @@ function AiButton({ children, className, disabled, variant = 'default', ...props
     const options = { ...defaultOptions };
     options.autoPlay = isHovering && !disabled;
     
-    if (variant === 'simple') {
-      options.particles = {
-        ...options.particles,
-        color: {
-          value: ["#22c55e", "#86efac", "#4ade80", "#bbf7d0", "#16a34a"]
-        }
-      };
-    } else {
-      options.particles = {
-        ...options.particles,
-        color: {
-          value: ["#7c3aed", "#bae6fd", "#a78bfa", "#93c5fd", "#0284c7", "#fafafa", "#38bdf8"]
-        }
-      };
-    }
+    options.particles = {
+      ...options.particles,
+      color: {
+        value: particleColors[color]
+      }
+    };
     
     return options;
-  }, [isHovering, disabled, variant]);
+  }, [isHovering, disabled, color]);
 
   const gradientClasses = {
-    default: "bg-white/90 dark:bg-black/50 backdrop-blur-md border-[1px] border-indigo-200/50 dark:border-white/20",
-    simple: "bg-transparent"
+    default: cn(
+      "bg-white/90 dark:bg-black/50 backdrop-blur-md border-[1px]",
+      gradientConfigs[color].default
+    ),
+    simple: cn(
+      "bg-transparent border-[1px]",
+      gradientConfigs[color].simple
+    )
   };
 
   const innerGradientClasses = {
@@ -180,7 +219,7 @@ function AiButton({ children, className, disabled, variant = 'default', ...props
       </div>
       {!!particleState && !disabled && (
         <Particles
-          id="generate-viz"
+          id={buttonId}
           className={cn(
             "pointer-events-none absolute -bottom-4 -left-4 -right-4 -top-4 z-0 opacity-0 transition-opacity",
             particleState === "ready" && "group-hover:opacity-100"

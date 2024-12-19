@@ -843,13 +843,19 @@ export default function ChromoViz() {
                                   id: 'set1',
                                   name: 'Basic Synteny',
                                   description: 'Simple synteny visualization between two species',
-                                  color: 'bg-blue-400'
+                                  color: 'bg-blue-400',
+                                  borderColor: 'border-blue-200 dark:border-blue-800',
+                                  hoverBg: 'hover:bg-blue-50/50 dark:hover:bg-blue-900/10',
+                                  groupHover: 'group-hover:text-blue-500 dark:group-hover:text-blue-400'
                                 },
                                 {
                                   id: 'set2',
                                   name: 'Multi-Species',
                                   description: 'Complex synteny relationships across multiple species',
                                   color: 'bg-emerald-400',
+                                  borderColor: 'border-emerald-200 dark:border-emerald-800',
+                                  hoverBg: 'hover:bg-emerald-50/50 dark:hover:bg-emerald-900/10',
+                                  groupHover: 'group-hover:text-emerald-500 dark:group-hover:text-emerald-400',
                                   badge: 'Gene Annotations'
                                 },
                                 {
@@ -857,21 +863,31 @@ export default function ChromoViz() {
                                   name: 'Annotated Genome',
                                   description: 'Detailed genome annotations with gene information',
                                   color: 'bg-purple-400',
+                                  borderColor: 'border-purple-200 dark:border-purple-800',
+                                  hoverBg: 'hover:bg-purple-50/50 dark:hover:bg-purple-900/10',
+                                  groupHover: 'group-hover:text-purple-500 dark:group-hover:text-purple-400',
                                   badge: 'Gene Annotations'
                                 }
                               ].map((set) => (
                                 <motion.button
                                   key={set.id}
                                   onClick={() => loadExampleData(`/example/${set.id}`)}
-                                  className="w-full text-left p-4 rounded-lg transition-all border border-gray-200 dark:border-gray-800
-                                    hover:bg-gray-50 dark:hover:bg-gray-800/50 group"
+                                  className={cn(
+                                    "w-full text-left p-4 rounded-lg transition-all border",
+                                    set.borderColor,
+                                    set.hoverBg,
+                                    "group"
+                                  )}
                                   whileHover={{ scale: 1.02 }}
                                   whileTap={{ scale: 0.98 }}
                                 >
                                   <div className="flex items-start gap-3">
                                     <div className={`w-2.5 h-2.5 rounded-full mt-1.5 flex-shrink-0 ${set.color}`} />
                                     <div className="flex-1">
-                                      <div className="font-medium text-base group-hover:text-blue-500 dark:group-hover:text-blue-400 transition-colors">
+                                      <div className={cn(
+                                        "font-medium text-base transition-colors",
+                                        set.groupHover
+                                      )}>
                                         {set.name}
                                       </div>
                                       <div className="text-sm text-gray-500 dark:text-gray-400 mt-1">
@@ -891,21 +907,36 @@ export default function ChromoViz() {
                               ))}
                             </div>
 
-                            {/* Upload Button */}
-                            <div className="pt-4">
+                            {/* Upload Button and More Examples */}
+                            <div className="pt-4 flex items-center justify-center gap-6 p-4">
                               <FileUploaderGroup 
                                 onDataLoad={onDataLoad}
                                 trigger={
                                   <Button 
-                                    variant="outline" 
+                                    className="min-w-[200px] h-12 relative bg-blue-500/10 dark:bg-blue-500/20 
+                                      hover:bg-blue-500/20 dark:hover:bg-blue-500/30 transition-colors
+                                      text-blue-700 dark:text-blue-300 hover:text-blue-800 dark:hover:text-blue-200"
+                                    variant="outline"
                                     size="lg"
-                                    className="min-w-[200px] gap-2 h-12 text-base hover:bg-gray-50 dark:hover:bg-gray-800"
                                   >
-                                    <Upload className="h-5 w-5" />
-                                    Upload Your Files
+                                    <Upload className="h-5 w-5 mr-2" />
+                                    <span className="text-base">Upload Your Files</span>
                                   </Button>
                                 }
                               />
+
+                              <ExampleFilesDrawer onLoadExample={loadExampleData}>
+                                <Button
+                                  variant="outline"
+                                  size="lg"
+                                  className="min-w-[200px] h-12 relative bg-amber-500/10 dark:bg-amber-500/20 
+                                    hover:bg-amber-500/20 dark:hover:bg-amber-500/30 transition-colors
+                                    text-amber-700 dark:text-amber-300 hover:text-amber-800 dark:hover:text-amber-200"
+                                >
+                                  <FileText className="h-5 w-5 mr-2" />
+                                  <span className="text-base">More Examples</span>
+                                </Button>
+                              </ExampleFilesDrawer>
                             </div>
                           </motion.div>
                         </div>

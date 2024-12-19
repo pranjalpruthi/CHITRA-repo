@@ -14,7 +14,8 @@ import {
   Minimize2,
   MessageCircle,
   MessageCircleOff,
-  RotateCcw
+  RotateCcw,
+  X
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import AiButton from "@/components/animata/button/ai-button";
@@ -76,6 +77,34 @@ export function FloatingHUDBar({
   onResetToWelcome
 }: FloatingHUDBarProps) {
   const [isPinned, setIsPinned] = useState(true);
+  const [isVisible, setIsVisible] = useState(true);
+
+  const handleUnpin = () => {
+    setIsPinned(false);
+    setIsVisible(true);
+  };
+
+  const handlePin = () => {
+    setIsPinned(true);
+    setIsVisible(true);
+  };
+
+  const handleClose = () => {
+    setIsVisible(false);
+  };
+
+  if (!isVisible) {
+    return (
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={() => setIsVisible(true)}
+        className="fixed bottom-4 right-4 h-8 w-8 p-1 rounded-full bg-white dark:bg-gray-800 shadow-md hover:scale-110 transition-transform z-50"
+      >
+        <ArrowRight className="h-4 w-4 text-gray-500" />
+      </Button>
+    );
+  }
 
   return (
     <motion.div
@@ -106,8 +135,8 @@ export function FloatingHUDBar({
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => setIsPinned(!isPinned)}
-            className="absolute -top-3 -right-3 h-6 w-6 p-0.5 rounded-full bg-white dark:bg-gray-800 shadow-md hover:scale-110 transition-transform"
+            onClick={isPinned ? handleUnpin : handlePin}
+            className="absolute left-1/2 -translate-x-1/2 -bottom-3 h-6 w-6 p-0.5 rounded-full bg-white dark:bg-gray-800 shadow-md hover:scale-110 transition-transform"
           >
             {isPinned ? (
               <Pin className="h-3.5 w-3.5 text-blue-500" />
@@ -236,6 +265,17 @@ export function FloatingHUDBar({
           </div>
         </div>
       </div>
+
+      {!isPinned && (
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={handleClose}
+          className="absolute -top-3 -right-3 h-6 w-6 p-0.5 rounded-full bg-white dark:bg-gray-800 shadow-md hover:scale-110 transition-transform"
+        >
+          <X className="h-3.5 w-3.5 text-gray-500" />
+        </Button>
+      )}
     </motion.div>
   );
 }

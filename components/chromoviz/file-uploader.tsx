@@ -40,6 +40,7 @@ import {
   TabsList,
   TabsTrigger,
 } from "@/components/ui/tabs";
+import AiButton from "@/components/animata/button/ai-button";
 
 const FILE_CONFIGS = {
   synteny: {
@@ -664,13 +665,14 @@ export function FileUploaderGroup({ onDataLoad, trigger }: FileUploaderGroupProp
                 <span>{3 - requiredFilesCount} required files remaining</span>
               )}
             </div>
-            <Button
+            <AiButton
               onClick={handleVisualize}
               disabled={requiredFilesCount < 3}
-              className="bg-blue-500 hover:bg-blue-600"
+              className="min-w-[180px] h-10"
+              color="blue"
             >
-              Create Visualization
-            </Button>
+              <span className="text-base">Create Visualization</span>
+            </AiButton>
           </div>
         </div>
       </DrawerContent>
