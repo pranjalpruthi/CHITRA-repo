@@ -26,6 +26,7 @@ import {
   TableProperties,
   RotateCcw,
   ArrowLeft,
+  ChevronRight,
 } from "lucide-react";
 import * as d3 from 'd3';
 import { SyntenyData, ChromosomeData, ReferenceGenomeData, GeneAnnotation, ChromosomeBreakpoint } from '../types';
@@ -268,6 +269,53 @@ const FilterSection = ({
   </div>
 );
 
+const CollapsibleDetailView = ({
+  isOpen,
+  onToggle,
+  children
+}: {
+  isOpen: boolean;
+  onToggle: () => void;
+  children: React.ReactNode;
+}) => {
+  return (
+    <div className={cn(
+      "col-span-12 lg:col-span-4 h-full relative transition-all duration-200",
+      !isOpen && "!col-span-1 !w-6"
+    )}>
+      {/* Content Container */}
+      <div className={cn(
+        "h-full transition-all duration-200",
+        !isOpen && "opacity-0 invisible"
+      )}>
+        {children}
+      </div>
+
+      {/* Toggle Button */}
+      <div className="absolute inset-y-0 -right-6 w-6">
+        <Button
+          variant="secondary"
+          size="sm"
+          onClick={onToggle}
+          className={cn(
+            "absolute top-1/2 -translate-y-1/2",
+            "h-24 w-6 rounded-r-lg rounded-l-none",
+            "border-l-0 bg-card hover:bg-accent",
+            "flex items-center justify-center p-0"
+          )}
+        >
+          <ChevronRight 
+            className={cn(
+              "h-4 w-4 transition-transform duration-200",
+              isOpen && "rotate-180"
+            )} 
+          />
+        </Button>
+      </div>
+    </div>
+  );
+};
+
 export default function ChromoViz() {
   const { theme, setTheme } = useTheme();
   const [syntenyData, setSyntenyData] = useState<SyntenyData[]>([]);
@@ -288,6 +336,7 @@ export default function ChromoViz() {
   const [currentBlockIndex, setCurrentBlockIndex] = useState<number>(0);
   const router = useRouter();
   const [isAtRoot, setIsAtRoot] = useState(true);
+  const [isDetailViewOpen, setIsDetailViewOpen] = useState(true);
   
   // Initialize from localStorage
   useEffect(() => {
@@ -785,7 +834,14 @@ export default function ChromoViz() {
                 {/* Responsive Layout for Visualization and Details */}
                 <div className="grid grid-cols-12 gap-4 flex-1 min-h-0">
                   {/* Main Visualization Area */}
-                  <div className={selectedSynteny.length > 0 ? "col-span-12 lg:col-span-8 h-full" : "col-span-12 h-full"}>
+                  <div className={cn(
+                    "transition-all duration-200",
+                    selectedSynteny.length > 0 
+                      ? isDetailViewOpen 
+                        ? "col-span-12 lg:col-span-8" 
+                        : "col-span-12 lg:col-span-11"
+                      : "col-span-12"
+                  )}>
                     <Card className="h-full flex flex-col" ref={mainCardRef}>
                       {/* Modified Card Header with integrated Tips and Back Button */}
                       {referenceData && !showWelcomeCard && (
@@ -979,11 +1035,9 @@ export default function ChromoViz() {
 
                   {/* Detailed View Sidebar */}
                   {selectedSynteny.length > 0 && (
-                    <motion.div 
-                      initial={{ opacity: 0, x: 20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      exit={{ opacity: 0, x: 20 }}
-                      className="col-span-12 lg:col-span-4 h-full"
+                    <CollapsibleDetailView
+                      isOpen={isDetailViewOpen}
+                      onToggle={() => setIsDetailViewOpen(prev => !prev)}
                     >
                       <Card className="h-full flex flex-col">
                         <CardHeader className="p-4 border-b shrink-0">
@@ -1008,7 +1062,7 @@ export default function ChromoViz() {
                           />
                         </CardContent>
                       </Card>
-                    </motion.div>
+                    </CollapsibleDetailView>
                   )}
                   {/* Add Synteny Table - Full Width */}
                   <div className="col-span-12">

@@ -7,7 +7,29 @@ import { Card, CardContent } from '@/components/ui/card';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { ZoomIn, ZoomOut, RefreshCw, Info, Minimize2, Maximize2, Settings, Save, Lock, Unlock } from 'lucide-react';
+import { 
+  ZoomIn, 
+  ZoomOut, 
+  RefreshCw, 
+  Info, 
+  Minimize2, 
+  Maximize2, 
+  Settings, 
+  Save, 
+  Lock, 
+  Unlock, 
+  MoreVertical, 
+  Image, 
+  X, 
+  FileType 
+} from 'lucide-react';
+import { 
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator
+} from '@/components/ui/dropdown-menu';
 import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
 import { HoverTooltip, GENE_ANNOTATION_CONFIG as TOOLTIP_GENE_CONFIG } from "@/components/chromoviz/tooltip";
@@ -20,13 +42,12 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+import { 
+  Tabs, 
+  TabsContent, 
+  TabsList, 
+  TabsTrigger 
+} from "@/components/ui/tabs";
 
 // Add configuration types
 interface SyntenyViewConfig {
@@ -506,24 +527,24 @@ export function DetailedSyntenyView({
 
     chromosomeLayer.append('path')
       .attr('d', refArc({} as any) as string)
-      .attr('fill', config.visual.colors.reference)
-      .attr('stroke', '#d1d5db')
-      .attr('cursor', 'pointer')
-      .on('mousemove', (event) => {
-        const [x, y] = d3.pointer(event);
-        const angle = Math.atan2(y, x) + Math.PI / 2;
-        const position = refScale.invert(angle);
-        setHoveredChromosome({
-          size: refChromosome.chr_size_bp,
-          isRef: true,
-          position: Math.round(position)
+        .attr('fill', config.visual.colors.reference)
+        .attr('stroke', '#d1d5db')
+        .attr('cursor', 'pointer')
+        .on('mousemove', (event) => {
+          const [x, y] = d3.pointer(event);
+          const angle = Math.atan2(y, x) + Math.PI / 2;
+          const position = refScale.invert(angle);
+          setHoveredChromosome({
+            size: refChromosome.chr_size_bp,
+            isRef: true,
+            position: Math.round(position)
+          });
+          setHoveredBlock(selectedBlock);
+        })
+        .on('mouseleave', () => {
+          setHoveredChromosome(null);
+          setHoveredBlock(null);
         });
-        setHoveredBlock(selectedBlock);
-      })
-      .on('mouseleave', () => {
-        setHoveredChromosome(null);
-        setHoveredBlock(null);
-      });
 
     // Add reference label
     const refEndAngle = gapAngle + (refArcLength * refRelativeSize);
@@ -875,21 +896,50 @@ export function DetailedSyntenyView({
       )}>
         <div className="flex items-center gap-2">
           <Button
-            variant="outline"
+            variant="ghost"
             size="sm"
             onClick={() => setShowInfo(!showInfo)}
-            className="h-8 px-3 gap-2"
+            className="h-8 w-8 p-0"
           >
             <Info className="h-4 w-4" />
           </Button>
           <Button
-            variant="outline"
+            variant="ghost"
             size="sm"
             onClick={() => setShowConfig(!showConfig)}
-            className="h-8 px-3 gap-2"
+            className="h-8 w-8 p-0"
           >
             <Settings className="h-4 w-4" />
           </Button>
+          <Separator orientation="vertical" className="h-6 mx-1" />
+          
+          {/* Export Dropdown */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-8 w-8 p-0"
+              >
+                <Save className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start">
+              <DropdownMenuItem onClick={handleSaveAsSVG}>
+                <FileType className="h-4 w-4 mr-2" />
+                Save as SVG
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleExportImage('png')}>
+                <Image className="h-4 w-4 mr-2" />
+                Export as PNG
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleExportImage('jpg')}>
+                <Image className="h-4 w-4 mr-2" />
+                Export as JPG
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+
           <Badge variant="secondary">
             {Math.round(zoom * 100)}%
           </Badge>
@@ -900,38 +950,10 @@ export function DetailedSyntenyView({
             variant={isGraphFixed ? "default" : "outline"}
             size="sm"
             onClick={() => setIsGraphFixed(!isGraphFixed)}
-            className="h-8 px-3 gap-2"
+            className="h-8 w-8 p-0"
           >
-            {isGraphFixed ? (
-              <>
-                <Lock className="h-4 w-4" />
-                
-              </>
-            ) : (
-              <>
-                <Unlock className="h-4 w-4" />
-                
-              </>
-            )}
+            {isGraphFixed ? <Lock className="h-4 w-4" /> : <Unlock className="h-4 w-4" />}
           </Button>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-7 w-7">
-                <Save className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => handleSaveAsSVG()}>
-                Save as SVG
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleExportImage('png')}>
-                Export as PNG
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleExportImage('jpg')}>
-                Export as JPG
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
           <Button
             variant="outline"
             size="sm"
@@ -965,11 +987,7 @@ export function DetailedSyntenyView({
             onClick={handleFullscreen}
             className="h-8 w-8 p-0"
           >
-            {isFullscreen ? (
-              <Minimize2 className="h-4 w-4" />
-            ) : (
-              <Maximize2 className="h-4 w-4" />
-            )}
+            {isFullscreen ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
           </Button>
         </div>
       </div>
@@ -991,7 +1009,18 @@ export function DetailedSyntenyView({
                 isFullscreen && "fixed top-[80px]"
               )}
             >
-              <Card className="w-[300px] bg-white/40 dark:bg-gray-950/40 backdrop-blur-md border-white/50 dark:border-gray-800/50 shadow-[inset_0_0_8px_rgba(255,255,255,0.4)] dark:shadow-[inset_0_0_8px_rgba(0,0,0,0.4)]">
+              <Card className="w-[300px] bg-white/40 dark:bg-gray-950/40 backdrop-blur-md border-white/50 dark:border-gray-800/50">
+                <div className="flex justify-between items-center p-3 border-b">
+                  <h4 className="font-medium text-sm">Block Information</h4>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setShowInfo(false)}
+                    className="h-6 w-6 p-0"
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
                 <CardContent className="p-4 space-y-4">
                   {/* Reference Section */}
                   <div className="space-y-2">
@@ -1080,15 +1109,26 @@ export function DetailedSyntenyView({
                 isFullscreen && "fixed top-[80px]"
               )}
             >
-              <Card className="w-[400px] bg-white/40 dark:bg-gray-950/40 backdrop-blur-md border-white/50 dark:border-gray-800/50 shadow-[inset_0_0_8px_rgba(255,255,255,0.4)] dark:shadow-[inset_0_0_8px_rgba(0,0,0,0.4)]">
+              <Card className="w-[400px] bg-white/40 dark:bg-gray-950/40 backdrop-blur-md border-white/50 dark:border-gray-800/50">
+                <div className="flex justify-between items-center p-3 border-b">
+                  <h4 className="font-medium text-sm">Settings</h4>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setShowConfig(false)}
+                    className="h-6 w-6 p-0"
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
                 <CardContent className="p-4">
                   <Tabs defaultValue="visual" className="space-y-4">
-                    <TabsList className="grid w-full grid-cols-4">
-                      <TabsTrigger value="visual">Visual</TabsTrigger>
-                      <TabsTrigger value="annotations">Annotations</TabsTrigger>
-                      <TabsTrigger value="scale">Scale</TabsTrigger>
-                      <TabsTrigger value="interaction">Interaction</TabsTrigger>
-                      <TabsTrigger value="markers">Markers</TabsTrigger>
+                    <TabsList className="grid w-full grid-cols-5">
+                      <TabsTrigger value="visual" className="text-xs">Visual</TabsTrigger>
+                      <TabsTrigger value="annotations" className="text-xs">Annot.</TabsTrigger>
+                      <TabsTrigger value="scale" className="text-xs">Scale</TabsTrigger>
+                      <TabsTrigger value="interaction" className="text-xs">Inter.</TabsTrigger>
+                      <TabsTrigger value="markers" className="text-xs">Markers</TabsTrigger>
                     </TabsList>
 
                     {/* Visual Tab */}
