@@ -1,11 +1,19 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-import { Button } from '@/components/ui/button'
-import { Card } from '@/components/ui/card'
-import { ChevronLeft, ChevronRight, Lightbulb } from 'lucide-react'
-import { cn } from '@/lib/utils'
+import { useState } from 'react'
+import { Button } from "@/components/ui/button"
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
+import { cn } from "@/lib/utils"
+import { ArrowRight, Lightbulb } from "lucide-react"
 
 const tips = [
   {
@@ -36,150 +44,81 @@ const tips = [
 ]
 
 interface TipsCarouselProps {
-  className?: string;
-  variant?: 'default' | 'compact';
+  className?: string
+  variant?: 'default' | 'compact'
 }
 
 export function TipsCarousel({ className, variant = 'default' }: TipsCarouselProps) {
-  const [currentTip, setCurrentTip] = useState(0)
-  const [isAutoPlaying, setIsAutoPlaying] = useState(true)
+  const [step, setStep] = useState(1)
+  const totalSteps = tips.length
 
-  useEffect(() => {
-    if (!isAutoPlaying) return
-
-    const interval = setInterval(() => {
-      setCurrentTip((prev) => (prev + 1) % tips.length)
-    }, 5000)
-
-    return () => clearInterval(interval)
-  }, [isAutoPlaying])
-
-  const nextTip = () => {
-    setIsAutoPlaying(false)
-    setCurrentTip((prev) => (prev + 1) % tips.length)
-  }
-
-  const prevTip = () => {
-    setIsAutoPlaying(false)
-    setCurrentTip((prev) => (prev - 1 + tips.length) % tips.length)
+  const handleContinue = () => {
+    if (step < totalSteps) {
+      setStep(step + 1)
+    }
   }
 
   if (variant === 'compact') {
     return (
-      <div className={cn(
-        "relative group h-8 flex items-center",
-        className
-      )}>
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={currentTip}
-            initial={{ opacity: 0, x: 10 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -10 }}
-            className="flex items-center gap-2 w-full"
-          >
-            <div className="text-yellow-500 flex items-center gap-1.5 flex-shrink-0">
-              <Lightbulb className="h-4 w-4" />
-              <span className="text-xs font-medium hidden sm:inline">Tip:</span>
-            </div>
-            <div className="min-w-0 flex-1">
-              <p className="text-xs text-muted-foreground truncate">
-                <span className="inline sm:hidden">
-                  {tips[currentTip].title}
-                </span>
-                <span className="hidden sm:inline">
-                  {tips[currentTip].description}
-                </span>
-              </p>
-            </div>
-          </motion.div>
-        </AnimatePresence>
-
-        <div className="absolute right-0 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity bg-background/80 backdrop-blur-sm">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-6 w-6"
-            onClick={prevTip}
-          >
-            <ChevronLeft className="h-3 w-3" />
+      <Dialog onOpenChange={(open) => {
+        if (open) setStep(1)
+      }}>
+        <DialogTrigger asChild>
+          <Button variant="ghost" size="sm" className="gap-2">
+            <Lightbulb className="h-4 w-4 text-yellow-500" />
+            <span className="text-xs">Tips</span>
           </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-6 w-6"
-            onClick={nextTip}
-          >
-            <ChevronRight className="h-3 w-3" />
-          </Button>
-        </div>
-      </div>
-    );
+        </DialogTrigger>
+        <DialogContent className="gap-0 p-0">
+          <div className="space-y-6 p-6">
+            <DialogHeader>
+              <div className="flex items-center gap-3">
+                <span className="text-2xl">{tips[step - 1].icon}</span>
+                <DialogTitle>{tips[step - 1].title}</DialogTitle>
+              </div>
+              <DialogDescription>{tips[step - 1].description}</DialogDescription>
+            </DialogHeader>
+            <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
+              <div className="flex justify-center space-x-1.5 max-sm:order-1">
+                {[...Array(totalSteps)].map((_, index) => (
+                  <div
+                    key={index}
+                    className={cn(
+                      "h-1.5 w-1.5 rounded-full bg-primary",
+                      index + 1 === step ? "bg-primary" : "opacity-20",
+                    )}
+                  />
+                ))}
+              </div>
+              <DialogFooter>
+                <DialogClose asChild>
+                  <Button type="button" variant="ghost">
+                    Skip
+                  </Button>
+                </DialogClose>
+                {step < totalSteps ? (
+                  <Button className="group" type="button" onClick={handleContinue}>
+                    Next
+                    <ArrowRight
+                      className="-me-1 ms-2 opacity-60 transition-transform group-hover:translate-x-0.5"
+                      size={16}
+                      strokeWidth={2}
+                      aria-hidden="true"
+                    />
+                  </Button>
+                ) : (
+                  <DialogClose asChild>
+                    <Button type="button">Got it</Button>
+                  </DialogClose>
+                )}
+              </DialogFooter>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    )
   }
 
-  return (
-    <Card className={cn(
-      "relative overflow-hidden bg-background/50 backdrop-blur-sm",
-      className
-    )}>
-      <div className="absolute top-2 left-2">
-        <Lightbulb className="h-4 w-4 text-yellow-500" />
-      </div>
-      <div className="p-4">
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={currentTip}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            className="min-h-[100px] flex flex-col items-center justify-center text-center px-8"
-          >
-            <div className="text-2xl mb-2">{tips[currentTip].icon}</div>
-            <h3 className="text-sm font-medium mb-1">{tips[currentTip].title}</h3>
-            <p className="text-xs text-muted-foreground">{tips[currentTip].description}</p>
-          </motion.div>
-        </AnimatePresence>
-
-        <div className="absolute inset-y-0 left-0 flex items-center">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8 rounded-full"
-            onClick={prevTip}
-          >
-            <ChevronLeft className="h-4 w-4" />
-          </Button>
-        </div>
-
-        <div className="absolute inset-y-0 right-0 flex items-center">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8 rounded-full"
-            onClick={nextTip}
-          >
-            <ChevronRight className="h-4 w-4" />
-          </Button>
-        </div>
-
-        <div className="absolute bottom-2 left-0 right-0 flex justify-center gap-1">
-          {tips.map((_, index) => (
-            <button
-              key={index}
-              className={cn(
-                "w-4.5 h-4.5 rounded-full transition-all",
-                currentTip === index
-                  ? "bg-primary w-3"
-                  : "bg-primary/20"
-              )}
-              onClick={() => {
-                setIsAutoPlaying(false)
-                setCurrentTip(index)
-              }}
-            />
-          ))}
-        </div>
-      </div>
-    </Card>
-  )
+  // Return default variant if needed
+  return null
 } 

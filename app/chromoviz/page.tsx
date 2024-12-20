@@ -25,6 +25,7 @@ import {
   FileText,
   TableProperties,
   RotateCcw,
+  ArrowLeft,
 } from "lucide-react";
 import * as d3 from 'd3';
 import { SyntenyData, ChromosomeData, ReferenceGenomeData, GeneAnnotation, ChromosomeBreakpoint } from '../types';
@@ -80,6 +81,7 @@ import { ExampleFilesDrawer } from "@/components/chromoviz/example-files-drawer"
 import { FileUploaderGroup } from "@/components/chromoviz/file-uploader";
 import { config } from 'process';
 import { TipsCarousel } from "@/components/chromoviz/tips-carousel";
+import { useRouter } from 'next/navigation';
 
 const parseCSVRow = (d: any): any => {
   return {
@@ -284,6 +286,8 @@ export default function ChromoViz() {
   const mainCardRef = useRef<HTMLDivElement>(null);
   const [showTooltips, setShowTooltips] = useState(true);
   const [currentBlockIndex, setCurrentBlockIndex] = useState<number>(0);
+  const router = useRouter();
+  const [isAtRoot, setIsAtRoot] = useState(true);
   
   // Initialize from localStorage
   useEffect(() => {
@@ -783,27 +787,27 @@ export default function ChromoViz() {
                   {/* Main Visualization Area */}
                   <div className={selectedSynteny.length > 0 ? "col-span-12 lg:col-span-8 h-full" : "col-span-12 h-full"}>
                     <Card className="h-full flex flex-col" ref={mainCardRef}>
-                      {/* Modified Card Header with integrated Tips */}
+                      {/* Modified Card Header with integrated Tips and Back Button */}
                       {referenceData && !showWelcomeCard && (
                         <CardHeader className="p-4 border-b">
                           <div className="flex items-center justify-between gap-4">
                             <div className="flex items-center gap-4">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={handleResetToWelcome}
+                                className="h-8 px-2 text-xs font-medium text-red-600 dark:text-red-400 
+                                  hover:bg-red-500/10 transition-colors group [&_svg]:stroke-red-500
+                                  sm:bg-red-500/20 sm:hover:bg-red-500/30"
+                              >
+                                <ArrowLeft className="h-3.5 w-3.5 mr-1.5" />
+                                <span className="hidden sm:inline">Go Back</span>
+                              </Button>
                               <CardTitle className="text-lg font-medium">Chromosome Visualization</CardTitle>
-                              {/* Compact Tips Carousel remains */}
-                              <div className="h-8 border-l pl-4">
-                                <TipsCarousel variant="compact" className="w-[300px]" />
-                              </div>
                             </div>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={handleResetToWelcome}
-                              className="h-8 px-2 text-xs font-medium bg-red-500/20 text-red-600 dark:text-red-400 
-                                hover:bg-red-500/30 transition-colors group [&_svg]:stroke-red-500"
-                            >
-                              <RotateCcw className="h-3.5 w-3.5 mr-1.5" />
-                              Go Back
-                            </Button>
+                            <div className="h-8 border-l pl-4 hidden sm:block">
+                              <TipsCarousel variant="compact" className="w-[300px]" />
+                            </div>
                           </div>
                         </CardHeader>
                       )}
@@ -938,17 +942,18 @@ export default function ChromoViz() {
                             </div>
 
                             {/* Upload Button and More Examples */}
-                            <div className="pt-4 flex items-center justify-center gap-6 p-4">
+                            <div className="pt-4 flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6 p-4">
                               <FileUploaderGroup 
                                 onDataLoad={onDataLoad}
                                 trigger={
                                   <AiButton 
-                                    className="min-w-[200px] h-12 relative bg-blue-500/10 dark:bg-blue-500/20 
-                                      hover:bg-blue-500/20 dark:hover:bg-blue-500/30 transition-colors"
+                                    className="w-full sm:min-w-[200px] h-12 relative bg-blue-500/10 
+                                      dark:bg-blue-500/20 hover:bg-blue-500/20 dark:hover:bg-blue-500/30 
+                                      transition-colors"
                                     color="blue"
                                   >
                                     <Upload className="h-5 w-5" />
-                                    <span className="text-base">Upload Your Files</span>
+                                    <span className="text-base">Upload Files</span>
                                   </AiButton>
                                 }
                               />
@@ -957,11 +962,12 @@ export default function ChromoViz() {
                                 <AiButton
                                   variant="simple"
                                   color="amber"
-                                  className="min-w-[200px] h-12 relative bg-amber-500/10 dark:bg-amber-500/20 
-                                    hover:bg-amber-500/20 dark:hover:bg-amber-500/30 transition-colors"
+                                  className="w-full sm:min-w-[200px] h-12 relative bg-amber-500/10 
+                                    dark:bg-amber-500/20 hover:bg-amber-500/20 dark:hover:bg-amber-500/30 
+                                    transition-colors"
                                 >
                                   <FileText className="h-5 w-5" />
-                                  <span className="text-base">More Examples</span>
+                                  <span className="text-base">Examples</span>
                                 </AiButton>
                               </ExampleFilesDrawer>
                             </div>
