@@ -3,7 +3,7 @@
 import ModeToggle from '@/components/mode-toggle'
 import { UserProfile } from '@/components/user-profile'
 import config from '@/config'
-import { ChevronRight, HomeIcon, Info, BookOpen, FileText, Copy } from 'lucide-react'
+import { ChevronRight, HomeIcon, Info, BookOpen, FileText, Copy, MoreHorizontal } from 'lucide-react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import clsx from 'clsx'
@@ -14,14 +14,15 @@ import { GuideSheet } from "@/components/chromoviz/guide"
 import { Button } from "@/components/ui/button"
 import { ShareDrawer } from "@/components/share-drawer"
 import { useToast } from "@/components/ui/use-toast"
+import { toast } from "sonner"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 
-const CITATION = `@article{chitra2024,
-  title={Chitra: Interactive Visualization of Chromosome-Scale Synteny},
-  author={Your Authors},
-  journal={Your Journal},
-  year={2024},
-  doi={your-doi}
-}`
+const CITATION = `Pruthi, P., Narayan, J., Agarwal, P., Shukla, N., & Bhatia, A. (2024). CHITRA: Chromosome Interactive Tool for Rearrangement Analysis. CSIR-IGIB.`
 
 function Breadcrumbs() {
   const pathname = usePathname()
@@ -56,21 +57,16 @@ function Breadcrumbs() {
 }
 
 function CopyButton() {
-  const { toast } = useToast()
-
   const handleCopy = async () => {
     try {
       await navigator.clipboard.writeText(CITATION)
-      toast({
-        title: "Citation copied",
-        description: "The citation has been copied to your clipboard.",
+      toast.success("Citation copied to clipboard", {
+        description: "You can now paste it in your document",
         duration: 2000,
       })
     } catch (err) {
-      toast({
-        title: "Failed to copy",
-        description: "Please try again or copy manually.",
-        variant: "destructive",
+      toast.error("Failed to copy citation", {
+        description: "Please try again or copy manually",
         duration: 2000,
       })
     }
@@ -79,12 +75,92 @@ function CopyButton() {
   return (
     <Button 
       variant="ghost" 
-      className="h-8 hover:bg-background/80 text-sm"
+      className="h-8 w-8 sm:w-auto hover:bg-background/80 text-sm p-0 sm:p-2"
       onClick={handleCopy}
+      data-copy-button="true"
     >
-      <Copy className="h-4 w-4 md:mr-2" />
-      <span className="hidden md:inline">Cite</span>
+      <Copy className="h-4 w-4" />
+      <span className="hidden sm:inline-block sm:ml-2">Cite</span>
     </Button>
+  )
+}
+
+function NavActions() {
+  return (
+    <>
+      {/* Desktop view */}
+      <div className="hidden sm:flex items-center gap-2">
+        <AboutSheet>
+          <Button 
+            variant="ghost" 
+            className="h-8 w-auto hover:bg-background/80 text-sm p-2"
+          >
+            <Info className="h-4 w-4" />
+            <span className="ml-2">About</span>
+          </Button>
+        </AboutSheet>
+        <GuideSheet>
+          <Button 
+            variant="ghost" 
+            className="h-8 w-auto hover:bg-background/80 text-sm p-2"
+          >
+            <BookOpen className="h-4 w-4" />
+            <span className="ml-2">Guide</span>
+          </Button>
+        </GuideSheet>
+        <Link href="/docs">
+          <Button 
+            variant="ghost" 
+            className="h-8 w-auto hover:bg-background/80 text-sm p-2"
+          >
+            <FileText className="h-4 w-4" />
+            <span className="ml-2">Docs</span>
+          </Button>
+        </Link>
+        <CopyButton />
+      </div>
+
+      {/* Mobile view */}
+      <div className="sm:hidden">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button 
+              variant="ghost" 
+              className="h-8 w-8 p-0 hover:bg-background/80"
+            >
+              <MoreHorizontal className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-48">
+            <AboutSheet>
+              <DropdownMenuItem>
+                <Info className="h-4 w-4 mr-2" />
+                About
+              </DropdownMenuItem>
+            </AboutSheet>
+            <GuideSheet>
+              <DropdownMenuItem>
+                <BookOpen className="h-4 w-4 mr-2" />
+                Guide
+              </DropdownMenuItem>
+            </GuideSheet>
+            <Link href="/docs">
+              <DropdownMenuItem>
+                <FileText className="h-4 w-4 mr-2" />
+                Docs
+              </DropdownMenuItem>
+            </Link>
+            <DropdownMenuItem onClick={() => {
+              const copyButton = document.querySelector('[data-copy-button="true"]') as HTMLButtonElement;
+              copyButton?.click();
+            }}>
+              <Copy className="h-4 w-4 mr-2" />
+              Cite
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+    </>
   )
 }
 
@@ -111,6 +187,7 @@ export default function NavBar() {
           "w-full transition-all duration-200 h-full relative",
           isHomePage ? [
             "max-w-2xl mx-auto mt-4",
+            "px-2 sm:px-4",
             isScrolled 
               ? "bg-background/40 backdrop-blur-[16px] brightness-[1.1] border border-white/[0.1] dark:border-white/[0.05] rounded-full"
               : "bg-background/30 backdrop-blur-[16px] rounded-full"
@@ -130,68 +207,36 @@ export default function NavBar() {
         )} />
 
         <div className={clsx(
-          "flex h-14 lg:h-[55px] items-center justify-between px-4 md:px-6 lg:px-8",
-          isHomePage && "px-6"
+          "flex h-14 lg:h-[55px] items-center justify-between",
+          "px-2 sm:px-4 md:px-6 lg:px-8",
+          isHomePage && "px-3 sm:px-6"
         )}>
           {/* Left side - Logo and Title */}
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 sm:gap-4">
             <Link href="/">
               <ShinyRotatingBorderButton className={clsx(
-                "!p-1.5 !px-3",
+                "!p-1 sm:!p-1.5 !px-2 sm:!px-3",
                 isHomePage && "!border-0"
               )}>
-                <span className="text-sm font-bold tracking-tight">CHITRA</span>
+                <span className="text-xs sm:text-sm font-bold tracking-tight">CHITRA</span>
               </ShinyRotatingBorderButton>
             </Link>
-            <div className="flex items-center gap-2">
-              <AboutSheet>
-                <Button 
-                  variant="ghost" 
-                  className="h-8 hover:bg-background/80 text-sm"
-                >
-                  <Info className="h-4 w-4 md:mr-2" />
-                  <span className="hidden md:inline">About</span>
-                </Button>
-              </AboutSheet>
-              <GuideSheet>
-                <Button 
-                  variant="ghost" 
-                  className="h-8 hover:bg-background/80 text-sm"
-                >
-                  <BookOpen className="h-4 w-4 md:mr-2" />
-                  <span className="hidden md:inline">Guide</span>
-                </Button>
-              </GuideSheet>
-              <Link href="/docs">
-                <Button 
-                  variant="ghost" 
-                  className="h-8 hover:bg-background/80 text-sm"
-                >
-                  <FileText className="h-4 w-4 md:mr-2" />
-                  <span className="hidden md:inline">Docs</span>
-                </Button>
-              </Link>
-              <CopyButton />
-            </div>
+            <NavActions />
           </div>
 
           {/* Right side content */}
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 sm:gap-4">
             <div className={clsx(
               "hidden md:block",
               isHomePage && "hidden"
             )}>
               <Breadcrumbs />
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1 sm:gap-2">
               {config?.auth?.enabled && (
-                <div className="hidden md:block">
-                  <UserProfile />
-                </div>
+                <UserProfile />
               )}
-              <div className="hidden md:block">
-                <ShareDrawer />
-              </div>
+              <ShareDrawer />
               <ModeToggle />
             </div>
           </div>
