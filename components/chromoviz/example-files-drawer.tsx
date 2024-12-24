@@ -40,7 +40,7 @@ const EXAMPLE_SETS: ExampleSet[] = [
   {
     id: 'set1',
     name: 'Basic Synteny',
-    description: 'Simple synteny visualization between two species'
+    description: 'Simple synteny visualization between species'
   },
   {
     id: 'set2',

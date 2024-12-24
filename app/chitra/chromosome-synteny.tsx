@@ -259,7 +259,7 @@ const ChromosomeScrollbar = ({
   const [startX, setStartX] = useState(0);
   const [scrollLeft, setScrollLeft] = useState(0);
 
-  const EXTRA_SCROLL_SPACE = 150; // Increased from 120 to 150 for more space
+  const EXTRA_SCROLL_SPACE = 200; // Increased from 120 to 150 for more space
 
   const getThumbWidth = useCallback(() => {
     if (!containerRef.current || !svgRef.current) return 100;

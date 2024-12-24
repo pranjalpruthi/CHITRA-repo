@@ -21,7 +21,9 @@ import {
   GripVertical,
   LayoutGrid,
   LayoutPanelTop,
-  Database
+  Database,
+  Moon,
+  Sun
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import AiButton from "@/components/animata/button/ai-button";
@@ -33,6 +35,7 @@ import { ExampleFilesDrawer } from "@/components/chromoviz/example-files-drawer"
 import { DataViewerDrawer } from "./data-viewer-drawer";
 import { cn } from "@/lib/utils";
 import { ChromosomeData, SyntenyData } from "@/app/types";
+import { useTheme } from "next-themes";
 
 interface FloatingHUDBarProps {
   onGenerateVisualization: () => void;
@@ -90,6 +93,7 @@ export function FloatingHUDBar({
   const y = useMotionValue(0);
   const [isVertical, setIsVertical] = useState(false);
   const [forceVertical, setForceVertical] = useState(false);
+  const { theme, setTheme } = useTheme();
 
   // Check position relative to window edge
   useEffect(() => {
@@ -338,7 +342,28 @@ export function FloatingHUDBar({
               </Button>
             </DataViewerDrawer>
 
-            {/* Layout Toggle Button - Add before Fullscreen */}
+            {/* Theme Toggle Button */}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+              className={cn(
+                "transition-colors group",
+                isVertical 
+                  ? "h-8 w-8 p-0" 
+                  : "h-8 w-8 p-0",
+                "hover:bg-white/10 hover:text-white"
+              )}
+            >
+              {theme === "dark" ? (
+                <Sun className="h-3.5 w-3.5 group-hover:text-amber-400" />
+              ) : (
+                <Moon className="h-3.5 w-3.5 group-hover:text-blue-400" />
+              )}
+              <span className="sr-only">Toggle theme</span>
+            </Button>
+
+            {/* Layout Toggle Button */}
             <Button
               variant="ghost"
               size="icon"

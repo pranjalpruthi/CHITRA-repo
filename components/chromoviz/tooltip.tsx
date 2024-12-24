@@ -181,8 +181,13 @@ export function getSyntenyTooltip(link: SyntenyData): JSX.Element {
           Syntenic Block
         </Badge>
         <Badge 
-          variant={link.query_strand === '+' ? 'default' : 'destructive'}
-          className="flex items-center gap-1"
+          variant="secondary"
+          className={cn(
+            "flex items-center gap-1",
+            link.query_strand === '+' 
+              ? "bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300 hover:bg-blue-200/80" 
+              : "bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-300 hover:bg-red-200/80"
+          )}
         >
           {link.query_strand === '+' ? (
             <>Forward <ArrowRight className="h-3 w-3" /></>
@@ -354,7 +359,7 @@ export function Tooltip({
           exit="exit"
           className={cn(
             "fixed z-[90]",
-            "left-4 bottom-[calc(4rem+theme(space.8))]",
+            "right-4 top-20",
             "w-[calc(100vw-2rem)] sm:w-auto",
             "min-w-[280px] max-w-[350px]",
             glassEffect,
@@ -485,8 +490,7 @@ export function HoverTooltip({
             animate="visible"
             exit="hidden"
             className={cn(
-              "fixed left-4 z-[90]",
-              "bottom-[calc(4rem+theme(space.8))]",
+              "fixed right-4 top-20 z-[90]",
               "w-[calc(100vw-2rem)] sm:w-auto",
               "min-w-[280px] max-w-[350px]",
               glassEffect,
@@ -553,8 +557,7 @@ export function HoverTooltip({
             animate="visible"
             exit="hidden"
             className={cn(
-              "fixed left-4 z-[90]",
-              "bottom-[calc(4rem+theme(space.8))]",
+              "fixed right-4 top-20 z-[90]",
               "w-[calc(100vw-2rem)] sm:w-auto",
               "min-w-[280px] max-w-[350px]",
               glassEffect,

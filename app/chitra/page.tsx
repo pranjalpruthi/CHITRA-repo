@@ -921,28 +921,52 @@ export default function ChromoViz() {
                                 </div>
                               </div>
                               
-                              <h3 className="text-2xl font-semibold text-gray-900 dark:text-gray-100">
-                                Welcome to Chitra
-                              </h3>
-                              
-                              {/* Enhanced Instructions */}
-                              <div className="space-y-4 max-w-2xl mx-auto">
-                                <p className="text-xl font-medium text-gray-800 dark:text-gray-200">
-                                  Get Started in Two Ways:
+                              <div className="space-y-2">
+                                <h3 className="text-2xl font-semibold text-gray-900 dark:text-gray-100">
+                                  Welcome to CHITRA
+                                </h3>
+                                <p className="text-xl text-gray-500 dark:text-gray-400">
+                                  <span className="font-semibold text-gray-900 dark:text-gray-100">C</span>hromosome{' '}
+                                  <span className="font-semibold text-gray-900 dark:text-gray-100">I</span>nteractive{' '}
+                                  <span className="font-semibold text-gray-900 dark:text-gray-100">T</span>ool for{' '}
+                                  <span className="font-semibold text-gray-900 dark:text-gray-100">R</span>earrangement{' '}
+                                  <span className="font-semibold text-gray-900 dark:text-gray-100">A</span>nalysis
                                 </p>
-                                <div className="flex flex-col gap-3 text-lg">
-                                  <div className="flex items-center gap-3 text-gray-700 dark:text-gray-300">
-                                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-500/10 text-blue-500">
-                                      1
-                                    </span>
-                                    <span>Explore our curated example datasets below</span>
-                                  </div>
-                                  <div className="flex items-center gap-3 text-gray-700 dark:text-gray-300">
-                                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-500/10 text-blue-500">
-                                      2
-                                    </span>
-                                    <span>Upload your own files using the buttons at the bottom</span>
-                                  </div>
+                              </div>
+
+                              {/* Feature Tags */}
+                              <div className="flex flex-wrap justify-center gap-2">
+                                <Badge variant="secondary" className="bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400">
+                                  #Synteny
+                                </Badge>
+                                <Badge variant="secondary" className="bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400">
+                                  #Annotations
+                                </Badge>
+                                <Badge variant="secondary" className="bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400">
+                                  #Breakpoints
+                                </Badge>
+                                <Badge variant="secondary" className="bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400">
+                                  #Visualization
+                                </Badge>
+                                <Badge variant="secondary" className="bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400">
+                                  #Chromosomes
+                                </Badge>
+                              </div>
+
+                              {/* Get Started Section */}
+                              <div className="flex items-center gap-6 justify-center text-gray-700 dark:text-gray-300">
+                                <div className="flex items-center gap-3">
+                                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-500/10 text-blue-500">
+                                    1
+                                  </span>
+                                  <span>Explore example datasets</span>
+                                </div>
+                                <span className="text-gray-400">or</span>
+                                <div className="flex items-center gap-3">
+                                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-500/10 text-blue-500">
+                                    2
+                                  </span>
+                                  <span>Upload your files</span>
                                 </div>
                               </div>
                             </div>
@@ -953,7 +977,7 @@ export default function ChromoViz() {
                                 {
                                   id: 'set1',
                                   name: 'Basic Synteny',
-                                  description: 'Simple synteny visualization between two species',
+                                  description: 'Simple synteny visualization between species',
                                   color: 'bg-blue-400',
                                   borderColor: 'border-blue-200 dark:border-blue-800',
                                   hoverBg: 'hover:bg-blue-50/50 dark:hover:bg-blue-900/10',
