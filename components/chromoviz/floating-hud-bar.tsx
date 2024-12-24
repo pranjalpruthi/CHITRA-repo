@@ -38,10 +38,7 @@ import { ChromosomeData, SyntenyData } from "@/app/types";
 import { useTheme } from "next-themes";
 
 interface FloatingHUDBarProps {
-  onGenerateVisualization: () => void;
   onLoadExample: (path: string) => void;
-  canGenerateVisualization: boolean;
-  isLoading: boolean;
   selectedSpecies: string[];
   setSelectedSpecies: (species: string[]) => void;
   selectedChromosomes: string[];
@@ -69,10 +66,7 @@ interface FloatingHUDBarProps {
 }
 
 export function FloatingHUDBar({
-  onGenerateVisualization,
   onLoadExample,
-  canGenerateVisualization,
-  isLoading,
   selectedSpecies,
   setSelectedSpecies,
   selectedChromosomes,
@@ -204,29 +198,6 @@ export function FloatingHUDBar({
               </Button>
             </FileUploaderGroup>
 
-            {/* Generate Button */}
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              onClick={onGenerateVisualization}
-              disabled={!canGenerateVisualization || isLoading}
-              className={cn(
-                "hover:bg-white/10 hover:text-white transition-colors group",
-                isVertical 
-                  ? "h-8 w-8 p-0" 
-                  : "h-8 px-2 text-xs"
-              )}
-            >
-              {isLoading ? (
-                <RefreshCw className="h-3.5 w-3.5 animate-spin group-hover:text-blue-400" />
-              ) : (
-                <ArrowRight className="h-3.5 w-3.5 group-hover:text-blue-400" />
-              )}
-              {!isVertical && !isLoading && (
-                <span className="hidden sm:inline ml-1.5">Generate</span>
-              )}
-            </Button>
-
             {/* Example Files Button */}
             <ExampleFilesDrawer onLoadExample={onLoadExample}>
               <Button 
@@ -254,7 +225,6 @@ export function FloatingHUDBar({
               chromosomeOptions={chromosomeOptions}
               referenceGenomeData={referenceGenomeData}
               syntenyData={syntenyData}
-              isLoading={isLoading}
             >
               <Button 
                 variant="ghost" 
@@ -302,23 +272,6 @@ export function FloatingHUDBar({
                 </span>
               )}
             </Button>
-
-            {/* Guide Button */}
-            <GuideSheet>
-              <Button 
-                variant="ghost" 
-                size="sm"
-                className={cn(
-                  "hover:bg-white/10 hover:text-white transition-colors group",
-                  isVertical 
-                    ? "h-8 w-8 p-0" 
-                    : "h-8 px-2 text-xs"
-                )}
-              >
-                <BookOpen className="h-3.5 w-3.5 group-hover:text-blue-400" />
-                {!isVertical && <span className="hidden sm:inline ml-1.5">Guide</span>}
-              </Button>
-            </GuideSheet>
 
             {/* View Data Button */}
             <DataViewerDrawer

@@ -809,10 +809,7 @@ export default function ChromoViz() {
               >
                 {/* Controls Bar */}
                 <FloatingHUDBar
-                  onGenerateVisualization={handleGenerateVisualization}
                   onLoadExample={loadExampleData}
-                  canGenerateVisualization={canGenerateVisualization}
-                  isLoading={isLoading}
                   selectedSpecies={selectedSpecies}
                   setSelectedSpecies={setSelectedSpecies}
                   selectedChromosomes={selectedChromosomes}
@@ -926,11 +923,7 @@ export default function ChromoViz() {
                                   Welcome to CHITRA
                                 </h3>
                                 <p className="text-xl text-gray-500 dark:text-gray-400">
-                                  <span className="font-semibold text-gray-900 dark:text-gray-100">C</span>hromosome{' '}
-                                  <span className="font-semibold text-gray-900 dark:text-gray-100">I</span>nteractive{' '}
-                                  <span className="font-semibold text-gray-900 dark:text-gray-100">T</span>ool for{' '}
-                                  <span className="font-semibold text-gray-900 dark:text-gray-100">R</span>earrangement{' '}
-                                  <span className="font-semibold text-gray-900 dark:text-gray-100">A</span>nalysis
+                                  Chromosome Interactive Tool for Rearrangement Analysis
                                 </p>
                               </div>
 
@@ -1000,16 +993,6 @@ export default function ChromoViz() {
                                   borderColor: 'border-purple-200 dark:border-purple-800',
                                   hoverBg: 'hover:bg-purple-50/50 dark:hover:bg-purple-900/10',
                                   groupHover: 'group-hover:text-purple-500 dark:group-hover:text-purple-400',
-                                  badges: [
-                                    {
-                                      text: 'Gene Annotations',
-                                      className: 'bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400'
-                                    },
-                                    {
-                                      text: 'Breakpoints',
-                                      className: 'bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400'
-                                    }
-                                  ]
                                 }
                               ].map((set) => (
                                 <motion.button
@@ -1036,18 +1019,6 @@ export default function ChromoViz() {
                                       <div className="text-sm text-gray-500 dark:text-gray-400 mt-1">
                                         {set.description}
                                       </div>
-                                      {set.badges && (
-                                        <div className="flex flex-wrap gap-2 mt-2">
-                                          {set.badges.map((badge, index) => (
-                                            <span
-                                              key={index}
-                                              className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${badge.className}`}
-                                            >
-                                              {badge.text}
-                                            </span>
-                                          ))}
-                                        </div>
-                                      )}
                                     </div>
                                   </div>
                                 </motion.button>
