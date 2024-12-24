@@ -923,7 +923,11 @@ export default function ChromoViz() {
                                   Welcome to CHITRA
                                 </h3>
                                 <p className="text-xl text-gray-500 dark:text-gray-400">
-                                  Chromosome Interactive Tool for Rearrangement Analysis
+                                  <span className="font-semibold text-gray-900 dark:text-gray-100">C</span>hromosome{' '}
+                                  <span className="font-semibold text-gray-900 dark:text-gray-100">I</span>nteractive{' '}
+                                  <span className="font-semibold text-gray-900 dark:text-gray-100">T</span>ool for{' '}
+                                  <span className="font-semibold text-gray-900 dark:text-gray-100">R</span>earrangement{' '}
+                                  <span className="font-semibold text-gray-900 dark:text-gray-100">A</span>nalysis
                                 </p>
                               </div>
 

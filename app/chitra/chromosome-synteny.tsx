@@ -952,7 +952,12 @@ export function ChromosomeSynteny({
     const svg = d3.select(svgRef.current);
     svg.selectAll('*').remove();
 
-    const margin = { top: 60, right: 40, bottom: 60, left: 120 };
+    const margin = { 
+      top: 20,
+      right: 40,
+      bottom: 120,
+      left: 120 
+    };
     const innerWidth = dimensions.width - margin.left - margin.right;
     const innerHeight = dimensions.height - margin.top - margin.bottom;
 
@@ -1234,10 +1239,15 @@ export function ChromosomeSynteny({
       const clone = svgElement.cloneNode(true) as SVGSVGElement;
       const bbox = svgElement.getBBox();
       
-      // Add padding (50px on each side)
-      const padding = 50;
-      const totalWidth = bbox.width + (padding * 2);
-      const totalHeight = bbox.height + (padding * 2) + 30; // Extra 30px for credits
+      // Add padding (reduced top padding)
+      const padding = {
+        top: 30,
+        right: 50,
+        bottom: 50,
+        left: 50
+      };
+      const totalWidth = bbox.width + (padding.left + padding.right);
+      const totalHeight = bbox.height + (padding.top + padding.bottom) + 30;
       
       // Check dark mode once at the beginning
       const isDarkMode = document.documentElement.classList.contains('dark');
@@ -1245,7 +1255,7 @@ export function ChromosomeSynteny({
       // Update clone dimensions with padding
       clone.setAttribute('width', `${totalWidth}`);
       clone.setAttribute('height', `${totalHeight}`);
-      clone.setAttribute('viewBox', `${bbox.x - padding} ${bbox.y - padding} ${totalWidth} ${totalHeight}`);
+      clone.setAttribute('viewBox', `${bbox.x - padding.left} ${bbox.y - padding.top} ${totalWidth} ${totalHeight}`);
       
       // Inline styles
       const styles = document.styleSheets;
@@ -1363,7 +1373,8 @@ export function ChromosomeSynteny({
       )}>
         {/* Header Controls */}
         <div className={cn(
-          "absolute top-0 left-0 right-0 flex items-center justify-between gap-2 p-2 border-b border-border/20",
+          "absolute top-0 left-0 right-0 flex items-center justify-between gap-2 p-1",
+          "border-b border-border/20",
           "bg-background/10 backdrop-blur-md z-10"
         )}>
           {/* Left Side Controls */}
