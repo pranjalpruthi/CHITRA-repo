@@ -842,7 +842,10 @@ export default function ChromoViz() {
                         : "col-span-12 lg:col-span-11"
                       : "col-span-12"
                   )}>
-                    <Card className="h-full flex flex-col" ref={mainCardRef}>
+                    <Card className={cn(
+                      "h-full flex flex-col",
+                      isFullScreen && "pb-10"
+                    )} ref={mainCardRef}>
                       {/* Modified Card Header with integrated Tips and Back Button */}
                       {referenceData && !showWelcomeCard && (
                         <CardHeader className="p-4 border-b">
@@ -859,7 +862,7 @@ export default function ChromoViz() {
                                 <ArrowLeft className="h-3.5 w-3.5 mr-1.5" />
                                 <span className="hidden sm:inline">Go Back</span>
                               </Button>
-                              <CardTitle className="text-lg font-medium">Chromosome Visualization</CardTitle>
+                              <CardTitle className="text-lg font-medium">Synteny Visualization</CardTitle>
                             </div>
                             <div className="h-8 border-l pl-4 hidden sm:block">
                               <TipsCarousel variant="compact" className="w-[300px]" />
@@ -906,7 +909,7 @@ export default function ChromoViz() {
                             className="text-center space-y-12 max-w-4xl w-full"
                           >
                             {/* Header */}
-                            <div className="space-y-4">
+                            <div className="space-y-6">
                               <div className="relative w-20 h-20 mx-auto">
                                 <div className="absolute inset-0 bg-blue-400/20 dark:bg-blue-500/20 blur-2xl rounded-full" />
                                 <div className="relative flex items-center justify-center w-full h-full 
@@ -921,9 +924,27 @@ export default function ChromoViz() {
                               <h3 className="text-2xl font-semibold text-gray-900 dark:text-gray-100">
                                 Welcome to Chitra
                               </h3>
-                              <p className="text-base text-gray-500 dark:text-gray-400 max-w-lg mx-auto">
-                                Get started by exploring our example datasets or upload your own files
-                              </p>
+                              
+                              {/* Enhanced Instructions */}
+                              <div className="space-y-4 max-w-2xl mx-auto">
+                                <p className="text-xl font-medium text-gray-800 dark:text-gray-200">
+                                  Get Started in Two Ways:
+                                </p>
+                                <div className="flex flex-col gap-3 text-lg">
+                                  <div className="flex items-center gap-3 text-gray-700 dark:text-gray-300">
+                                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-500/10 text-blue-500">
+                                      1
+                                    </span>
+                                    <span>Explore our curated example datasets below</span>
+                                  </div>
+                                  <div className="flex items-center gap-3 text-gray-700 dark:text-gray-300">
+                                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-500/10 text-blue-500">
+                                      2
+                                    </span>
+                                    <span>Upload your own files using the buttons at the bottom</span>
+                                  </div>
+                                </div>
+                              </div>
                             </div>
 
                             {/* Example Sets Grid */}
@@ -946,7 +967,6 @@ export default function ChromoViz() {
                                   borderColor: 'border-emerald-200 dark:border-emerald-800',
                                   hoverBg: 'hover:bg-emerald-50/50 dark:hover:bg-emerald-900/10',
                                   groupHover: 'group-hover:text-emerald-500 dark:group-hover:text-emerald-400',
-                                  badge: 'Gene Annotations'
                                 },
                                 {
                                   id: 'set3',
@@ -956,7 +976,16 @@ export default function ChromoViz() {
                                   borderColor: 'border-purple-200 dark:border-purple-800',
                                   hoverBg: 'hover:bg-purple-50/50 dark:hover:bg-purple-900/10',
                                   groupHover: 'group-hover:text-purple-500 dark:group-hover:text-purple-400',
-                                  badge: 'Gene Annotations'
+                                  badges: [
+                                    {
+                                      text: 'Gene Annotations',
+                                      className: 'bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400'
+                                    },
+                                    {
+                                      text: 'Breakpoints',
+                                      className: 'bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400'
+                                    }
+                                  ]
                                 }
                               ].map((set) => (
                                 <motion.button
@@ -983,12 +1012,16 @@ export default function ChromoViz() {
                                       <div className="text-sm text-gray-500 dark:text-gray-400 mt-1">
                                         {set.description}
                                       </div>
-                                      {set.badge && (
+                                      {set.badges && (
                                         <div className="flex flex-wrap gap-2 mt-2">
-                                          <span className="inline-flex items-center rounded-full bg-gray-100 dark:bg-gray-800 
-                                            px-2.5 py-0.5 text-xs font-medium text-gray-600 dark:text-gray-400">
-                                            {set.badge}
-                                          </span>
+                                          {set.badges.map((badge, index) => (
+                                            <span
+                                              key={index}
+                                              className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${badge.className}`}
+                                            >
+                                              {badge.text}
+                                            </span>
+                                          ))}
                                         </div>
                                       )}
                                     </div>

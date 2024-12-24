@@ -50,17 +50,7 @@ const EXAMPLE_SETS: ExampleSet[] = [
   {
     id: 'set3',
     name: 'Annotated Genome',
-    description: 'Detailed genome annotations with gene information'
-  },
-  {
-    id: 'set4',
-    name: 'Large Scale',
-    description: 'Large-scale genome comparison with many chromosomes'
-  },
-  {
-    id: 'set5',
-    name: 'Custom Features',
-    description: 'Example with custom genomic features'
+    description: 'Detailed genome annotations with gene information and breakpoints'
   }
 ];
 
@@ -108,12 +98,25 @@ const getExampleFiles = (setId: string): ExampleFile[] => {
     }
   ];
 
-  if (['set2', 'set3', 'set4', 'set5'].includes(setId)) {
+  if (setId === 'set3') {
+    commonFiles.push({
+      name: "breakpoints.csv",
+      description: "Contains breakpoint information for genome analysis",
+      downloadUrl: `${basePath}/bp.csv`,
+      format: [
+        { field: "chromosome_id", desc: "Chromosome identifier" },
+        { field: "position", desc: "Breakpoint position" },
+        { field: "type", desc: "Type of breakpoint" }
+      ],
+      required: false,
+      colorClass: 'from-amber-500/5 to-orange-500/10'
+    });
+  }
+
+  if (setId === 'set3') {
     commonFiles.push({
       name: "ref_gene_annotations.csv",
-      description: setId === 'set4' ? 
-        "Comprehensive gene annotations for large-scale genome analysis" :
-        "Gene annotations for reference genome with detailed feature information",
+      description: "Gene annotations for reference genome with detailed feature information",
       downloadUrl: `${basePath}/ref_gene_annotations.csv`,
       format: [
         { field: "gene_id", desc: "Gene identifier" },
@@ -168,8 +171,13 @@ export function ExampleFilesDrawer({ onLoadExample, children }: ExampleFilesDraw
   };
 
   const handleFileClick = (file: ExampleFile) => {
-    setActiveFile(file);
-    loadCSVData(file);
+    if (activeFile?.name === file.name) {
+      setActiveFile(null);
+      setCsvData(null);
+    } else {
+      setActiveFile(file);
+      loadCSVData(file);
+    }
   };
 
   const handleSetChange = async (newSet: ExampleSet) => {
@@ -244,15 +252,20 @@ export function ExampleFilesDrawer({ onLoadExample, children }: ExampleFilesDraw
                         {set.description}
                       </div>
                       <div className="flex flex-wrap gap-2 mt-2">
-                        {set.id !== 'set1' && (
-                          <span className="inline-flex items-center rounded-full bg-gray-100 dark:bg-gray-800 px-2.5 py-0.5 text-xs font-medium text-gray-600 dark:text-gray-400">
-                            Gene Annotations
-                          </span>
-                        )}
                         {set.id === 'set4' && (
                           <span className="inline-flex items-center rounded-full bg-amber-100 dark:bg-amber-900/30 px-2.5 py-0.5 text-xs font-medium text-amber-600 dark:text-amber-400">
                             Large Scale
                           </span>
+                        )}
+                        {set.id === 'set3' && (
+                          <div className="flex flex-wrap gap-2 mt-2">
+                            <span className="inline-flex items-center rounded-full bg-purple-100 dark:bg-purple-900/30 px-2.5 py-0.5 text-xs font-medium text-purple-600 dark:text-purple-400">
+                              Gene Annotations
+                            </span>
+                            <span className="inline-flex items-center rounded-full bg-amber-100 dark:bg-amber-900/30 px-2.5 py-0.5 text-xs font-medium text-amber-600 dark:text-amber-400">
+                              Breakpoints
+                            </span>
+                          </div>
                         )}
                       </div>
                     </div>

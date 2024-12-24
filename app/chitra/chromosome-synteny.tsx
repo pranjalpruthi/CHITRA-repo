@@ -259,18 +259,21 @@ const ChromosomeScrollbar = ({
   const [startX, setStartX] = useState(0);
   const [scrollLeft, setScrollLeft] = useState(0);
 
-  // Calculate thumb width based on content vs viewport ratio
+  const EXTRA_SCROLL_SPACE = 150; // Increased from 120 to 150 for more space
+
   const getThumbWidth = useCallback(() => {
     if (!containerRef.current || !svgRef.current) return 100;
     const contentWidth = svgRef.current.getBBox().width;
     const viewportWidth = containerRef.current.clientWidth;
-    const ratio = viewportWidth / contentWidth;
+    // Include extra scroll space in the ratio calculation
+    const totalWidth = contentWidth + EXTRA_SCROLL_SPACE;
+    const ratio = viewportWidth / totalWidth;
     return Math.max(50, ratio * viewportWidth);
   }, [containerRef, svgRef]);
 
   const handleThumbMouseDown = useCallback((e: React.MouseEvent) => {
-    e.preventDefault(); // Prevent default selection
-    e.stopPropagation(); // Stop event propagation
+    e.preventDefault();
+    e.stopPropagation();
     setIsDragging(true);
     setStartX(e.clientX - scrollThumbRef.current!.offsetLeft);
   }, []);
@@ -280,18 +283,28 @@ const ChromosomeScrollbar = ({
 
     e.preventDefault();
     e.stopPropagation();
+
     const trackRect = scrollTrackRef.current.getBoundingClientRect();
     const thumbWidth = scrollThumbRef.current.clientWidth;
     const x = e.clientX - trackRect.left - startX;
     
-    const boundedX = Math.max(0, Math.min(x, trackRect.width - thumbWidth));
-    const scrollRatio = boundedX / (trackRect.width - thumbWidth);
+    // Allow scrolling into negative space
+    const boundedX = Math.max(-EXTRA_SCROLL_SPACE, Math.min(x, trackRect.width - thumbWidth));
     
-    // Update D3 transform
+    // Adjust scroll ratio calculation to account for negative space
+    const scrollRange = trackRect.width - thumbWidth + EXTRA_SCROLL_SPACE;
+    const scrollRatio = (boundedX + EXTRA_SCROLL_SPACE) / scrollRange;
+    
     if (zoomBehaviorRef.current) {
       const transform = d3.zoomTransform(svgRef.current);
+      const bbox = svgRef.current.getBBox();
+      const totalWidth = bbox.width + EXTRA_SCROLL_SPACE;
+      
+      // Calculate new translation with extra space consideration
+      const newTranslateX = -scrollRatio * (totalWidth - width) + EXTRA_SCROLL_SPACE;
+      
       const newTransform = d3.zoomIdentity
-        .translate(-scrollRatio * (svgRef.current.getBBox().width - width), transform.y)
+        .translate(newTranslateX, transform.y)
         .scale(transform.k);
       
       d3.select(svgRef.current)
@@ -321,19 +334,19 @@ const ChromosomeScrollbar = ({
   return (
     <div 
       className="absolute bottom-4 left-4 right-4 h-6 select-none"
-      onMouseDown={(e) => e.stopPropagation()} // Prevent selection events
+      onMouseDown={(e) => e.stopPropagation()}
     >
       <div 
         ref={scrollTrackRef}
         className="relative w-full h-2 bg-muted rounded-full select-none"
-        onMouseDown={(e) => e.stopPropagation()} // Prevent selection events
+        onMouseDown={(e) => e.stopPropagation()}
       >
         <div
           ref={scrollThumbRef}
           style={{ 
             width: `${getThumbWidth()}px`,
             left: scrollLeft,
-            userSelect: 'none', // Prevent text selection
+            userSelect: 'none',
             WebkitUserSelect: 'none',
             MozUserSelect: 'none',
             msUserSelect: 'none'
@@ -341,30 +354,12 @@ const ChromosomeScrollbar = ({
           className={cn(
             "absolute top-0 h-full rounded-full bg-primary/50",
             "cursor-grab hover:bg-primary/70 transition-colors",
-            "select-none touch-none", // Prevent selection and touch events
+            "select-none touch-none",
             isDragging && "cursor-grabbing bg-primary"
           )}
           onMouseDown={handleThumbMouseDown}
-          onDragStart={(e) => e.preventDefault()} // Prevent drag events
-        >
-          {/* Thumbnail preview */}
-          <div 
-            className={cn(
-              "absolute -top-20 left-0 w-40 h-16 bg-background border rounded-lg overflow-hidden",
-              "opacity-0 group-hover:opacity-100 transition-opacity select-none pointer-events-none"
-            )}
-          >
-            <svg
-              width="100%"
-              height="100%"
-              viewBox={`0 0 ${width} ${height}`}
-              preserveAspectRatio="xMidYMid meet"
-              className="select-none pointer-events-none"
-            >
-              {/* Miniature version of chromosomes */}
-            </svg>
-          </div>
-        </div>
+          onDragStart={(e) => e.preventDefault()}
+        />
       </div>
     </div>
   );

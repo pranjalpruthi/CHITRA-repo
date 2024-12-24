@@ -246,11 +246,35 @@ export function CSVUploader({ onDataLoad, type, required = true }: FileUploaderP
 
   const dropZoneConfig = {
     maxFiles: 1,
-    maxSize: 1024 * 1024 * 10, // 10MB
+    maxSize: 1024 * 1024 * 1024, // 1GB
     multiple: false,
     accept: {
       'text/csv': [config.fileType]
     },
+  };
+
+  const validateCSVFormat = (data: any[]): boolean => {
+    if (!data || data.length === 0) return false;
+    
+    // Get required fields from the config's tooltip format
+    const requiredFields = config.tooltip.format.map(f => f.field);
+    
+    // Check if first row has all required fields
+    const hasAllFields = requiredFields.every(field => 
+      Object.keys(data[0]).includes(field)
+    );
+
+    // Check if numeric fields are actually numbers
+    const isValidData = data.every(row => {
+      return Object.entries(row).every(([key, value]) => {
+        if (typeof value === 'number') {
+          return !isNaN(value);
+        }
+        return true;
+      });
+    });
+
+    return hasAllFields && isValidData;
   };
 
   const handleFileChange = async (newFiles: File[] | null) => {
@@ -263,21 +287,64 @@ export function CSVUploader({ onDataLoad, type, required = true }: FileUploaderP
     setIsLoading(true);
     try {
       const file = newFiles[0];
+
+      // Validate file type
+      if (!file.name.toLowerCase().endsWith('.csv')) {
+        toast.error(`Please upload a CSV file for ${config.title}`);
+        setIsValid(false);
+        setFiles(null);
+        return;
+      }
+
+      // Validate file size
+      if (file.size > dropZoneConfig.maxSize) {
+        toast.error(`File size exceeds 1GB limit for ${config.title}`);
+        setIsValid(false);
+        setFiles(null);
+        return;
+      }
+
       const text = await file.text();
-      const data = await d3.csvParse(text, config.parser);
-      console.log('Parsed Data:', data); // Add this line
-      console.log('Processed Data:', data); // Add this line
-      if (data && data.length > 0) {
+      
+      // Check if file is empty
+      if (!text.trim()) {
+        toast.error(`The uploaded file for ${config.title} is empty`);
+        setIsValid(false);
+        setFiles(null);
+        return;
+      }
+
+      let data;
+      try {
+        data = await d3.csvParse(text, config.parser);
+      } catch (parseError) {
+        toast.error(`Invalid CSV format for ${config.title}. Please check the file format.`);
+        setIsValid(false);
+        setFiles(null);
+        return;
+      }
+
+      // Validate CSV format and required fields
+      if (validateCSVFormat(data)) {
         setIsValid(true);
         onDataLoad(data);
-        toast.success(`Successfully loaded ${config.title}`);
+        toast.success(`Successfully loaded ${config.title}`, {
+          description: `Loaded ${data.length} rows of data`
+        });
       } else {
+        toast.error(`Invalid ${config.title} format`, {
+          description: "Please ensure all required fields are present and data types are correct"
+        });
         setIsValid(false);
-        toast.error(`Invalid ${config.title} format`);
+        setFiles(null);
       }
     } catch (error) {
+      console.error('File processing error:', error);
+      toast.error(`Error processing ${config.title}`, {
+        description: error instanceof Error ? error.message : 'Unknown error occurred'
+      });
       setIsValid(false);
-      toast.error(`Error parsing ${config.title}`);
+      setFiles(null);
     } finally {
       setIsLoading(false);
     }

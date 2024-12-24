@@ -107,7 +107,7 @@ export default function HeroSection() {
                         transition={{ delay: 0.5 }}
                         className="flex items-center justify-center gap-2 sm:gap-3 w-full"
                     >
-                        <Link href="/chromoviz" className="flex-1 sm:flex-none" onClick={handleGetStarted}>
+                        <Link href="/chitra" className="flex-1 sm:flex-none" onClick={handleGetStarted}>
                             <div className="relative overflow-hidden rounded-full shadow group p-0.5 w-full sm:w-auto">
                                 <span className={cn(
                                     "absolute inset-[-1000%] animate-[spin_5s_linear_infinite_reverse]",
