@@ -413,13 +413,21 @@ export function ExampleFilesDrawer({ onLoadExample, children }: ExampleFilesDraw
       <Drawer open={isTableDrawerOpen} onOpenChange={setIsTableDrawerOpen}>
         <DrawerContent className="h-[85vh] max-h-[85vh] md:h-[90vh] md:max-h-[90vh]">
           <DrawerHeader>
-            <DrawerTitle className="flex items-center gap-2">
-              <TableProperties className="w-5 h-5" />
-              {activeFile?.name} - Preview
-            </DrawerTitle>
-            <p className="text-sm text-gray-500 dark:text-gray-400">
-              Showing first 100 rows of data
-            </p>
+            <div className="flex items-center justify-between">
+              <div>
+                <DrawerTitle className="flex items-center gap-2">
+                  <TableProperties className="w-5 h-5" />
+                  {activeFile?.name} - Preview
+                </DrawerTitle>
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  Showing first 100 rows of data
+                </p>
+              </div>
+              <DrawerClose className="rounded-full p-2.5 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
+                <X className="h-5 w-5" />
+                <span className="sr-only">Close</span>
+              </DrawerClose>
+            </div>
           </DrawerHeader>
           <div className="p-4 h-full overflow-hidden">
             {loading ? (
