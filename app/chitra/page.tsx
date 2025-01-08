@@ -431,8 +431,8 @@ export default function ChromoViz() {
   const [alignmentFilter, setAlignmentFilter] = useState<'all' | 'forward' | 'reverse'>('all');
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isDetailedViewFullscreen, setIsDetailedViewFullscreen] = useState(false);
-  const svgRef = useRef<SVGSVGElement>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
+  const svgRef = useRef<SVGSVGElement>(null) as React.RefObject<SVGSVGElement>;
+  const containerRef = useRef<HTMLDivElement>(null) as React.RefObject<HTMLDivElement>;
   const zoomBehaviorRef = useRef<any>(null);
   const [showAnnotations, setShowAnnotations] = useState(false);
   const [showWelcomeCard, setShowWelcomeCard] = useState(true);

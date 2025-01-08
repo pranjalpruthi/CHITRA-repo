@@ -28,7 +28,7 @@
     "**/*.ts",
     "**/*.tsx",
     ".next/types/**/*.ts",
-    "next.config.js",
+    "next.config.mjs",
     "types/**/*.ts"
 , "public/old_data/morebk/chromosome-synteny.bk"  ],
   "exclude": ["node_modules"]

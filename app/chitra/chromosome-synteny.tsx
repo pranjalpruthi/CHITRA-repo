@@ -22,7 +22,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import React from "react";
+import React, { ReactElement } from "react";
 import { 
   CHROMOSOME_CONFIG,
   SYNTENY_COLORS,
@@ -59,7 +59,7 @@ interface Dimensions {
 interface TooltipInfo {
   x: number;
   y: number;
-  content: string | GeneTooltipData | JSX.Element;
+  content: string | GeneTooltipData | ReactElement;
   isOpen: boolean;
   type?: 'gene' | 'synteny' | 'chromosome';
   data?: GeneTooltipData | ChromosomeData;

@@ -1,5 +1,23 @@
+import { createMDX } from 'fumadocs-mdx/next';
+
+const withMDX = createMDX();
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  webpack: (config) => {
+    // Disable webpack caching
+    config.cache = false;
+    return config;
+  },
+  experimental: {
+    // Optimize large packages
+    optimizePackageImports: [
+      '@radix-ui/react-icons',
+      'lucide-react',
+      '@heroicons/react',
+      '@tremor/react'
+    ]
+  },
   images: {
     remotePatterns: [{
       protocol: 'https',
@@ -44,4 +62,5 @@ const nextConfig = {
     }]
   }
 };
-module.exports = nextConfig;
+
+export default withMDX(nextConfig);

@@ -6,6 +6,7 @@ import { Analytics } from "@vercel/analytics/react"
 import { GeistSans } from 'geist/font/sans'
 import type { Metadata } from 'next'
 import './globals.css'
+import { RootProvider } from 'fumadocs-ui/provider';
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://starter.rasmic.xyz"),
@@ -50,21 +51,21 @@ export default function RootLayout({
             as="image"
           />
         </head>
-        <body className={GeistSans.className}>
-          {/* <Provider> */}
-            <ThemeProvider
-              attribute="class"
-              defaultTheme="system"
-              enableSystem
-              disableTransitionOnChange
-              storageKey="chitra-theme"
-              forcedTheme={undefined}
-              themes={['light', 'dark', 'system']}
-            >
+        <body className={`${GeistSans.className} flex min-h-screen flex-col`}>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+            storageKey="chitra-theme"
+            forcedTheme={undefined}
+            themes={['light', 'dark', 'system']}
+          >
+            <RootProvider>
               {children}
               <Toaster />
-            </ThemeProvider>
-          {/* </Provider> */}
+            </RootProvider>
+          </ThemeProvider>
           <Analytics />
         </body>
       </html>

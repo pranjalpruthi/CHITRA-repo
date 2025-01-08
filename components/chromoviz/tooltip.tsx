@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { ArrowRight, ArrowLeft } from "lucide-react";
 import { ChromosomeData, SyntenyData, GeneAnnotation } from "@/app/types";
-import React from "react";
+import React, { ReactElement } from "react";
 
 const glassEffect = cn(
   "bg-gradient-to-br from-white/90 to-white/80 dark:from-gray-950/90 dark:to-gray-950/80",
@@ -15,7 +15,7 @@ const glassEffect = cn(
   "hover:shadow-xl transition-shadow duration-300"
 );
 
-export function getChromosomeTooltip(chr: ChromosomeData): JSX.Element {
+export function getChromosomeTooltip(chr: ChromosomeData): ReactElement {
   const mbSize = (chr.chr_size_bp / 1_000_000).toFixed(2);          
   const centromereInfo = chr.centromere_start && chr.centromere_end
     ? {
@@ -162,7 +162,7 @@ export function getChromosomeTooltip(chr: ChromosomeData): JSX.Element {
   );
 }
 
-export function getSyntenyTooltip(link: SyntenyData): JSX.Element {
+export function getSyntenyTooltip(link: SyntenyData): ReactElement {
   const refMb = {
     start: (link.ref_start / 1_000_000).toFixed(2),
     end: (link.ref_end / 1_000_000).toFixed(2)

@@ -1,4 +1,5 @@
 import type { Config } from "tailwindcss";
+import { createPreset } from 'fumadocs-ui/tailwind-plugin';
 
 const svgToDataUri = require("mini-svg-data-uri");
 
@@ -8,13 +9,23 @@ const {
 } = require("tailwindcss/lib/util/flattenColorPalette");
 
 const config: Config = {
-  // Merging the content arrays and removing duplicates
+  // Adding fumadocs-ui preset
+  presets: [
+    createPreset({
+      preset: 'ocean',
+      cssPrefix: '', // Remove prefix to avoid conflicts
+    })
+  ],
+  
+  // Merging content arrays including fumadocs-ui
   content: [
     "./pages/**/*.{js,ts,jsx,tsx,mdx}",
     "./components/**/*.{js,ts,jsx,tsx,mdx}",
     "./app/**/*.{js,ts,jsx,tsx,mdx}",
     "./src/**/*.{ts,tsx}",
-    "./node_modules/onborda/dist/**/*.{js,ts,jsx,tsx}",
+    "./node_modules/fumadocs-ui/dist/**/*.js",
+    "./content/**/*.mdx",
+    "./mdx-components.tsx",
   ],
   // Enabling dark mode
   darkMode: "class", // Assuming you want to enable dark mode based on the class strategy
@@ -183,8 +194,7 @@ const config: Config = {
   },
   // Merging plugins, adding any unique plugins from both files
   plugins: [
-    require("tailwindcss-animate"), // Assuming require is resolved in your environment
-    // Add other unique plugins here
+    require("tailwindcss-animate"),
     function ({ addBase, theme }: any) {
       let allColors = flattenColorPalette(theme("colors"));
       let newVars = Object.fromEntries(
@@ -216,24 +226,6 @@ const config: Config = {
         },
         { values: flattenColorPalette(theme("backgroundColor")), type: "color" }
       );
-    },
-    function({ addBase }: any) {
-      addBase({
-        ":root": {
-          "--color-1": "240deg 5% 96%",  // Light gray
-          "--color-2": "240deg 5% 84%",  // Medium gray
-          "--color-3": "240deg 5% 65%",  // Dark gray
-          "--color-4": "240deg 5% 49%",  // Darker gray
-          "--color-5": "240deg 5% 34%",  // Darkest gray
-        },
-        ".dark": {
-          "--color-1": "0deg 0% 100%",   // White
-          "--color-2": "240deg 5% 84%",  // Light gray
-          "--color-3": "240deg 5% 65%",  // Medium gray
-          "--color-4": "240deg 5% 49%",  // Dark gray
-          "--color-5": "240deg 5% 34%",  // Darker gray
-        }
-      });
     },
   ],
 };
