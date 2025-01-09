@@ -17,9 +17,9 @@ export default function Home() {
         <SideBySide />
       </div>
 
-      <div className="w-full flex justify-center items-center">
+      {/* <div className="w-full flex justify-center items-center">
         <OpenSource />
-      </div>
+      </div> */}
 
     </PageWrapper>
   );
