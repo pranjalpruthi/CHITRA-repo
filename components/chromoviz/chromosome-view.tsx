@@ -210,10 +210,18 @@ export function renderChromosome({
 
   if (body && 'on' in body) {
     (body as d3.Selection<any, unknown, null, undefined>)
-      .on("click", (e) => onHover(e, {
-        type: 'chromosome',
-        data: getGeneTooltip(chr)
-      }))
+      .on("click", (e) => {
+        // Format the tooltip content as a string instead of passing the object directly
+        const tooltipData = getGeneTooltip(chr);
+        const formattedContent = `
+          ${tooltipData.symbol}
+          Size: ${tooltipData.position}
+          Species: ${tooltipData.name}
+          ID: ${tooltipData.GeneID}
+        `.trim();
+        
+        onHover(e, formattedContent);
+      })
       .on("mousemove", onMove)
       .on("mouseleave", onLeave);
   }

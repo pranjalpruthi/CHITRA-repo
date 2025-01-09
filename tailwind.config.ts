@@ -175,6 +175,10 @@ const config: Config = {
             "background-position": "calc(100% + var(--shiny-width)) 0",
           },
         },
+        "progress-vertical": {
+          "0%": { height: "0%" },
+          "100%": { height: "100%" },
+        },
       },
       animation: {
         "logo-cloud": "logo-cloud 30s linear infinite", // Adjust duration and timing as needed for your design.
@@ -189,6 +193,7 @@ const config: Config = {
         aurora: "aurora 60s linear infinite",
         rainbow: "rainbow 4s linear infinite",
         "shiny-text": "shiny-text 8s infinite",
+        "progress-vertical": "progress-vertical 5s linear",
       },
     },
   },

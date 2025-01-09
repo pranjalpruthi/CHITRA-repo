@@ -1,11 +1,12 @@
 "use client"
 
+import { motion, AnimatePresence } from "framer-motion"
 import ModeToggle from '@/components/mode-toggle'
 import { UserProfile } from '@/components/user-profile'
 import config from '@/config'
-import { ChevronRight, HomeIcon, Info, BookOpen, FileText, Copy, MoreHorizontal } from 'lucide-react'
+import { ChevronRight, HomeIcon, Info, BookOpen, FileText, Copy, MoreHorizontal, Loader2 } from 'lucide-react'
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import clsx from 'clsx'
 import { useEffect, useState } from 'react'
 import { ShinyRotatingBorderButton } from "@/components/ui/shiny-rotating-border-button"
@@ -85,6 +86,34 @@ function CopyButton() {
   )
 }
 
+function NavButton({ href, icon: Icon, children }: { href: string; icon: any; children: React.ReactNode }) {
+  const router = useRouter()
+  const [isLoading, setIsLoading] = useState(false)
+
+  const handleClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    e.preventDefault()
+    setIsLoading(true)
+    router.push(href)
+  }
+
+  return (
+    <Link href={href} onClick={handleClick}>
+      <Button 
+        variant="ghost" 
+        className="h-8 w-auto hover:bg-background/80 text-sm p-2"
+        disabled={isLoading}
+      >
+        {isLoading ? (
+          <Loader2 className="h-4 w-4 animate-spin" />
+        ) : (
+          <Icon className="h-4 w-4" />
+        )}
+        <span className="ml-2">{children}</span>
+      </Button>
+    </Link>
+  )
+}
+
 function NavActions() {
   return (
     <>
@@ -108,15 +137,9 @@ function NavActions() {
             <span className="ml-2">Guide</span>
           </Button>
         </GuideSheet>
-        <Link href="/docs">
-          <Button 
-            variant="ghost" 
-            className="h-8 w-auto hover:bg-background/80 text-sm p-2"
-          >
-            <FileText className="h-4 w-4" />
-            <span className="ml-2">Docs</span>
-          </Button>
-        </Link>
+        <NavButton href="/docs" icon={FileText}>
+          Docs
+        </NavButton>
         <CopyButton />
       </div>
 
@@ -144,7 +167,14 @@ function NavActions() {
                 Guide
               </DropdownMenuItem>
             </GuideSheet>
-            <Link href="/docs">
+            <Link 
+              href="/docs" 
+              onClick={(e) => {
+                e.preventDefault()
+                const router = useRouter()
+                router.push('/docs')
+              }}
+            >
               <DropdownMenuItem>
                 <FileText className="h-4 w-4 mr-2" />
                 Docs
@@ -181,38 +211,55 @@ export default function NavBar() {
   }, [])
 
   return (
-    <div className="fixed top-0 left-0 right-0 z-50 h-[60px]">
-      <header 
+    <motion.div 
+      className="fixed top-0 left-0 right-0 z-50 h-[60px]"
+      layout
+    >
+      <motion.header 
+        layout
         className={clsx(
-          "w-full transition-all duration-200 h-full relative",
-          isHomePage ? [
-            "max-w-2xl mx-auto mt-4",
-            "px-2 sm:px-4",
+          "w-full h-full relative",
+          isHomePage && [
+            isScrolled
+              ? "max-w-2xl mx-auto px-2 sm:px-4"
+              : "w-full px-4 sm:px-8",
+            "rounded-full",
             isScrolled 
-              ? "bg-background/40 backdrop-blur-[16px] brightness-[1.1] border border-white/[0.1] dark:border-white/[0.05] rounded-full"
-              : "bg-background/30 backdrop-blur-[16px] rounded-full"
-          ] : [
+              ? "bg-background/40 backdrop-blur-[16px] brightness-[1.1] border border-white/[0.1] dark:border-white/[0.05]"
+              : "bg-background/30 backdrop-blur-[16px]"
+          ],
+          !isHomePage && [
             isScrolled 
               ? "bg-background/40 backdrop-blur-[16px] brightness-[1.1] border-b border-white/[0.1] dark:border-white/[0.05]"
               : "bg-background/30 backdrop-blur-[16px]"
           ]
         )}
       >
-        {/* Add bottom glass edge */}
-        <div className={clsx(
-          "absolute inset-x-0 -bottom-[1px] h-[1px]",
-          "bg-gradient-to-r from-transparent via-white/[0.15] to-transparent",
-          "backdrop-blur-[8px]",
-          isHomePage && "rounded-full"
-        )} />
+        {/* Glass edge with animation */}
+        <motion.div 
+          layout
+          className={clsx(
+            "absolute inset-x-0 -bottom-[1px] h-[1px]",
+            "bg-gradient-to-r from-transparent via-white/[0.15] to-transparent",
+            "backdrop-blur-[8px]",
+            isHomePage && "rounded-full"
+          )} 
+        />
 
-        <div className={clsx(
-          "flex h-14 lg:h-[55px] items-center justify-between",
-          "px-2 sm:px-4 md:px-6 lg:px-8",
-          isHomePage && "px-3 sm:px-6"
-        )}>
+        <motion.div 
+          layout
+          className={clsx(
+            "flex items-center justify-between",
+            isHomePage && !isScrolled
+              ? "h-20 px-6 sm:px-8 max-w-7xl mx-auto"
+              : "h-14 lg:h-[55px] px-2 sm:px-4 md:px-6 lg:px-8"
+          )}
+        >
           {/* Left side - Logo and Title */}
-          <div className="flex items-center gap-2 sm:gap-4">
+          <motion.div 
+            layout
+            className="flex items-center gap-2 sm:gap-4"
+          >
             <Link href="/">
               <ShinyRotatingBorderButton className={clsx(
                 "!p-1 sm:!p-1.5 !px-2 sm:!px-3",
@@ -222,10 +269,13 @@ export default function NavBar() {
               </ShinyRotatingBorderButton>
             </Link>
             <NavActions />
-          </div>
+          </motion.div>
 
           {/* Right side content */}
-          <div className="flex items-center gap-2 sm:gap-4">
+          <motion.div 
+            layout
+            className="flex items-center gap-2 sm:gap-4"
+          >
             <div className={clsx(
               "hidden md:block",
               isHomePage && "hidden"
@@ -239,9 +289,9 @@ export default function NavBar() {
               <ShareDrawer />
               <ModeToggle />
             </div>
-          </div>
-        </div>
-      </header>
-    </div>
+          </motion.div>
+        </motion.div>
+      </motion.header>
+    </motion.div>
   )
 }

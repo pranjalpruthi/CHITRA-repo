@@ -20,7 +20,7 @@ export default function SideBySide() {
         <BackgroundGradient className="rounded-[22px] p-1 overflow-hidden" animate={false}>
           <div className="w-full overflow-hidden relative h-full rounded-[20px] bg-white/[0.7] dark:bg-black/[0.7] backdrop-blur-xl border border-white/[0.2] dark:border-white/[0.1]">
             <Image
-              src="https://utfs.io/f/69a12ab1-4d57-4913-90f9-38c6aca6c373-1txg2.png"
+              src="/media/image1.png"
               alt="Chitra Chromosome Visualization"
               width={1200}
               height={800}
@@ -38,7 +38,7 @@ export default function SideBySide() {
         <BackgroundGradient className="rounded-[22px] p-1 overflow-hidden">
           <div className="w-full overflow-hidden relative h-full rounded-[20px] bg-white/[0.7] dark:bg-black/[0.7] backdrop-blur-xl border border-white/[0.2] dark:border-white/[0.1]">
             <Image
-              src="https://utfs.io/f/69a12ab1-4d57-4913-90f9-38c6aca6c373-1txg2.png"
+              src="/media/image2.png"
               alt="Chitra Multi-Species Comparison"
               width={1200}
               height={800}
@@ -56,7 +56,7 @@ export default function SideBySide() {
         <BackgroundGradient className="rounded-[22px] p-1 overflow-hidden">
           <div className="w-full overflow-hidden relative h-full rounded-[20px] bg-white/[0.7] dark:bg-black/[0.7] backdrop-blur-xl border border-white/[0.2] dark:border-white/[0.1]">
             <Image
-              src="https://utfs.io/f/69a12ab1-4d57-4913-90f9-38c6aca6c373-1txg2.png"
+              src="/media/image3.png"
               alt="Chitra Syntenic Relationships"
               width={1200}
               height={800}
@@ -74,7 +74,7 @@ export default function SideBySide() {
         <BackgroundGradient className="rounded-[22px] p-1 overflow-hidden">
           <div className="w-full overflow-hidden relative h-full rounded-[20px] bg-white/[0.7] dark:bg-black/[0.7] backdrop-blur-xl border border-white/[0.2] dark:border-white/[0.1]">
             <Image
-              src="https://utfs.io/f/69a12ab1-4d57-4913-90f9-38c6aca6c373-1txg2.png"
+              src="/media/image4.png"
               alt="Chitra Interactive Analysis"
               width={1200}
               height={800}

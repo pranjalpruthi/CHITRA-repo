@@ -102,6 +102,7 @@
     "lodash": "^4.17.21",
     "lucide-react": "^0.436.0",
     "mini-svg-data-uri": "^1.4.4",
+    "motion": "^11.16.2",
     "next": "latest",
     "next-themes": "^0.3.0",
     "onborda": "^1.2.4",

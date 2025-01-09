@@ -99,13 +99,19 @@ export default function Footer() {
                     <div className="lg:col-span-3 space-y-2">
                         <h3 className="text-xs font-medium text-white/90">Resources</h3>
                         <ul className="space-y-1">
-                            {["Documentation", "API", "GitHub"].map((item) => (
-                                <li key={item}>
+                            {[
+                                { name: "Documentation", url: "/docs" },
+                                { name: "Lab", url: "https://jitendralab.igib.res.in" },
+                                { name: "GitHub", url: "https://github.com/pranjalpruthi/CHITRA" }
+                            ].map((item) => (
+                                <li key={item.name}>
                                     <Link 
-                                        href={item === "GitHub" ? "https://github.com/your-repo" : `/${item.toLowerCase()}`}
+                                        href={item.url}
                                         className="text-white/60 hover:text-white/90 transition-colors text-xs"
+                                        target={item.url.startsWith('http') ? '_blank' : '_self'}
+                                        rel={item.url.startsWith('http') ? 'noopener noreferrer' : ''}
                                     >
-                                        {item}
+                                        {item.name}
                                     </Link>
                                 </li>
                             ))}
