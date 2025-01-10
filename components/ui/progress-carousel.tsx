@@ -250,8 +250,11 @@ export function SliderBtnGroup({
 }) {
   return (
     <div className={cn(
-      "absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent",
-      "backdrop-blur-sm p-4 grid grid-cols-2 md:grid-cols-4 gap-3",
+      "absolute bottom-0 left-0 right-0",
+      "bg-gradient-to-t from-black/90 via-black/50 to-transparent",
+      "backdrop-blur-sm",
+      "p-2 sm:p-4",
+      "grid grid-cols-2 sm:flex sm:flex-row sm:justify-center items-center gap-2 sm:gap-4",
       className
     )}>
       {children}
@@ -276,7 +279,9 @@ export function SliderBtn({
   return (
     <motion.button
       className={cn(
-        "relative overflow-hidden rounded-lg p-2",
+        "relative overflow-hidden rounded-lg",
+        "p-1.5 sm:p-2",
+        "sm:min-w-[120px] md:min-w-[150px]",
         isActive ? "bg-white/20" : "hover:bg-white/10",
         "transition-colors duration-300",
         className

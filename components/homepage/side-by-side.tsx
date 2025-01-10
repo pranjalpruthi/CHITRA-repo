@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import { Tabs } from "../ui/animated-tabs";
-import { ArrowUpRight, MessageSquare, Dna, GitBranch, Database, Microscope } from "lucide-react";
+import { ArrowUpRight, MessageSquare, Dna, GitBranch, Database, Microscope, Loader2 } from "lucide-react";
 import { BackgroundGradient } from "../ui/background-gradient";
 import { BackgroundBeamsWithCollision } from "../ui/background-beams-with-collision";
 import { RainbowButton } from "../ui/rainbow-button";
@@ -89,6 +89,7 @@ export default function SideBySide() {
 
   const [activeTabIndex, setActiveTabIndex] = useState<number>(0);
   const [isClient, setIsClient] = useState(false);
+  const [isDocsLoading, setIsDocsLoading] = useState(false);
 
   useEffect(() => {
     setIsClient(true);
@@ -103,6 +104,11 @@ export default function SideBySide() {
 
     return () => clearInterval(interval);
   }, [isClient, tabs.length]);
+
+  const handleDocsClick = async () => {
+    setIsDocsLoading(true);
+    setTimeout(() => setIsDocsLoading(false), 1000);
+  };
 
   if (!isClient) {
     return null;
@@ -191,7 +197,7 @@ export default function SideBySide() {
         </div>
 
         <div className="flex flex-col sm:flex-row justify-center items-center gap-4 mt-12">
-          <Link href="/docs">
+          <Link href="/docs" onClick={handleDocsClick}>
             <div className="relative overflow-hidden rounded-full dark:bg-zinc-900 bg-white shadow border dark:border-zinc-800 group border-zinc-400 p-0.5">
               <span className="absolute inset-[-1000%] animate-[spin_5s_linear_infinite_reverse] dark:bg-[conic-gradient(from_90deg_at_50%_50%,#fff_0%,#09090B_7%)] bg-[conic-gradient(from_90deg_at_50%_50%,#000_0%,#fff_5%)] group-hover:bg-none" />
               <Button
@@ -200,10 +206,20 @@ export default function SideBySide() {
                     bg-zinc-50 dark:bg-zinc-900 
                     text-zinc-800 dark:text-zinc-200
                     border-0"
+                disabled={isDocsLoading}
               >
                 <span className="flex items-center gap-2">
-                  <ArrowUpRight className="w-5 h-5" />
-                  View Documentation
+                  {isDocsLoading ? (
+                    <>
+                      <Loader2 className="h-5 w-5 animate-spin" />
+                      Loading...
+                    </>
+                  ) : (
+                    <>
+                      <ArrowUpRight className="w-5 h-5" />
+                      View Documentation
+                    </>
+                  )}
                 </span>
               </Button>
             </div>

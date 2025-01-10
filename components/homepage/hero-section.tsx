@@ -33,14 +33,14 @@ const videos = [
   { 
     id: "v2", 
     src: "/media/v2.mp4",
-    title: "Breakpoint Analysis",
-    desc: "Detailed analysis of chromosomal breakpoints"
+    title: "Multi-Species Comparison",
+    desc: "Compare genomic structures across multiple species"
   },
   { 
     id: "v3", 
     src: "/media/v3.mp4",
-    title: "Multi-Species Comparison",
-    desc: "Compare genomic structures across multiple species"
+    title: "Breakpoint Analysis",
+    desc: "Detailed analysis of chromosomal breakpoints"
   },
   { 
     id: "v4", 
@@ -77,7 +77,7 @@ export default function HeroSection() {
                 size={1.2}
             />
 
-            <div className="relative z-10 flex min-h-screen w-full items-center justify-center py-20">
+            <div className="relative z-10 flex min-h-screen w-full items-center justify-center py-0">
                 <div className="container mx-auto px-4">
                     <div className="grid items-center gap-8 lg:grid-cols-[0.7fr,1.3fr] lg:gap-20">
                         <div className="flex flex-col items-center text-center lg:items-start lg:text-left">
@@ -189,15 +189,15 @@ export default function HeroSection() {
                         </div>
 
                         <motion.div 
-                            className="relative w-full aspect-[16/10] lg:aspect-[16/9] xl:aspect-[2/1] cursor-none"
+                            className="relative w-full aspect-[4/3] sm:aspect-[16/10] lg:aspect-[16/9] xl:aspect-[2/1] cursor-none"
                             initial={{ opacity: 0, scale: 0.95 }}
                             animate={{ opacity: 1, scale: 1 }}
                             transition={{ duration: 0.8, ease: "easeOut" }}
                         >
-                            <div className="relative h-full w-full rounded-[2.5rem] overflow-hidden border border-white/10 shadow-2xl backdrop-blur-sm bg-white/5">
+                            <div className="relative h-full w-full rounded-[1.5rem] sm:rounded-[2.5rem] overflow-hidden border border-white/10 shadow-2xl backdrop-blur-sm bg-white/5">
                                 <ProgressSlider
                                     activeSlider={videos[0].id}
-                                    duration={5000}
+                                    duration={10000}
                                     className="w-full h-full"
                                     items={videos}
                                 >
@@ -215,6 +215,25 @@ export default function HeroSection() {
                                                     loop
                                                     playsInline
                                                     className="w-full h-full object-cover"
+                                                    onLoadedData={(e) => {
+                                                        const videoElement = e.target as HTMLVideoElement;
+                                                        switch(video.id) {
+                                                            case 'v1':
+                                                                videoElement.currentTime = 15;
+                                                                break;
+                                                            case 'v2':
+                                                                videoElement.currentTime = 23;
+                                                                break;
+                                                            case 'v3':
+                                                                videoElement.currentTime = 23;
+                                                                break;
+                                                            case 'v4':
+                                                                videoElement.currentTime = 13;
+                                                                break;
+                                                            default:
+                                                                videoElement.currentTime = 0;
+                                                        }
+                                                    }}
                                                 >
                                                     <source src={video.src} type="video/mp4" />
                                                 </video>
@@ -222,15 +241,29 @@ export default function HeroSection() {
                                         ))}
                                     </div>
 
-                                    <SliderBtnGroup className="absolute bottom-0 left-0 right-0 bg-black/40 backdrop-blur-md p-4">
+                                    <SliderBtnGroup>
                                         {videos.map((video) => (
                                             <SliderBtn
                                                 key={video.id}
                                                 value={video.id}
-                                                className="text-center p-2 rounded-xl hover:bg-white/10 transition-colors"
+                                                className={cn(
+                                                    "text-center p-1.5 sm:p-2 rounded-xl",
+                                                    "hover:bg-white/10 transition-colors",
+                                                    "w-full sm:w-[200px] md:w-[250px]",
+                                                    "flex flex-col gap-0.5 sm:gap-1"
+                                                )}
                                                 progressBarClass="bg-blue-500 h-0.5"
                                             >
-                                                <h3 className="text-white font-medium text-sm">{video.title}</h3>
+                                                <h3 className={cn(
+                                                    "text-white font-medium",
+                                                    "text-xs sm:text-sm",
+                                                    "px-1",
+                                                    "whitespace-normal",
+                                                    "min-h-[2.5em]",
+                                                    "flex items-center justify-center"
+                                                )}>
+                                                    {video.title}
+                                                </h3>
                                             </SliderBtn>
                                         ))}
                                     </SliderBtnGroup>
@@ -255,7 +288,7 @@ export default function HeroSection() {
                 </DialogContent>
             </Dialog>
 
-            <div className="mt-20">
+            <div className="mt-0 hidden md:block">
                 <div className="container mx-auto px-4">
                     <DataFlowDiagram />
                 </div>
@@ -263,3 +296,4 @@ export default function HeroSection() {
         </section>
     );
 }
+
