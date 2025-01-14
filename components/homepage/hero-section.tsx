@@ -22,6 +22,8 @@ import {
   Brain
 } from "lucide-react";
 import { DataFlowDiagram } from "./data-flow-diagram";
+import AnimatedText from '../ui/animated-text';
+import HyperText from '../ui/hyper-text';
 
 const videos = [
   { 
@@ -98,11 +100,18 @@ export default function HeroSection() {
                                     Visualize Chromosomal Data Like Never Before
                                 </Badge>
 
-                                <BlurIn>
+                                <div className="space-y-4">
                                     <h1 className="text-6xl lg:text-7xl xl:text-8xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-gray-900 via-gray-700 to-gray-900 dark:from-white dark:via-gray-300 dark:to-white text-center lg:text-left">
                                         CHITRA
                                     </h1>
-                                </BlurIn>
+                                    <div className="relative">
+                                        <HyperText 
+                                            text="Chromosome Interactive Tool for Rearrangement Analysis"
+                                            className="text-sm sm:text-base text-muted-foreground font-medium"
+                                            duration={1000}
+                                        />
+                                    </div>
+                                </div>
 
                                 <p className="text-xl lg:text-2xl text-muted-foreground font-light max-w-xl mx-auto lg:ml-0">
                                     An advanced visualization tool for studying chromosomal rearrangements through interactive synteny block analysis and chromosome breakpoint mapping.
