@@ -1,161 +1,143 @@
 "use client";
 
-import { Star } from 'lucide-react';
+import { Star, FileQuestion, Cpu, FileInput, Database, Settings, HelpCircle } from 'lucide-react';
 import { Button } from "@/components/ui/button";
-import Image from "next/image";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { cn } from '@/lib/utils';
 
 export default function OpenSource() {
+    const faqs = [
+        {
+            id: "1",
+            icon: FileQuestion,
+            question: "What is CHITRA?",
+            answer: "CHITRA (Chromosome Interactive Tool for Rearrangement Analysis) is an advanced bioinformatics tool for studying chromosomal rearrangements through interactive visualizations of synteny blocks and chromosome breakpoints."
+        },
+        {
+            id: "2",
+            icon: Cpu,
+            question: "What are the main features?",
+            answer: "CHITRA offers Synteny Block Visualization, Chromosome Breakpoint Analysis, Evolutionary Insights, and User-Friendly Visualization with dynamic adjustments. Users can compare species and zoom into specific chromosomal regions."
+        },
+        {
+            id: "3",
+            icon: FileInput,
+            question: "What input files are required?",
+            answer: "Mandatory files include Synteny Data, Species Data, and Reference Chromosome Size (all in CSV format). Optional files include Gene Annotations and Breakpoint Data."
+        },
+        {
+            id: "4",
+            icon: Database,
+            question: "What example datasets are available?",
+            answer: "CHITRA provides three types of example datasets: Basic Synteny (3 species comparison), Multiple Synteny (multiple species comparison), and Annotated Genome (with additional gene annotations and breakpoints)."
+        },
+        {
+            id: "5",
+            icon: Settings,
+            question: "What interactive features are available?",
+            answer: "CHITRA offers zoom controls, image adjustment arrows, scrolling bars, background color modes (black/white), chord map settings, and a movable navigation bar for optimal visualization and analysis."
+        },
+        {
+            id: "6",
+            icon: HelpCircle,
+            question: "Need additional help?",
+            answer: "If you have questions not covered here, please reach out to us at mail@chitra.com. Our team is happy to assist with technical questions, feature requests, or collaboration opportunities."
+        }
+    ];
+
     return (
-        <div className="relative w-full overflow-hidden">
-            <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 lg:py-20">
-                {/* Animated background elements */}
-                <div className="absolute inset-0 z-0">
-                    <motion.div
-                        className="absolute top-1/4 left-1/4 w-[200px] sm:w-[250px] lg:w-[400px] h-[200px] sm:h-[250px] lg:h-[400px] rounded-full bg-blue-500/20 blur-[80px]"
-                        animate={{
-                            scale: [1, 1.2, 1],
-                            opacity: [0.3, 0.5, 0.3],
-                        }}
-                        transition={{
-                            duration: 8,
-                            repeat: Infinity,
-                            ease: "easeInOut"
-                        }}
-                    />
-                    <motion.div
-                        className="absolute bottom-1/4 right-1/4 w-[150px] sm:w-[200px] lg:w-[300px] h-[150px] sm:h-[200px] lg:h-[300px] rounded-full bg-purple-500/20 blur-[60px]"
-                        animate={{
-                            scale: [1.2, 1, 1.2],
-                            opacity: [0.4, 0.6, 0.4],
-                        }}
-                        transition={{
-                            duration: 6,
-                            repeat: Infinity,
-                            ease: "easeInOut"
-                        }}
-                    />
-                </div>
+        <div className="relative w-full">
+            <div className="max-w-[900px] mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 lg:py-20">
+                <motion.div 
+                    className="space-y-4 text-center mb-12"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.2 }}
+                >
+                    <div className="inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium 
+                        bg-blue-500/10 text-blue-600 dark:bg-blue-400/10 dark:text-blue-300 
+                        backdrop-blur-sm border border-blue-500/20 dark:border-blue-400/20
+                        shadow-[0_0_15px_rgba(59,130,246,0.1)]">
+                        FAQ
+                    </div>
+                    <div className="text-3xl md:text-4xl font-bold tracking-tight 
+                        bg-gradient-to-b from-foreground to-muted-foreground bg-clip-text text-transparent">
+                        Common Questions about CHITRA
+                    </div>
+                </motion.div>
 
                 <motion.div 
-                    className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 items-center relative z-10"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ duration: 0.5 }}
+                    className="mt-8"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.3 }}
                 >
-                    {/* Left Content */}
-                    <div className="space-y-6 md:space-y-8 max-w-xl mx-auto md:mx-0">
-                        <motion.div 
-                            className="space-y-4"
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.2 }}
-                        >
-                            <div className="inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium 
-                                bg-blue-500/10 text-blue-600 dark:bg-blue-400/10 dark:text-blue-300 
-                                backdrop-blur-sm border border-blue-500/20 dark:border-blue-400/20
-                                shadow-[0_0_15px_rgba(59,130,246,0.1)]">
-                                Open Source
-                            </div>
-                            <h2 className="text-3xl md:text-4xl font-bold tracking-tight 
-                                bg-gradient-to-b from-foreground to-muted-foreground bg-clip-text text-transparent">
-                                Built in the Open
-                            </h2>
-                        </motion.div>
-                        
-                        <motion.p 
-                            className="text-lg md:text-xl text-muted-foreground/80 leading-relaxed"
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.3 }}
-                        >
-                            We believe in transparency and collaboration. Our entire codebase is open source, 
-                            allowing developers to learn from, contribute to, and build upon our work.
-                        </motion.p>
-
-                        <motion.div
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.4 }}
-                            className="flex justify-start"
-                        >
-                            <Link 
-                                href="https://github.com/pranjalpruthi" 
-                                target="_blank"
-                                rel="noopener noreferrer"
+                    <Accordion type="single" collapsible className="w-full" defaultValue="1">
+                        {faqs.map((item) => (
+                            <AccordionItem 
+                                value={item.id} 
+                                key={item.id} 
+                                className="border border-black/10 dark:border-white/10 
+                                    rounded-lg mb-4 backdrop-blur-sm bg-black/5 dark:bg-white/5"
                             >
-                                <Button 
-                                    variant="outline" 
-                                    className="h-12 px-6 gap-2 text-base
-                                        bg-[#FDF4E7]/80 dark:bg-[#2D2416]/80 text-[#F5A524] 
-                                        hover:bg-[#FCE9CF] dark:hover:bg-[#3D321F]
-                                        border-[#F5A524]/30 hover:border-[#F5A524]/50
-                                        transition-all duration-300 rounded-lg font-medium
-                                        backdrop-blur-sm shadow-[0_8px_16px_rgba(245,165,36,0.1)]"
-                                >
-                                    <Star className="w-5 h-5 fill-[#F5A524]" />
-                                    Star us on GitHub
-                                </Button>
-                            </Link>
-                        </motion.div>
-                    </div>
+                                <AccordionTrigger className="px-4 py-4 text-[15px] hover:no-underline">
+                                    <span className="flex items-center gap-3">
+                                        <item.icon
+                                            size={18}
+                                            strokeWidth={2}
+                                            className="shrink-0 opacity-60"
+                                            aria-hidden="true"
+                                        />
+                                        <span className="font-medium">{item.question}</span>
+                                    </span>
+                                </AccordionTrigger>
+                                <AccordionContent className="px-4 pb-4 ps-11 text-sm text-muted-foreground">
+                                    {item.answer}
+                                </AccordionContent>
+                            </AccordionItem>
+                        ))}
+                    </Accordion>
+                </motion.div>
 
-                    {/* Right Content - Glass Card */}
-                    <motion.div 
-                        className="relative aspect-[4/3] w-full max-w-[600px] mx-auto"
-                        initial={{ opacity: 0, scale: 0.95 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        whileHover={{ scale: 1.02 }}
-                        transition={{ duration: 0.5 }}
+                {/* Contact Buttons */}
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.4 }}
+                    className="flex flex-col sm:flex-row gap-4 justify-center items-center mt-12"
+                >
+                    <Link 
+                        href="https://github.com/pranjalpruthi" 
+                        target="_blank"
+                        rel="noopener noreferrer"
                     >
-                        {/* Glass Border Effect */}
-                        <div className={cn(
-                            "absolute inset-0 rounded-2xl",
-                            "before:absolute before:inset-0 before:-z-10",
-                            "before:rounded-[inherit] before:p-[2px]",
-                            "before:bg-gradient-to-r before:from-blue-500/50 before:via-purple-500/50 before:to-pink-500/50",
-                            "after:absolute after:inset-[2px] after:-z-10",
-                            "after:rounded-[inherit] after:bg-black/80 after:backdrop-blur-xl"
-                        )}>
-                            <div className="relative h-full w-full overflow-hidden rounded-2xl">
-                                <motion.div 
-                                    className="absolute inset-0 bg-gradient-to-br from-blue-500/20 to-purple-500/20"
-                                    animate={{
-                                        background: [
-                                            "linear-gradient(45deg, rgba(59,130,246,0.2) 0%, rgba(147,51,234,0.2) 100%)",
-                                            "linear-gradient(225deg, rgba(59,130,246,0.2) 0%, rgba(147,51,234,0.2) 100%)",
-                                        ],
-                                    }}
-                                    transition={{
-                                        duration: 5,
-                                        repeat: Infinity,
-                                        repeatType: "reverse",
-                                    }}
-                                />
-                                <div className="absolute inset-0 backdrop-blur-sm bg-black/50" />
-                                <Image
-                                    src="/assets/github-card.svg"
-                                    alt="GitHub Repository"
-                                    fill
-                                    className="object-cover object-center opacity-90"
-                                />
-                                <motion.div 
-                                    className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/10 to-transparent"
-                                    animate={{
-                                        opacity: [0, 0.5, 0],
-                                        backgroundPosition: ["200% 200%", "-50% -50%", "200% 200%"],
-                                    }}
-                                    transition={{
-                                        duration: 3,
-                                        repeat: Infinity,
-                                        ease: "linear",
-                                    }}
-                                />
-                            </div>
-                        </div>
-                    </motion.div>
+                        <Button 
+                            variant="outline" 
+                            className="h-12 px-6 gap-2 text-base
+                                bg-[#FDF4E7]/80 dark:bg-[#2D2416]/80 text-[#F5A524] 
+                                hover:bg-[#FCE9CF] dark:hover:bg-[#3D321F]
+                                border-[#F5A524]/30 hover:border-[#F5A524]/50
+                                transition-all duration-300 rounded-lg font-medium
+                                backdrop-blur-sm shadow-[0_8px_16px_rgba(245,165,36,0.1)]"
+                        >
+                            <Star className="w-5 h-5 fill-[#F5A524]" />
+                            Star us on GitHub
+                        </Button>
+                    </Link>
+                    <Link href="mailto:mail@chitra.com">
+                        <Button 
+                            variant="outline" 
+                            className="h-12 px-6 gap-2 text-base
+                                bg-blue-500/10 text-blue-600 dark:text-blue-300
+                                hover:bg-blue-500/20 
+                                border-blue-500/30 hover:border-blue-500/50
+                                transition-all duration-300 rounded-lg font-medium
+                                backdrop-blur-sm"
+                        >
+                            Contact Us
+                        </Button>
+                    </Link>
                 </motion.div>
             </div>
         </div>
