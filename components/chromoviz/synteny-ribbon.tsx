@@ -23,6 +23,8 @@ interface SyntenyRibbonProps {
   isSelected?: boolean;
   zoomBehaviorRef: React.RefObject<d3.ZoomBehavior<any, any>>;
   selectedChromosomes: string[];
+  mutationType?: MutationType;
+  useCustomColors?: boolean;
 }
 
 const SYNTENY_COLORS = {
@@ -54,6 +56,27 @@ const COMPOSITE_STYLES = {
   willChange: 'transform, opacity' // Hint to browser about expected changes
 } as const;
 
+// Add mutation type color mapping
+export const MUTATION_COLORS = {
+  SYN: '#4ade80',    // Green for syntenic
+  INV: '#f87171',    // Red for inversion
+  TRANS: '#60a5fa',  // Blue for translocation
+  INVTR: '#c084fc',  // Purple for inverted translocation
+  DUP: '#fbbf24',    // Yellow for duplication
+  INVDP: '#f472b6'   // Pink for inverted duplication
+} as const;
+
+export type MutationType = keyof typeof MUTATION_COLORS;
+
+// Add opacity variants for each mutation type
+const MUTATION_COLOR_VARIANTS = Object.entries(MUTATION_COLORS).reduce((acc, [key, color]) => ({
+  ...acc,
+  [key]: {
+    DEFAULT: `${color}1a`, // Light version for fill
+    SOLID: color,          // Solid version for stroke
+  }
+}), {} as Record<MutationType, { DEFAULT: string; SOLID: string }>);
+
 export function renderSyntenyRibbon({
   link,
   sourceSpecies,
@@ -73,6 +96,8 @@ export function renderSyntenyRibbon({
   isSelected = false,
   zoomBehaviorRef,
   selectedChromosomes,
+  mutationType,
+  useCustomColors = false,
 }: SyntenyRibbonProps) {
   // Enhanced filtering logic
   const shouldRenderRibbon = () => {
@@ -170,14 +195,30 @@ export function renderSyntenyRibbon({
   // Modify transition timing to be more stable
   const transition = "all 150ms cubic-bezier(0.4, 0.0, 0.2, 1)";
 
+  // Modify the color selection logic
+  const getRibbonColors = () => {
+    if (useCustomColors && mutationType) {
+      return {
+        fill: MUTATION_COLOR_VARIANTS[mutationType].DEFAULT,
+        stroke: MUTATION_COLOR_VARIANTS[mutationType].SOLID
+      };
+    }
+    return {
+      fill: link.query_strand === '+' ? SYNTENY_COLORS.FORWARD : SYNTENY_COLORS.REVERSE,
+      stroke: link.query_strand === '+' ? SYNTENY_COLORS.BLOCK_FORWARD : SYNTENY_COLORS.BLOCK_REVERSE
+    };
+  };
+
+  const colors = getRibbonColors();
+
   // Source block
   const sourceBlock = blockGroup.append("rect")
     .attr("x", x1)
     .attr("y", sourceY)
     .attr("width", width1)
     .attr("height", chromosomeHeight)
-    .attr("fill", link.query_strand === '+' ? SYNTENY_COLORS.FORWARD : SYNTENY_COLORS.REVERSE)
-    .attr("stroke", link.query_strand === '+' ? SYNTENY_COLORS.BLOCK_FORWARD : SYNTENY_COLORS.BLOCK_REVERSE)
+    .attr("fill", colors.fill)
+    .attr("stroke", colors.stroke)
     .attr("stroke-width", 2)
     .attr("class", "matching-block source")
     .attr("opacity", 0.8);
@@ -188,8 +229,8 @@ export function renderSyntenyRibbon({
     .attr("y", targetY)
     .attr("width", width2)
     .attr("height", chromosomeHeight)
-    .attr("fill", link.query_strand === '+' ? SYNTENY_COLORS.FORWARD : SYNTENY_COLORS.REVERSE)
-    .attr("stroke", link.query_strand === '+' ? SYNTENY_COLORS.BLOCK_FORWARD : SYNTENY_COLORS.BLOCK_REVERSE)
+    .attr("fill", colors.fill)
+    .attr("stroke", colors.stroke)
     .attr("stroke-width", 2)
     .attr("class", "matching-block target")
     .attr("opacity", 0.8);
@@ -293,7 +334,14 @@ export function renderSyntenyRibbon({
 
     const svg = d3.select(g.node().parentNode);
     const zoomBehavior = zoomBehaviorRef.current;
+    
+    // Store current transform before any changes
     const currentTransform = d3.zoomTransform(svg.node());
+    const currentPosition = {
+      x: currentTransform.x,
+      y: currentTransform.y,
+      k: currentTransform.k
+    };
 
     const newSelectedState = !isSelected;
     
@@ -304,14 +352,17 @@ export function renderSyntenyRibbon({
       blockGroup.raise();
     }
 
-    // Preserve transform
+    // Apply the stored transform to preserve position
     if (zoomBehavior) {
-      svg
-        .transition()
-        .duration(0)
-        .call(zoomBehavior.transform, currentTransform);
+      requestAnimationFrame(() => {
+        svg.call(zoomBehavior.transform, d3.zoomIdentity
+          .translate(currentPosition.x, currentPosition.y)
+          .scale(currentPosition.k)
+        );
+      });
     }
     
+    // Ensure the group transform is preserved
     g.attr("transform", currentTransform.toString());
     
     onSelect(link, newSelectedState);
@@ -348,6 +399,12 @@ export function renderSyntenyRibbon({
   };
 
   [ribbon, sourceBlock, targetBlock].forEach(attachEvents);
+
+  // Update gradient colors if using mutation type colors
+  if (useCustomColors && mutationType) {
+    gradient.selectAll("stop")
+      .attr("stop-color", colors.stroke);
+  }
 
   return blockGroup;
 }

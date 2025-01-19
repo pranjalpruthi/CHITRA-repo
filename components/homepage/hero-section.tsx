@@ -87,47 +87,47 @@ export default function HeroSection() {
                                 initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ duration: 0.7, ease: "easeOut" }}
-                                className="w-full space-y-8"
+                                className="w-full space-y-6 sm:space-y-8"
                             >
                                 <Badge 
                                     variant="outline" 
-                                    className="bg-blue-500/5 text-blue-600 dark:text-blue-400 text-sm font-medium px-6 py-2 rounded-full mx-auto lg:ml-0"
+                                    className="bg-blue-500/5 text-blue-600 dark:text-blue-400 text-xs sm:text-sm font-medium px-3 sm:px-6 py-1.5 sm:py-2 rounded-full mx-auto lg:ml-0"
                                 >
-                                    <span className="relative flex h-2 w-2 mr-2">
+                                    <span className="relative flex h-1.5 sm:h-2 w-1.5 sm:w-2 mr-1.5 sm:mr-2">
                                         <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
-                                        <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span>
+                                        <span className="relative inline-flex rounded-full h-1.5 sm:h-2 w-1.5 sm:w-2 bg-blue-500"></span>
                                     </span>
                                     Visualize Chromosomal Data Like Never Before
                                 </Badge>
 
-                                <div className="space-y-4">
-                                    <h1 className="text-6xl lg:text-7xl xl:text-8xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-gray-900 via-gray-700 to-gray-900 dark:from-white dark:via-gray-300 dark:to-white text-center lg:text-left">
+                                <div className="space-y-3 sm:space-y-4">
+                                    <h1 className="text-4xl sm:text-6xl lg:text-7xl xl:text-8xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-gray-900 via-gray-700 to-gray-900 dark:from-white dark:via-gray-300 dark:to-white text-center lg:text-left">
                                         CHITRA
                                     </h1>
                                     <div className="relative">
                                         <HyperText 
                                             text="Chromosome Interactive Tool for Rearrangement Analysis"
-                                            className="text-sm sm:text-base text-muted-foreground font-medium"
+                                            className="text-xs sm:text-sm md:text-base text-muted-foreground font-medium"
                                             duration={1000}
                                         />
                                     </div>
                                 </div>
 
-                                <p className="text-xl lg:text-2xl text-muted-foreground font-light max-w-xl mx-auto lg:ml-0">
+                                <p className="text-lg sm:text-xl lg:text-2xl text-muted-foreground font-light max-w-xl mx-auto lg:ml-0">
                                     An advanced visualization tool for studying chromosomal rearrangements through interactive synteny block analysis and chromosome breakpoint mapping.
                                 </p>
 
-                                <div className="flex flex-col sm:flex-row gap-4 pt-6 justify-center sm:justify-center lg:justify-start w-full">
+                                <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 pt-4 sm:pt-6 justify-center sm:justify-center lg:justify-start">
                                     <div className="bg-white/30 dark:bg-black/30 backdrop-blur-sm border border-white/20 dark:border-black/20 
-                                        rounded-full p-3 sm:p-6 shadow-lg w-full sm:w-auto">
+                                        rounded-full p-2 sm:p-3 md:p-6 shadow-lg inline-flex justify-center">
                                         <motion.div
                                             initial={{ opacity: 0, y: 20 }}
                                             animate={{ opacity: 1, y: 0 }}
                                             transition={{ delay: 0.5 }}
-                                            className="flex items-center justify-center gap-2 sm:gap-3 w-full"
+                                            className="flex items-center justify-center gap-2 sm:gap-3"
                                         >
-                                            <Link href="/chitra" className="flex-1 sm:flex-none" onClick={handleGetStarted}>
-                                                <div className="relative overflow-hidden rounded-full shadow group p-0.5 w-full sm:w-auto">
+                                            <Link href="/chitra" className="inline-flex" onClick={handleGetStarted}>
+                                                <div className="relative overflow-hidden rounded-full shadow group p-0.5">
                                                     <span className={cn(
                                                         "absolute inset-[-1000%] animate-[spin_5s_linear_infinite_reverse]",
                                                         "bg-[conic-gradient(from_90deg_at_50%_50%,#4f46e5_0%,#06b6d4_25%,#3b82f6_50%,#4f46e5_75%)] dark:bg-[conic-gradient(from_90deg_at_50%_50%,#1d4ed8_0%,#2563eb_25%,#3b82f6_50%,#60a5fa_75%)]"
@@ -136,12 +136,13 @@ export default function HeroSection() {
                                                         variant="outline"
                                                         disabled={isLoading}
                                                         className={cn(
-                                                            "h-9 sm:h-12 px-4 sm:px-8 rounded-full font-medium w-full sm:w-auto",
+                                                            "h-8 sm:h-9 md:h-12 px-4 sm:px-6 md:px-8 rounded-full font-medium",
                                                             "bg-white/80 dark:bg-black/80 backdrop-blur-xl",
                                                             "text-zinc-800 dark:text-zinc-200",
                                                             "border-0 transition-colors duration-300",
                                                             "relative z-10",
-                                                            "text-sm sm:text-base"
+                                                            "text-xs sm:text-sm md:text-base",
+                                                            "whitespace-nowrap"
                                                         )}
                                                     >
                                                         {isLoading ? (
@@ -175,13 +176,13 @@ export default function HeroSection() {
                                                     <Button
                                                         variant="outline"
                                                         size="icon"
-                                                        className="relative h-9 sm:h-12 w-9 sm:w-12 rounded-full backdrop-blur-xl 
+                                                        className="relative h-8 sm:h-9 md:h-12 w-8 sm:w-9 md:w-12 rounded-full backdrop-blur-xl 
                                                             bg-zinc-50 dark:bg-zinc-900 
                                                             text-zinc-800 dark:text-zinc-200
                                                             border-0"
                                                     >
                                                         <Github className={cn(
-                                                            "h-4 w-4 sm:h-5 sm:w-5 transition-all duration-300",
+                                                            "h-3 w-3 sm:h-4 sm:w-4 md:h-5 md:w-5 transition-all duration-300",
                                                             isGithubHovered && "scale-110 text-blue-500 dark:text-blue-400"
                                                         )} />
                                                         <span className="sr-only">GitHub Repository</span>

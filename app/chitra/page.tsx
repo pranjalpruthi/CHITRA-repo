@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { ChromosomeSynteny } from './chromosome-synteny';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { Button } from "@/components/ui/button";
@@ -83,6 +83,7 @@ import { FileUploaderGroup } from "@/components/chromoviz/file-uploader";
 import { config } from 'process';
 import { TipsCarousel } from "@/components/chromoviz/tips-carousel";
 import { useRouter } from 'next/navigation';
+import { MutationType } from "@/components/chromoviz/synteny-ribbon";
 
 const parseCSVRow = (d: any): any => {
   return {
@@ -337,6 +338,7 @@ export default function ChromoViz() {
   const router = useRouter();
   const [isAtRoot, setIsAtRoot] = useState(true);
   const [isDetailViewOpen, setIsDetailViewOpen] = useState(true);
+  const [selectedMutationTypes, setSelectedMutationTypes] = useState<Map<string, MutationType>>(new Map());
   
   // Initialize from localStorage
   useEffect(() => {
@@ -766,6 +768,18 @@ export default function ChromoViz() {
     setIsUsingExample(true);
   };
 
+  const handleMutationTypeSelect = useCallback((syntenyId: string, mutationType: MutationType) => {
+    setSelectedMutationTypes(prev => {
+      const newMap = new Map(prev);
+      if (mutationType === undefined) {
+        newMap.delete(syntenyId);
+      } else {
+        newMap.set(syntenyId, mutationType);
+      }
+      return newMap;
+    });
+  }, []);
+
   if (error) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[50vh] p-4">
@@ -896,6 +910,8 @@ export default function ChromoViz() {
                             setShowAnnotations={setShowAnnotations}
                             selectedChromosomes={selectedChromosomes}
                             showTooltips={showTooltips}
+                            selectedMutationTypes={selectedMutationTypes}
+                            onMutationTypeSelect={handleMutationTypeSelect}
                           />
                         </div>
                       ) : (
