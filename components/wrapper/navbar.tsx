@@ -143,52 +143,45 @@ function NavActions() {
         <CopyButton />
       </div>
 
-      {/* Mobile view */}
-      <div className="sm:hidden">
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button 
-              variant="ghost" 
-              className="h-8 w-8 p-0 hover:bg-background/80"
-            >
-              <MoreHorizontal className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-48">
-            <AboutSheet>
-              <DropdownMenuItem>
-                <Info className="h-4 w-4 mr-2" />
-                About
-              </DropdownMenuItem>
-            </AboutSheet>
-            <GuideSheet>
-              <DropdownMenuItem>
-                <BookOpen className="h-4 w-4 mr-2" />
-                Guide
-              </DropdownMenuItem>
-            </GuideSheet>
-            <Link 
-              href="/docs" 
-              onClick={(e) => {
-                e.preventDefault()
-                const router = useRouter()
-                router.push('/docs')
-              }}
-            >
-              <DropdownMenuItem>
-                <FileText className="h-4 w-4 mr-2" />
-                Docs
-              </DropdownMenuItem>
-            </Link>
-            <DropdownMenuItem onClick={() => {
-              const copyButton = document.querySelector('[data-copy-button="true"]') as HTMLButtonElement;
-              copyButton?.click();
-            }}>
-              <Copy className="h-4 w-4 mr-2" />
-              Cite
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+      {/* New Mobile view with icons */}
+      <div className="flex sm:hidden items-center gap-0.5">
+        <AboutSheet>
+          <Button 
+            variant="ghost" 
+            className="h-7 w-7 p-0 hover:bg-background/80"
+          >
+            <Info className="h-3.5 w-3.5" />
+          </Button>
+        </AboutSheet>
+        
+        <GuideSheet>
+          <Button 
+            variant="ghost" 
+            className="h-7 w-7 p-0 hover:bg-background/80"
+          >
+            <BookOpen className="h-3.5 w-3.5" />
+          </Button>
+        </GuideSheet>
+        
+        <Link href="/docs">
+          <Button 
+            variant="ghost" 
+            className="h-7 w-7 p-0 hover:bg-background/80"
+          >
+            <FileText className="h-3.5 w-3.5" />
+          </Button>
+        </Link>
+        
+        <Button 
+          variant="ghost" 
+          className="h-7 w-7 p-0 hover:bg-background/80"
+          onClick={() => {
+            const copyButton = document.querySelector('[data-copy-button="true"]') as HTMLButtonElement;
+            copyButton?.click();
+          }}
+        >
+          <Copy className="h-3.5 w-3.5" />
+        </Button>
       </div>
     </>
   )
@@ -212,7 +205,7 @@ export default function NavBar() {
 
   return (
     <motion.div 
-      className="fixed top-0 left-0 right-0 z-50 h-[60px]"
+      className="fixed top-0 left-0 right-0 z-50 h-[50px] sm:h-[60px]"
       layout
     >
       <motion.header 
@@ -221,8 +214,8 @@ export default function NavBar() {
           "w-full h-full relative",
           isHomePage && [
             isScrolled
-              ? "max-w-2xl mx-auto px-2 sm:px-4"
-              : "w-full px-4 sm:px-8",
+              ? "max-w-2xl mx-auto px-1 sm:px-4"
+              : "w-full px-2 sm:px-8",
             "rounded-full",
             isScrolled 
               ? "bg-background/40 backdrop-blur-[16px] brightness-[1.1] border border-white/[0.1] dark:border-white/[0.05]"
@@ -251,8 +244,8 @@ export default function NavBar() {
           className={clsx(
             "flex items-center justify-between",
             isHomePage && !isScrolled
-              ? "h-20 px-6 sm:px-8 max-w-7xl mx-auto"
-              : "h-14 lg:h-[55px] px-2 sm:px-4 md:px-6 lg:px-8"
+              ? "h-16 sm:h-20 px-3 sm:px-8 max-w-7xl mx-auto"
+              : "h-12 sm:h-14 lg:h-[55px] px-1 sm:px-4 md:px-6 lg:px-8"
           )}
         >
           {/* Left side - Logo and Title */}

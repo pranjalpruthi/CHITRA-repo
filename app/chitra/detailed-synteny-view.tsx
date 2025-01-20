@@ -317,7 +317,7 @@ export function DetailedSyntenyView({
           ctx.fillStyle = isDarkMode ? '#a1a1aa' : '#94a3b8';
           ctx.font = '24px system-ui, sans-serif';
           ctx.textAlign = 'right';
-          ctx.fillText('© 2024 CHITRA', totalWidth * 2 - 20, totalHeight * 2 - 20);
+          ctx.fillText('© 2025 CHITRA', totalWidth * 2 - 20, totalHeight * 2 - 20);
           
           const mimeType = format === 'png' ? 'image/png' : 'image/jpeg';
           const quality = format === 'png' ? 1 : 0.95;

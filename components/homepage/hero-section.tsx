@@ -79,52 +79,52 @@ export default function HeroSection() {
                 size={1.2}
             />
 
-            <div className="relative z-10 flex min-h-screen w-full items-center justify-center py-0">
-                <div className="container mx-auto px-4">
-                    <div className="grid items-center gap-8 lg:grid-cols-[0.7fr,1.3fr] lg:gap-20">
-                        <div className="flex flex-col items-center text-center lg:items-start lg:text-left">
+            <div className="relative z-10 flex min-h-screen w-full items-start xs:items-center justify-center py-8 xs:py-0">
+                <div className="container mx-auto px-2 xs:px-4">
+                    <div className="grid items-center gap-4 xs:gap-8 xl:grid-cols-[0.7fr,1.3fr] xl:gap-20">
+                        <div className="flex flex-col items-center text-center xl:items-start xl:text-left">
                             <motion.div
                                 initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ duration: 0.7, ease: "easeOut" }}
-                                className="w-full space-y-6 sm:space-y-8"
+                                className="w-full space-y-3 xs:space-y-4 sm:space-y-8"
                             >
                                 <Badge 
                                     variant="outline" 
-                                    className="bg-blue-500/5 text-blue-600 dark:text-blue-400 text-xs sm:text-sm font-medium px-3 sm:px-6 py-1.5 sm:py-2 rounded-full mx-auto lg:ml-0"
+                                    className="bg-blue-500/5 text-blue-600 dark:text-blue-400 text-[9px] xs:text-[10px] sm:text-sm font-medium px-1.5 xs:px-2 sm:px-6 py-0.5 xs:py-1 sm:py-2 rounded-full mx-auto xl:ml-0"
                                 >
-                                    <span className="relative flex h-1.5 sm:h-2 w-1.5 sm:w-2 mr-1.5 sm:mr-2">
+                                    <span className="relative flex h-1 xs:h-1.5 sm:h-2 w-1 xs:w-1.5 sm:w-2 mr-1 xs:mr-1.5 sm:mr-2">
                                         <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
-                                        <span className="relative inline-flex rounded-full h-1.5 sm:h-2 w-1.5 sm:w-2 bg-blue-500"></span>
+                                        <span className="relative inline-flex rounded-full h-1 xs:h-1.5 sm:h-2 w-1 xs:w-1.5 sm:w-2 bg-blue-500"></span>
                                     </span>
-                                    Visualize Chromosomal Data Like Never Before
+                                    <span className="block">Visualize Chromosomal Data Like Never Before</span>
                                 </Badge>
 
-                                <div className="space-y-3 sm:space-y-4">
-                                    <h1 className="text-4xl sm:text-6xl lg:text-7xl xl:text-8xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-gray-900 via-gray-700 to-gray-900 dark:from-white dark:via-gray-300 dark:to-white text-center lg:text-left">
+                                <div className="space-y-1.5 xs:space-y-2 sm:space-y-4">
+                                    <h1 className="text-2xl xs:text-3xl sm:text-6xl xl:text-7xl 2xl:text-8xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-gray-900 via-gray-700 to-gray-900 dark:from-white dark:via-gray-300 dark:to-white text-center xl:text-left">
                                         CHITRA
                                     </h1>
-                                    <div className="relative">
+                                    <div className="relative flex justify-center xl:justify-start">
                                         <HyperText 
                                             text="Chromosome Interactive Tool for Rearrangement Analysis"
-                                            className="text-xs sm:text-sm md:text-base text-muted-foreground font-medium"
+                                            className="text-[8px] xs:text-[10px] sm:text-sm md:text-base text-muted-foreground font-medium text-center xl:text-left"
                                             duration={1000}
                                         />
                                     </div>
                                 </div>
 
-                                <p className="text-lg sm:text-xl lg:text-2xl text-muted-foreground font-light max-w-xl mx-auto lg:ml-0">
+                                <p className="text-sm xs:text-base sm:text-xl xl:text-2xl text-muted-foreground font-light max-w-xl mx-auto xl:ml-0">
                                     An advanced visualization tool for studying chromosomal rearrangements through interactive synteny block analysis and chromosome breakpoint mapping.
                                 </p>
 
-                                <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 pt-4 sm:pt-6 justify-center sm:justify-center lg:justify-start">
+                                <div className="flex flex-col sm:flex-row gap-1.5 xs:gap-2 sm:gap-4 pt-2 xs:pt-3 sm:pt-6 justify-center sm:justify-center xl:justify-start">
                                     <div className="bg-white/30 dark:bg-black/30 backdrop-blur-sm border border-white/20 dark:border-black/20 
-                                        rounded-full p-2 sm:p-3 md:p-6 shadow-lg inline-flex justify-center">
+                                        rounded-full p-1 xs:p-1.5 sm:p-3 md:p-6 shadow-lg inline-flex justify-center">
                                         <motion.div
                                             initial={{ opacity: 0, y: 20 }}
                                             animate={{ opacity: 1, y: 0 }}
                                             transition={{ delay: 0.5 }}
-                                            className="flex items-center justify-center gap-2 sm:gap-3"
+                                            className="flex items-center justify-center gap-1.5 xs:gap-2 sm:gap-3"
                                         >
                                             <Link href="/chitra" className="inline-flex" onClick={handleGetStarted}>
                                                 <div className="relative overflow-hidden rounded-full shadow group p-0.5">
@@ -136,24 +136,24 @@ export default function HeroSection() {
                                                         variant="outline"
                                                         disabled={isLoading}
                                                         className={cn(
-                                                            "h-8 sm:h-9 md:h-12 px-4 sm:px-6 md:px-8 rounded-full font-medium",
+                                                            "h-7 xs:h-8 sm:h-9 md:h-12 px-3 xs:px-4 sm:px-6 md:px-8 rounded-full font-medium",
                                                             "bg-white/80 dark:bg-black/80 backdrop-blur-xl",
                                                             "text-zinc-800 dark:text-zinc-200",
                                                             "border-0 transition-colors duration-300",
                                                             "relative z-10",
-                                                            "text-xs sm:text-sm md:text-base",
+                                                            "text-[10px] xs:text-xs sm:text-sm md:text-base",
                                                             "whitespace-nowrap"
                                                         )}
                                                     >
                                                         {isLoading ? (
                                                             <>
-                                                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                                                <Loader2 className="mr-1.5 xs:mr-2 h-3 xs:h-4 w-3 xs:w-4 animate-spin" />
                                                                 Loading...
                                                             </>
                                                         ) : (
                                                             <>
                                                                 Get Started
-                                                                <ArrowRight className="ml-2 h-3 w-3 sm:h-4 sm:w-4 transition-transform group-hover:translate-x-1" />
+                                                                <ArrowRight className="ml-1.5 xs:ml-2 h-2.5 w-2.5 xs:h-3 xs:w-3 sm:h-4 sm:w-4 transition-transform group-hover:translate-x-1" />
                                                             </>
                                                         )}
                                                     </Button>
@@ -176,13 +176,13 @@ export default function HeroSection() {
                                                     <Button
                                                         variant="outline"
                                                         size="icon"
-                                                        className="relative h-8 sm:h-9 md:h-12 w-8 sm:w-9 md:w-12 rounded-full backdrop-blur-xl 
+                                                        className="relative h-7 xs:h-8 sm:h-9 md:h-12 w-7 xs:w-8 sm:w-9 md:w-12 rounded-full backdrop-blur-xl 
                                                             bg-zinc-50 dark:bg-zinc-900 
                                                             text-zinc-800 dark:text-zinc-200
                                                             border-0"
                                                     >
                                                         <Github className={cn(
-                                                            "h-3 w-3 sm:h-4 sm:w-4 md:h-5 md:w-5 transition-all duration-300",
+                                                            "h-2.5 w-2.5 xs:h-3 xs:w-3 sm:h-4 sm:w-4 md:h-5 md:w-5 transition-all duration-300",
                                                             isGithubHovered && "scale-110 text-blue-500 dark:text-blue-400"
                                                         )} />
                                                         <span className="sr-only">GitHub Repository</span>
@@ -199,12 +199,16 @@ export default function HeroSection() {
                         </div>
 
                         <motion.div 
-                            className="relative w-full aspect-[4/3] sm:aspect-[16/10] lg:aspect-[16/9] xl:aspect-[2/1] cursor-none"
+                            className={cn(
+                                "relative w-full aspect-[3/2] xs:aspect-[4/3] sm:aspect-[16/10] xl:aspect-[16/9] 2xl:aspect-[2/1] cursor-none",
+                                "mt-4 sm:mt-6 xl:mt-0",
+                                "mb-0 md:mb-8"
+                            )}
                             initial={{ opacity: 0, scale: 0.95 }}
                             animate={{ opacity: 1, scale: 1 }}
                             transition={{ duration: 0.8, ease: "easeOut" }}
                         >
-                            <div className="relative h-full w-full rounded-[1.5rem] sm:rounded-[2.5rem] overflow-hidden border border-white/10 shadow-2xl backdrop-blur-sm bg-white/5">
+                            <div className="relative h-full w-full rounded-[1rem] xs:rounded-[1.5rem] sm:rounded-[2.5rem] overflow-hidden border border-white/10 shadow-2xl backdrop-blur-sm bg-white/5">
                                 <ProgressSlider
                                     activeSlider={videos[0].id}
                                     duration={10000}
@@ -251,22 +255,22 @@ export default function HeroSection() {
                                         ))}
                                     </div>
 
-                                    <SliderBtnGroup>
+                                    <SliderBtnGroup className="px-1 xs:px-2 sm:px-4">
                                         {videos.map((video) => (
                                             <SliderBtn
                                                 key={video.id}
                                                 value={video.id}
                                                 className={cn(
-                                                    "text-center p-1.5 sm:p-2 rounded-xl",
+                                                    "text-center p-1 xs:p-1.5 sm:p-2 lg:p-3 rounded-lg sm:rounded-xl",
                                                     "hover:bg-white/10 transition-colors",
-                                                    "w-full sm:w-[200px] md:w-[250px]",
+                                                    "w-full sm:w-[180px] lg:w-[220px] xl:w-[250px]",
                                                     "flex flex-col gap-0.5 sm:gap-1"
                                                 )}
                                                 progressBarClass="bg-blue-500 h-0.5"
                                             >
                                                 <h3 className={cn(
                                                     "text-white font-medium",
-                                                    "text-xs sm:text-sm",
+                                                    "text-[10px] xs:text-xs sm:text-sm lg:text-base",
                                                     "px-1",
                                                     "whitespace-normal",
                                                     "min-h-[2.5em]",
