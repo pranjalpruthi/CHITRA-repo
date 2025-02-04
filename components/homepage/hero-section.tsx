@@ -89,16 +89,7 @@ export default function HeroSection() {
                                 transition={{ duration: 0.7, ease: "easeOut" }}
                                 className="w-full space-y-3 xs:space-y-4 sm:space-y-8"
                             >
-                                <Badge 
-                                    variant="outline" 
-                                    className="bg-blue-500/5 text-blue-600 dark:text-blue-400 text-[9px] xs:text-[10px] sm:text-sm font-medium px-1.5 xs:px-2 sm:px-6 py-0.5 xs:py-1 sm:py-2 rounded-full mx-auto xl:ml-0"
-                                >
-                                    <span className="relative flex h-1 xs:h-1.5 sm:h-2 w-1 xs:w-1.5 sm:w-2 mr-1 xs:mr-1.5 sm:mr-2">
-                                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
-                                        <span className="relative inline-flex rounded-full h-1 xs:h-1.5 sm:h-2 w-1 xs:w-1.5 sm:w-2 bg-blue-500"></span>
-                                    </span>
-                                    <span className="block">Visualize Chromosomal Data Like Never Before</span>
-                                </Badge>
+
 
                                 <div className="space-y-1.5 xs:space-y-2 sm:space-y-4">
                                     <h1 className="text-2xl xs:text-3xl sm:text-6xl xl:text-7xl 2xl:text-8xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-gray-900 via-gray-700 to-gray-900 dark:from-white dark:via-gray-300 dark:to-white text-center xl:text-left">
