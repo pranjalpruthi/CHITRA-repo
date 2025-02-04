@@ -89,7 +89,24 @@ export default function HeroSection() {
                                 transition={{ duration: 0.7, ease: "easeOut" }}
                                 className="w-full space-y-3 xs:space-y-4 sm:space-y-8"
                             >
-
+                            {/* Feature Tags */}
+                            <div className="flex flex-wrap justify-center gap-2">
+                                <Badge variant="secondary" className="bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400">
+                                  #Synteny
+                                </Badge>
+                                <Badge variant="secondary" className="bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400">
+                                  #Annotations
+                                </Badge>
+                                <Badge variant="secondary" className="bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400">
+                                  #Breakpoints
+                                </Badge>
+                                <Badge variant="secondary" className="bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400">
+                                  #Visualization
+                                </Badge>
+                                <Badge variant="secondary" className="bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400">
+                                  #Chromosomes
+                                </Badge>
+                              </div>
 
                                 <div className="space-y-1.5 xs:space-y-2 sm:space-y-4">
                                     <h1 className="text-2xl xs:text-3xl sm:text-6xl xl:text-7xl 2xl:text-8xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-gray-900 via-gray-700 to-gray-900 dark:from-white dark:via-gray-300 dark:to-white text-center xl:text-left">
