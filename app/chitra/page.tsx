@@ -317,6 +317,30 @@ const CollapsibleDetailView = ({
   );
 };
 
+// Add this component
+const SpeciesColorPicker = ({ 
+  species, 
+  currentColor, 
+  onChange 
+}: { 
+  species: string; 
+  currentColor: string; 
+  onChange: (color: string) => void; 
+}) => {
+  return (
+    <div className="flex items-center gap-2">
+      <span>{species}</span>
+      <input
+        type="color"
+        value={currentColor}
+        onChange={(e) => onChange(e.target.value)}
+        className="w-8 h-8 rounded cursor-pointer"
+      />
+    </div>
+  );
+};
+
+
 export default function ChromoViz() {
   const { theme, setTheme } = useTheme();
   const [syntenyData, setSyntenyData] = useState<SyntenyData[]>([]);
@@ -339,6 +363,7 @@ export default function ChromoViz() {
   const [isAtRoot, setIsAtRoot] = useState(true);
   const [isDetailViewOpen, setIsDetailViewOpen] = useState(true);
   const [selectedMutationTypes, setSelectedMutationTypes] = useState<Map<string, MutationType>>(new Map());
+  const [customSpeciesColors, setCustomSpeciesColors] = useState<Map<string, string>>(new Map());
   
   // Initialize from localStorage
   useEffect(() => {
@@ -780,6 +805,29 @@ export default function ChromoViz() {
     });
   }, []);
 
+  const handleSpeciesColorChange = useCallback((species: string, color: string) => {
+    setCustomSpeciesColors(prev => {
+      const newColors = new Map(prev);
+      newColors.set(species, color);
+      return newColors;
+    });
+  }, []);
+
+  // Save colors to localStorage when they change
+  useEffect(() => {
+    if (customSpeciesColors.size > 0) {
+      localStorage.setItem('speciesColors', JSON.stringify(Array.from(customSpeciesColors.entries())));
+    }
+  }, [customSpeciesColors]);
+
+  // Load colors from localStorage on mount
+  useEffect(() => {
+    const savedColors = localStorage.getItem('speciesColors');
+    if (savedColors) {
+      setCustomSpeciesColors(new Map(JSON.parse(savedColors)));
+    }
+  }, []);
+
   if (error) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[50vh] p-4">
@@ -910,8 +958,11 @@ export default function ChromoViz() {
                             setShowAnnotations={setShowAnnotations}
                             selectedChromosomes={selectedChromosomes}
                             showTooltips={showTooltips}
+                            setShowTooltips={setShowTooltips}
                             selectedMutationTypes={selectedMutationTypes}
                             onMutationTypeSelect={handleMutationTypeSelect}
+                            customSpeciesColors={customSpeciesColors}
+                            onSpeciesColorChange={handleSpeciesColorChange}
                           />
                         </div>
                       ) : (

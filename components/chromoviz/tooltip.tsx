@@ -310,7 +310,10 @@ export interface GeneTooltipData {
   geneCount?: number;
   name?: string;
   locus_tag?: string;
-  GeneID: string;
+  GeneID?: string;
+  genomic_accession: string;
+  start: number;
+  end: number;
 }
 
 interface TooltipProps {

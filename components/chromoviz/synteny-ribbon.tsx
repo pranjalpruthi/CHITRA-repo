@@ -25,6 +25,7 @@ interface SyntenyRibbonProps {
   selectedChromosomes: string[];
   mutationType?: MutationType;
   useCustomColors?: boolean;
+  customSpeciesColors?: Map<string, string>;
 }
 
 const SYNTENY_COLORS = {
@@ -98,6 +99,7 @@ export function renderSyntenyRibbon({
   selectedChromosomes,
   mutationType,
   useCustomColors = false,
+  customSpeciesColors,
 }: SyntenyRibbonProps) {
   // Enhanced filtering logic
   const shouldRenderRibbon = () => {
@@ -246,8 +248,9 @@ export function renderSyntenyRibbon({
     .attr("x2", x2)
     .attr("y2", targetY);
 
-  // Get the query species color
-  const queryColor = speciesColorScale(targetSpecies);
+  // Get the query species color with custom color support
+  const queryColor = customSpeciesColors?.get(targetSpecies) || 
+    speciesColorScale(targetSpecies);
   
   // Create a more visible gradient with higher opacity
   gradient.append("stop")
@@ -274,6 +277,10 @@ export function renderSyntenyRibbon({
     .attr("offset", "100%")
     .attr("stop-color", queryColor)
     .attr("stop-opacity", "0.5");  // Increased from 0.4
+
+  // Use this color in gradient creation
+  gradient.selectAll("stop")
+    .attr("stop-color", useCustomColors ? colors.stroke : queryColor);
 
   // Draw ribbon
   const path = d3.path();

@@ -50,28 +50,34 @@ function getGeneTooltip(data: ChromosomeData | GeneAnnotation): GeneTooltipData 
     // Handle chromosome data
     return {
       symbol: data.chr_id,
-      strand: '+', // Default value for chromosomes
+      strand: '+',
       class: 'chromosome',
       position: `${(data.chr_size_bp / 1_000_000).toFixed(2)} Mb`,
       isCluster: false,
       geneCount: undefined,
       name: data.species_name,
       locus_tag: undefined,
-      GeneID: data.chr_id
+      GeneID: data.chr_id,
+      genomic_accession: '',
+      start: 0,
+      end: 0
     };
   }
   
   // Handle gene data
   return {
-    symbol: data.symbol || 'Unknown Gene',
+    symbol: data.symbol || data.locus_tag || 'Unknown',
     strand: data.strand,
     class: data.class,
-    position: `${(data.start / 1_000_000).toFixed(2)}-${(data.end / 1_000_000).toFixed(2)}`,
+    position: `${formatGenomicPosition(data.start)}-${formatGenomicPosition(data.end)}`,
     isCluster: (data as any).isCluster,
     geneCount: (data as any).geneCount,
-    name: data.name,
+    name: data.name || 'No description available',
     locus_tag: data.locus_tag,
-    GeneID: data.GeneID
+    GeneID: data.GeneID || 'Unknown ID',
+    genomic_accession: data.genomic_accession,
+    start: data.start,
+    end: data.end
   };
 }
 
@@ -113,11 +119,11 @@ interface BreakpointMarkerConfig {
 }
 
 const BREAKPOINT_CONFIG: BreakpointMarkerConfig = {
-  trackSpacing: 2,
-  connectorStrokeWidth: 0.5,
-  trackHeight: 8,
-  triangleSize: 2,
-  dashArray: "2,2",
+  trackSpacing: 4,
+  connectorStrokeWidth: 1,
+  trackHeight: 12,
+  triangleSize: 4,
+  dashArray: "3,3",
   colors: {
     connector: "#ef4444",
     track: "#fee2e2",
@@ -211,14 +217,17 @@ export function renderChromosome({
   if (body && 'on' in body) {
     (body as d3.Selection<any, unknown, null, undefined>)
       .on("click", (e) => {
-        // Format the tooltip content as a string instead of passing the object directly
         const tooltipData = getGeneTooltip(chr);
         const formattedContent = `
-          ${tooltipData.symbol}
-          Size: ${tooltipData.position}
-          Species: ${tooltipData.name}
+          ${tooltipData.symbol || 'Unknown Gene'}
+          ${tooltipData.name ? `Description: ${tooltipData.name}` : ''}
+          ${tooltipData.locus_tag ? `Locus: ${tooltipData.locus_tag}` : ''}
+          Position: ${tooltipData.position}
+          Strand: ${tooltipData.strand}
+          Class: ${tooltipData.class}
+          ${tooltipData.genomic_accession ? `Accession: ${tooltipData.genomic_accession}` : ''}
           ID: ${tooltipData.GeneID}
-        `.trim();
+        `.trim().split('\n').filter(Boolean).join('\n');
         
         onHover(e, formattedContent);
       })
@@ -322,20 +331,6 @@ export function renderChromosome({
           }
         });
       });
-
-      // Add minimal label for the first chromosome
-      if (chr.chr_id === '1') {
-        breakpointGroup.append("text")
-          .attr("x", -8)
-          .attr("y", BREAKPOINT_CONFIG.trackHeight / 2)
-          .attr("text-anchor", "end")
-          .attr("dominant-baseline", "middle")
-          .attr("font-size", "9px")
-          .attr("font-weight", "500")
-          .attr("fill", "currentColor")
-          .attr("opacity", 0.8)
-          .text("BreakPoint");
-      }
     }
   }
 
@@ -382,40 +377,41 @@ function createBreakpointMarker(
   const markerGroup = container.append("g")
     .attr("class", "breakpoint-marker");
 
-  // Add start triangle indicator
+  // Add start triangle indicator with enhanced size
   markerGroup.append("path")
     .attr("d", `M ${xScale(start)} ${-config.triangleSize}
-                L ${xScale(start) - config.triangleSize/2} ${0}
-                L ${xScale(start) + config.triangleSize/2} ${0} Z`)
+                L ${xScale(start) - config.triangleSize} ${0}
+                L ${xScale(start) + config.triangleSize} ${0} Z`)
     .attr("fill", config.colors.triangle)
-    .attr("opacity", 0.85);
+    .attr("opacity", 0.9);
 
   // Add end triangle indicator if start and end are different
   if (start !== end) {
     markerGroup.append("path")
       .attr("d", `M ${xScale(end)} ${-config.triangleSize}
-                  L ${xScale(end) - config.triangleSize/2} ${0}
-                  L ${xScale(end) + config.triangleSize/2} ${0} Z`)
+                  L ${xScale(end) - config.triangleSize} ${0}
+                  L ${xScale(end) + config.triangleSize} ${0} Z`)
       .attr("fill", config.colors.triangle)
-      .attr("opacity", 0.85);
+      .attr("opacity", 0.9);
   }
 
-  // Add interactive area
+  // Add interactive area with larger hit area
   markerGroup.append("rect")
-    .attr("x", xScale(start) - 4)
+    .attr("x", xScale(start) - 6)
     .attr("y", -config.triangleSize)
-    .attr("width", Math.max(8, xScale(end) - xScale(start) + 8))
+    .attr("width", Math.max(12, xScale(end) - xScale(start) + 12))
     .attr("height", config.trackHeight + config.triangleSize)
     .attr("fill", "transparent")
-    .style("cursor", "pointer")
+    .attr("cursor", "pointer")
     .on("mouseover", onHover)
     .on("mousemove", onMove)
     .on("mouseleave", onLeave);
+
+  return markerGroup;
 }
 
 function createConnectorPath(x1: number, x2: number, height: number): string {
   const midY = height / 2;
-  // Modified to account for triangles
   return `M ${x1} ${0} 
           L ${x1} ${height}
           M ${x1} ${midY}
@@ -428,7 +424,7 @@ function formatBreakpointTooltip(bp: ChromosomeBreakpoint): string {
   const size = bp.ref_end - bp.ref_start;
   const sizeStr = formatGenomicPosition(size);
   return `Breakpoint: ${bp.breakpoint}
-Location: Chr${bp.ref_chr}:${formatGenomicPosition(bp.ref_start)}-${formatGenomicPosition(bp.ref_end)}
+Location: ${bp.ref_chr}:${formatGenomicPosition(bp.ref_start)}-${formatGenomicPosition(bp.ref_end)}
 Size: ${sizeStr}
 Type: ${size > 1000000 ? 'Large-scale' : size > 10000 ? 'Medium-scale' : 'Small-scale'} breakpoint`;
 }

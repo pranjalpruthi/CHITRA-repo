@@ -88,8 +88,11 @@ interface ChromosomeSyntenyProps {
   setShowAnnotations: (show: boolean) => void;
   selectedChromosomes: string[];
   showTooltips: boolean;
+  setShowTooltips: (show: boolean) => void;
   selectedMutationTypes: Map<string, MutationType>;
   onMutationTypeSelect: (syntenyId: string, mutationType: MutationType) => void;
+  customSpeciesColors: Map<string, string>;
+  onSpeciesColorChange: (species: string, color: string) => void;
 }
 
 // Add this interface for gene annotations
@@ -569,11 +572,13 @@ const MarqueeText = ({ text }: { text: string }) => {
 const MutationTypeDropdown = React.memo(({
   selectedSynteny,
   selectedMutationTypes,
-  onMutationTypeSelect
+  onMutationTypeSelect,
+  customSpeciesColors
 }: {
   selectedSynteny: SyntenyData[];
   selectedMutationTypes: Map<string, MutationType>;
   onMutationTypeSelect: (syntenyId: string, mutationType: MutationType) => void;
+  customSpeciesColors?: Map<string, string>;
 }) => {
   // Memoize the mutation type selection handler
   const handleMutationTypeSelect = useCallback((syntenyId: string, type: MutationType) => {
@@ -745,8 +750,11 @@ export function ChromosomeSynteny({
   setShowAnnotations,
   selectedChromosomes,
   showTooltips,
+  setShowTooltips,
   selectedMutationTypes = new Map(),
   onMutationTypeSelect,
+  customSpeciesColors,
+  onSpeciesColorChange,
 }: ChromosomeSyntenyProps) {
   const [zoom, setZoom] = useState(1);
   const [tooltipInfo, setTooltipInfo] = useState<TooltipInfo | null>(null);
@@ -1239,11 +1247,12 @@ export function ChromosomeSynteny({
       .domain([0, maxChrSize])
       .range([0, innerWidth - 100]); // Leave space for labels
 
-    // Add new color scales for species and chromosomes
-    const speciesColorScale = d3.scaleOrdinal(d3.schemeSet3);
-    const chromosomeColorScale = d3.scaleLinear<string>()
-      .domain([0, 1])
-      .range(['#e2e8f0', '#94a3b8']); // Light to darker shade for chromosomes
+    // Modify the species color scale to use custom colors
+    const speciesColorScale = d3.scaleOrdinal<string>()
+      .domain(uniqueSpecies)
+      .range(uniqueSpecies.map(species => 
+        customSpeciesColors?.get(species) || d3.schemeSet3[uniqueSpecies.indexOf(species) % 12]
+      ));
 
     // Get reference species from synteny data
     const referenceSpecies = syntenyData.length > 0 ? syntenyData[0].ref_species : '';
@@ -1407,6 +1416,29 @@ export function ChromosomeSynteny({
           .attr("transform", `translate(${transform.x}, ${transform.y}) scale(${transform.k})`);
       });
 
+    // Add single Breakpoint label if breakpoints exist
+    if (referenceGenomeData?.breakpoints && referenceGenomeData.breakpoints.length > 0) {
+      // Get reference species position (first species in the list)
+      const referenceSpecies = syntenyData.length > 0 ? syntenyData[0].ref_species : '';
+      const refSpeciesIndex = uniqueSpecies.indexOf(referenceSpecies);
+      const refY = refSpeciesIndex * speciesSpacing + speciesSpacing;
+      
+      // Position the label just below the reference species (add a small offset)
+      const labelY = refY + CHROMOSOME_CONFIG.HEIGHT + 20; // 20px offset
+      
+      // Add single "Breakpoint" label
+      g.append("text")
+        .attr("x", -10)  // Same x position as species labels
+        .attr("y", labelY)
+        .attr("text-anchor", "end")
+        .attr("dominant-baseline", "middle")
+        .attr("font-size", "12px")
+        .attr("font-family", "var(--font-geist-mono)")
+        .attr("class", "text-muted-foreground")
+        .attr("fill", "currentColor")
+        .text("Breakpoint");
+    }
+
   }, [
     referenceData, 
     filteredSyntenyData, 
@@ -1420,7 +1452,8 @@ export function ChromosomeSynteny({
     visualConfig,
     showTooltips,
     selectedMutationTypes,
-    onMutationTypeSelect
+    onMutationTypeSelect,
+    customSpeciesColors
   ]);
 
   // Add window resize handler
@@ -1680,6 +1713,7 @@ export function ChromosomeSynteny({
               selectedSynteny={selectedSynteny}
               selectedMutationTypes={selectedMutationTypes}
               onMutationTypeSelect={onMutationTypeSelect}
+              customSpeciesColors={customSpeciesColors}
             />
           </div>
           
@@ -1793,8 +1827,8 @@ export function ChromosomeSynteny({
                     y={hoveredGene.y}
                   />
                 )}
-          </>
-        )}
+              </>
+            )}
 
             <div className="absolute left-4 bottom-16 z-20 hidden md:block scale-90">
               <div className="inline-grid w-fit grid-cols-3 gap-1">
@@ -1883,6 +1917,13 @@ export function ChromosomeSynteny({
           height={dimensions.height}
         />
       </div>
+      <SettingsPanel
+        isOpen={isSettingsOpen}
+        onOpenChange={setIsSettingsOpen}
+        customSpeciesColors={customSpeciesColors}
+        onSpeciesColorChange={onSpeciesColorChange}
+        speciesData={referenceData}
+      />
     </div>
   );
 }
