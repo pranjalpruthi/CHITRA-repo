@@ -980,7 +980,10 @@ export function ChromosomeSynteny({
         geneCount: link.geneCount,
         name: link.name,
         locus_tag: link.locus_tag,
-        GeneID: link.GeneID
+        GeneID: link.GeneID,
+        genomic_accession: link.genomic_accession || '',
+        start: link.query_start,
+        end: link.query_end
       }
     });
     

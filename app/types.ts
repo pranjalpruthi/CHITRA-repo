@@ -17,6 +17,7 @@ export interface SyntenyData {
   geneCount?: number;
   name?: string;
   locus_tag?: string;
+  genomic_accession?: string;
 }
 
 export interface ChromosomeData {

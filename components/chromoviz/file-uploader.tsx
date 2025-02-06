@@ -58,13 +58,16 @@ export const FILE_CONFIGS = {
       title: "Synteny Data File",
       description: "Contains information about syntenic blocks between genomes",
       format: [
-        { field: "ref_chr", desc: "Reference chromosome ID" },
-        { field: "ref_start", desc: "Start position in reference" },
-        { field: "ref_end", desc: "End position in reference" },
+        { field: "query_name", desc: "Query species name" },
         { field: "query_chr", desc: "Query chromosome ID" },
         { field: "query_start", desc: "Start position in query" },
         { field: "query_end", desc: "End position in query" },
-        { field: "query_strand", desc: "Orientation (+/-)" }
+        { field: "query_strand", desc: "Orientation (+/-)" },
+        { field: "ref_chr", desc: "Reference chromosome ID" },
+        { field: "ref_start", desc: "Start position in reference" },
+        { field: "ref_end", desc: "End position in reference" },
+        { field: "ref_species", desc: "Reference species name" },
+        { field: "qry_lvl", desc: "Query level" }
       ]
     },
     fileType: '.csv',
@@ -92,6 +95,7 @@ export const FILE_CONFIGS = {
       format: [
         { field: "species_name", desc: "Name of the species" },
         { field: "chr_id", desc: "Chromosome identifier" },
+        { field: "chr_type", desc: "Type of chromosome" },
         { field: "chr_size_bp", desc: "Chromosome size in base pairs" },
         { field: "centromere_start", desc: "Centromere start position (optional)" },
         { field: "centromere_end", desc: "Centromere end position (optional)" }
@@ -128,18 +132,21 @@ export const FILE_CONFIGS = {
   },
   annotations: {
     title: "Gene Annotations",
-    description: "Upload ref_gene_annotations.csv file (optional)",
+    description: "Upload ref_gene_annotations.csv file",
     tooltip: {
       title: "Gene Annotations File",
       description: "Contains information about gene annotations",
       format: [
         { field: "chromosome", desc: "Chromosome ID" },
+        { field: "genomic_accession", desc: "Genomic accession number" },
         { field: "start", desc: "Start position" },
         { field: "end", desc: "End position" },
         { field: "strand", desc: "Strand (+/-)" },
         { field: "class", desc: "Gene class" },
+        { field: "locus_tag", desc: "Locus tag" },
         { field: "symbol", desc: "Gene symbol" },
-        { field: "name", desc: "Gene name" }
+        { field: "name", desc: "Gene name" },
+        { field: "GeneID", desc: "Gene ID" }
       ]
     },
     fileType: '.csv',
