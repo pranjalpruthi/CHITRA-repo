@@ -64,6 +64,11 @@ const nextConfig = {
       hostname: 'holocron.so',
       port: '',
       pathname: '/**'
+    }, {
+      protocol: 'https',
+      hostname: 'scholar.googleusercontent.com',
+      port: '',
+      pathname: '/**'
     }]
   }
 };

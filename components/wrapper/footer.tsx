@@ -40,21 +40,42 @@ export default function Footer() {
                             </div>
                         </div>
 
-                        {/* Logos */}
-                        <div className="flex gap-3 items-center">
+                        {/* Institutional Logos */}
+                        <div className="flex flex-wrap gap-6 items-center">
                             <Image
-                                src="/assets/logocloud.svg"
-                                alt="Logo Cloud"
-                                width={120}
-                                height={80}
-                                className="object-contain h-auto"
+                                src="/assets/logos/igib.png"
+                                alt="CSIR-IGIB Logo"
+                                width={100}
+                                height={50}
+                                className="object-contain h-12"
                             />
                             <Image
-                                src="/assets/rf.jpg"
+                                src="/assets/logos/csir.png"
+                                alt="CSIR Logo"
+                                width={100}
+                                height={50}
+                                className="object-contain h-12"
+                            />
+                            <Image
+                                src="/assets/logos/dst.png"
+                                alt="DST Logo"
+                                width={100}
+                                height={50}
+                                className="object-contain h-12"
+                            />
+                            <Image
+                                src="/assets/logos/rf.png"
                                 alt="Rockefeller Logo"
-                                width={120}
-                                height={80}
-                                className="object-contain h-auto"
+                                width={100}
+                                height={50}
+                                className="object-contain h-12"
+                            />
+                            <Image
+                                src="/assets/logos/aiims.png"
+                                alt="AIIMS Logo"
+                                width={100}
+                                height={50}
+                                className="object-contain h-12"
                             />
                         </div>
                     </div>

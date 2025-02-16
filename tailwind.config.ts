@@ -179,6 +179,14 @@ const config: Config = {
           "0%": { height: "0%" },
           "100%": { height: "100%" },
         },
+        marquee: {
+          from: { transform: "translateX(0)" },
+          to: { transform: "translateX(calc(-100% - var(--gap)))" },
+        },
+        "marquee-vertical": {
+          from: { transform: "translateY(0)" },
+          to: { transform: "translateY(calc(-100% - var(--gap)))" },
+        },
       },
       animation: {
         "logo-cloud": "logo-cloud 30s linear infinite", // Adjust duration and timing as needed for your design.
@@ -194,6 +202,8 @@ const config: Config = {
         rainbow: "rainbow 4s linear infinite",
         "shiny-text": "shiny-text 8s infinite",
         "progress-vertical": "progress-vertical 5s linear",
+        marquee: "marquee var(--duration) linear infinite",
+        "marquee-vertical": "marquee-vertical var(--duration) linear infinite",
       },
     },
   },

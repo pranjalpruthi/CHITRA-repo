@@ -87,6 +87,16 @@ const team: TeamMember[] = [
       researchgate: "https://www.researchgate.net/profile/Ajay-Bhatia-5",
       scholar: "https://scholar.google.com"
     }
+  },
+  {
+    name: "Dr. Lata Rani",
+    role: "Scientist II, Genomics Facility | Hematological malignancies",
+    bio: "Centralized Core Research Facility (CCRF), AIIMS, New Delhi | Specializing in genomics and molecular biology research",
+    avatar: "bg-gradient-to-br from-violet-500 to-indigo-500",
+    image: "https://scholar.googleusercontent.com/citations?view_op=medium_photo&user=oyhfOq4AAAAJ&citpid=2",
+    links: {
+      scholar: "https://scholar.google.com/citations?user=oyhfOq4AAAAJ&hl=en",
+    }
   }
 ];
 
@@ -121,6 +131,12 @@ const teamMembers = [
     name: "Ajay Bhatia",
     designation: "Data Analyst",
     image: team[4].image,
+  },
+  {
+    id: 6,
+    name: "Dr. Lata Rani",
+    designation: "Scientist II, AIIMS",
+    image: team[5].image,
   },
 ];
 
@@ -242,7 +258,7 @@ export function AboutSheet({ children }: { children?: React.ReactNode }) {
                 <Separator className="my-4" />
 
                 {/* Team Members */}
-                {[team[0], team[2], team[3], team[4]].map((member) => (
+                {[team[0], team[2], team[3], team[4], team[5]].map((member) => (
                   <motion.div
                     key={member.name}
                     variants={fadeIn}
@@ -324,7 +340,7 @@ export function AboutSheet({ children }: { children?: React.ReactNode }) {
             <motion.div variants={fadeIn}>
               <h3 className="text-lg font-semibold mb-2">Citation</h3>
               <code className="block text-sm bg-muted p-4 rounded-md">
-                Pruthi, P., Narayan, J., Agarwal, P., Shukla, N., & Bhatia, A. (2024). CHITRA: Chromosome Interactive Tool for Rearrangement Analysis. CSIR-IGIB.
+                Pruthi, P., Narayan, J., Agarwal, P., Shukla, N., Bhatia, A., & Rani, L. (2025). CHITRA: Chromosome Interactive Tool for Rearrangement Analysis. CSIR-IGIB.
               </code>
             </motion.div>
           </div>

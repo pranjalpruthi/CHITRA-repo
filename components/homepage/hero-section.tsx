@@ -24,6 +24,12 @@ import {
 import { DataFlowDiagram } from "./data-flow-diagram";
 import AnimatedText from '../ui/animated-text';
 import HyperText from '../ui/hyper-text';
+import { MagicCard } from "@/components/ui/magic-card";
+import Image from "next/image";
+import { Marquee } from "../ui/marquee";
+import { GradientBentoCard } from "@/components/ui/gradient-bento-card";
+import { ICraftPlayer, ICraftPlayerInstance, AnimationType } from "@icraft/player-react";
+import { WorkflowAnimation } from "./workflow-animation";
 
 const videos = [
   { 
@@ -56,6 +62,7 @@ export default function HeroSection() {
     const [isLoading, setIsLoading] = useState(false);
     const [isGithubHovered, setIsGithubHovered] = useState(false);
     const [fullscreenVideo, setFullscreenVideo] = useState<{id: string, src: string} | null>(null);
+    const playerRef = useRef<ICraftPlayerInstance>(null);
 
     const handleGetStarted = async () => {
         setIsLoading(true);
@@ -69,7 +76,7 @@ export default function HeroSection() {
     };
 
     return (
-        <section className="relative min-h-screen w-full overflow-hidden">
+        <section className="relative w-full overflow-hidden">
             <Particles
                 className="fixed inset-0 -z-10"
                 quantity={100}
@@ -79,7 +86,7 @@ export default function HeroSection() {
                 size={1.2}
             />
 
-            <div className="relative z-10 flex min-h-screen w-full items-start xs:items-center justify-center py-8 xs:py-0">
+            <div className="relative z-10 flex w-full items-center justify-center py-8">
                 <div className="container mx-auto px-2 xs:px-4">
                     <div className="grid items-center gap-4 xs:gap-8 xl:grid-cols-[0.7fr,1.3fr] xl:gap-20">
                         <div className="flex flex-col items-center text-center xl:items-start xl:text-left">
@@ -209,8 +216,7 @@ export default function HeroSection() {
                         <motion.div 
                             className={cn(
                                 "relative w-full aspect-[3/2] xs:aspect-[4/3] sm:aspect-[16/10] xl:aspect-[16/9] 2xl:aspect-[2/1] cursor-none",
-                                "mt-4 sm:mt-6 xl:mt-0",
-                                "mb-0 md:mb-8"
+                                "mt-4 sm:mt-6 xl:mt-0"
                             )}
                             initial={{ opacity: 0, scale: 0.95 }}
                             animate={{ opacity: 1, scale: 1 }}
@@ -296,6 +302,96 @@ export default function HeroSection() {
                 </div>
             </div>
 
+            {/* New Workflow Section */}
+            <div className="relative z-10 py-12 bg-white/5 backdrop-blur-sm">
+                <div className="container mx-auto px-4">
+                    <h2 className="text-3xl font-bold text-center mb-8">
+                        <HyperText 
+                            text="Workflow & Features" 
+                            className="text-right"
+                            duration={1000}
+                        />
+                    </h2>
+                    <div className="grid lg:grid-cols-2 gap-8 items-start">
+                        {/* iPlayer Container */}
+                        <div className="relative aspect-square w-full rounded-2xl overflow-hidden border border-white/20">
+                            <WorkflowAnimation />
+                        </div>
+
+                        {/* Workflow Description */}
+                        <div className="space-y-6">
+                            <div className="bg-white/5 backdrop-blur-sm rounded-xl p-6 border border-white/10">
+                                <h3 className="text-xl font-semibold mb-4">Input Requirements</h3>
+                                <div className="space-y-3">
+                                    <h4 className="font-medium text-blue-400">Required Files (CSV)</h4>
+                                    <ul className="list-disc list-inside space-y-2 text-sm text-muted-foreground">
+                                        <li>Synteny data with pairwise synteny blocks</li>
+                                        <li>Species data with genome information</li>
+                                        <li>Reference chromosome size data</li>
+                                    </ul>
+                                    
+                                    <h4 className="font-medium text-blue-400 mt-4">Optional Files</h4>
+                                    <ul className="list-disc list-inside space-y-2 text-sm text-muted-foreground">
+                                        <li>Gene annotations</li>
+                                        <li>Breakpoint data</li>
+                                    </ul>
+                                </div>
+                            </div>
+
+                            <div className="bg-white/5 backdrop-blur-sm rounded-xl p-6 border border-white/10">
+                                <h3 className="text-xl font-semibold mb-4">Visualization Options</h3>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="space-y-2">
+                                        <h4 className="font-medium text-purple-400">Linear View</h4>
+                                        <ul className="list-disc list-inside text-sm text-muted-foreground">
+                                            <li>Interactive ribbons</li>
+                                            <li>Customizable colors</li>
+                                            <li>Strand filtering</li>
+                                            <li>Breakpoint mapping</li>
+                                        </ul>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <h4 className="font-medium text-emerald-400">Chord Map</h4>
+                                        <ul className="list-disc list-inside text-sm text-muted-foreground">
+                                            <li>Circular visualization</li>
+                                            <li>Detailed block info</li>
+                                            <li>Gene annotations</li>
+                                            <li>Interactive filtering</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="flex gap-4">
+                                <Link 
+                                    href="https://chitra-eta.vercel.app/docs" 
+                                    target="_blank"
+                                    className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 text-sm transition-colors"
+                                >
+                                    <ArrowRight className="h-4 w-4" />
+                                    Documentation
+                                </Link>
+                                <Link 
+                                    href="https://github.com/pranjalpruthi/CHITRA" 
+                                    target="_blank"
+                                    className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-zinc-500/10 hover:bg-zinc-500/20 text-zinc-400 text-sm transition-colors"
+                                >
+                                    <Github className="h-4 w-4" />
+                                    Source Code
+                                </Link>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* DataFlowDiagram section */}
+            <div className="mt-2 hidden md:block">
+                <div className="container mx-auto px-4">
+                    <DataFlowDiagram />
+                </div>
+            </div>
+
             <Dialog open={!!fullscreenVideo} onOpenChange={() => setFullscreenVideo(null)}>
                 <DialogContent className="max-w-[95vw] max-h-[95vh] p-0 overflow-hidden">
                     {fullscreenVideo && (
@@ -309,12 +405,6 @@ export default function HeroSection() {
                     )}
                 </DialogContent>
             </Dialog>
-
-            <div className="mt-0 hidden md:block">
-                <div className="container mx-auto px-4">
-                    <DataFlowDiagram />
-                </div>
-            </div>
         </section>
     );
 }
