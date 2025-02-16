@@ -364,8 +364,7 @@ export default function HeroSection() {
 
                             <div className="flex gap-4">
                                 <Link 
-                                    href="https://chitra-eta.vercel.app/docs" 
-                                    target="_blank"
+                                    href="/docs"
                                     className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 text-sm transition-colors"
                                 >
                                     <ArrowRight className="h-4 w-4" />
