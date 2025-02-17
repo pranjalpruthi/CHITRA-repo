@@ -7,7 +7,7 @@ CHITRA is a web-based tool for interactive visualization of synteny blocks, chro
 
 ## Abstract
 
-CHITRA visualizes synteny and rearrangements with an intuitive interface, customizable options, and publication-ready exports. It supports chromosome- and scaffold-level assemblies.
+CHITRA is a web-based tool designed to bring the complexity of genome organization to life. We offer an intuitive interface to visualize:
 
 ## Features
 
@@ -17,13 +17,13 @@ CHITRA visualizes synteny and rearrangements with an intuitive interface, custom
 *   Gene annotation integration.
 
 <p align="center">
-  <img src="path/to/figure1.png" alt="CHITRA Workflow" width="600">
+  <img src="public/assets/workflow.png" alt="CHITRA Workflow" width="600">
   <br>
   <em>Figure 1. CHITRA workflow.</em>
 </p>
 
 <p align="center">
-  <img src="path/to/figure2.png" alt="CHITRA Visualization Styles" width="600">
+  <img src="public/assets/c-plots.svg" alt="CHITRA Visualization Styles" width="600">
   <br>
   <em>Figure 2. CHITRA visualization styles.</em>
 </p>
@@ -41,8 +41,8 @@ Built with Next.js, React, ShadCN UI, Tailwind CSS, Framer Motion, D3.js, and js
 ## Getting Started
 
 1.  Clone: `git clone https://github.com/pranjalpruthi/CHITRA.git`
-2.  Install: `npm install`
-3.  Run: `npm run dev`
+2.  Install: `bun install`
+3.  Run: `bun dev`
 
 ## Funding
 
@@ -51,4 +51,6 @@ Funded by The Rockefeller Foundation and CSIR-IGIB.
 ## License
 
 MIT License.
-![](https://api.visitorbadge.io/api/VisitorHit?user=estruyf&repo=github-visitors-badge&countColor=%237B1E7A)
+
+
+[](https://api.visitorbadge.io/api/VisitorHit?user=pranjalpruthi&repo=github-visitors-badge&countColor=%237B1E7A)
