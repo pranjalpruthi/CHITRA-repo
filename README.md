@@ -13,10 +13,11 @@ CHITRA is a web-based tool designed to bring the complexity of genome organizati
 
 Ready to dive in?
 
-✨ Try it out  •  [https://chitra.bioinformaticsonline.com/](https://chitra.bioinformaticsonline.com/)
-📖 Learn more  •  [https://chitra.bioinformaticsonline.com/docs](https://chitra.bioinformaticsonline.com/docs)
-💻 See the code  •  [https://github.com/pranjalpruthi/CHITRA](https://github.com/pranjalpruthi/CHITRA)
-
+<div align="center">
+  <a href="https://chitra.bioinformaticsonline.com/" style="font-size: 1.5em; text-decoration: none;">✨ Try it out</a>  •
+  <a href="https://chitra.bioinformaticsonline.com/docs" style="font-size: 1.5em; text-decoration: none;">📖 Learn more</a>  •
+  <a href="https://github.com/pranjalpruthi/CHITRA" style="font-size: 1.5em; text-decoration: none;">💻 See the code</a>
+</div>
 
 ## Features
 
