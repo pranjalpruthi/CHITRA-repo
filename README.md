@@ -22,11 +22,6 @@ CHITRA is a web-based tool designed to bring the complexity of genome organizati
   <em>Figure 1. CHITRA workflow.</em>
 </p>
 
-<p align="center">
-  <img src="public/assets/c-plots.svg" alt="CHITRA Visualization Styles" width="600">
-  <br>
-  <em>Figure 2. CHITRA visualization styles.</em>
-</p>
 
 ## Implementation
 
