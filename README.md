@@ -5,9 +5,18 @@
 
 CHITRA is a web-based tool for interactive visualization of synteny blocks, chromosomal rearrangements, and breakpoints.
 
+
+
 ## Abstract
 
 CHITRA is a web-based tool designed to bring the complexity of genome organization to life. We offer an intuitive interface to visualize:
+
+Ready to dive in?
+
+✨ Try it out  •  [https://chitra.bioinformaticsonline.com/](https://chitra.bioinformaticsonline.com/)
+📖 Learn more  •  [https://chitra.bioinformaticsonline.com/docs](https://chitra.bioinformaticsonline.com/docs)
+💻 See the code  •  [https://github.com/pranjalpruthi/CHITRA](https://github.com/pranjalpruthi/CHITRA)
+
 
 ## Features
 
@@ -33,11 +42,13 @@ Built with ❤️, React, ShadCN UI, Tailwind CSS, Motion, D3.js, and jsSVG.
 *   Docs: [https://chitra.bioinformaticsonline.com/docs](https://chitra.bioinformaticsonline.com/docs)
 *   Source: [https://github.com/pranjalpruthi/CHITRA](https://github.com/pranjalpruthi/CHITRA)
 
-## Getting Started
+## Get Started! (Locally) 🚀
 
 1.  Clone: `git clone https://github.com/pranjalpruthi/CHITRA.git`
 2.  Install: `bun install`
 3.  Run: `bun dev`
+
+
 
 ## Funding
 
