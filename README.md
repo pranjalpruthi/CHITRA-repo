@@ -30,7 +30,7 @@ CHITRA is a web-based tool designed to bring the complexity of genome organizati
 
 ## Implementation
 
-Built with Next.js, React, ShadCN UI, Tailwind CSS, Framer Motion, D3.js, and jsSVG.
+Built with ❤️, React, ShadCN UI, Tailwind CSS, Motion, D3.js, and jsSVG.
 
 ## Availability
 
