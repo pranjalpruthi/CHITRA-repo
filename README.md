@@ -1,7 +1,6 @@
 # CHITRA: Interactive Chromosomal Rearrangement Visualization
 
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
-[![GitHub](https://img.shields.io/github/stars/pranjalpruthi/CHITRA?style=social)](https://github.com/pranjalpruthi/CHITRA)
 [![Website](https://img.shields.io/website-up-down-green-red/https/chitra.bioinformaticsonline.com.svg?label=Website)](https://chitra.bioinformaticsonline.com/)
 
 CHITRA is a web-based tool for interactive visualization of synteny blocks, chromosomal rearrangements, and breakpoints.
@@ -52,3 +51,4 @@ Funded by The Rockefeller Foundation and CSIR-IGIB.
 ## License
 
 MIT License.
+![](https://api.visitorbadge.io/api/VisitorHit?user=estruyf&repo=github-visitors-badge&countColor=%237B1E7A)
