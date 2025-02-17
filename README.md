@@ -5,12 +5,6 @@
 
 CHITRA is a web-based tool for interactive visualization of synteny blocks, chromosomal rearrangements, and breakpoints.
 
-
-
-## Abstract
-
-CHITRA is a web-based tool designed to bring the complexity of genome organization to life. We offer an intuitive interface to visualize:
-
 Ready to dive in?
 
 <p align="center">
