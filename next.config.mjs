@@ -75,4 +75,4 @@ const nextConfig = {
   }
 };
 
-export default million.next(withMDX(nextConfig), { auto: true });
+export default withMDX(nextConfig);
