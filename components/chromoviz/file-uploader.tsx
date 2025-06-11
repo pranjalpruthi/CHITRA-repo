@@ -33,6 +33,12 @@ import {
   DrawerTrigger,
   DrawerClose,
 } from "@/components/ui/drawer";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { X } from "lucide-react";
 import {
   Tabs,
@@ -244,6 +250,42 @@ const FileFormatInfo = ({ config }: { config: typeof FILE_CONFIGS[FileType] }) =
   </TooltipProvider>
 );
 
+// Helper component for rendering file format details within an Accordion
+const DirectFileFormatInfo = ({ config, type }: { config: typeof FILE_CONFIGS[FileType], type: FileType }) => (
+  <Accordion type="single" collapsible className="w-full mt-2">
+    <AccordionItem value={`item-${type}`} className="border border-muted-foreground/10 rounded-lg bg-muted/20">
+      <AccordionTrigger className="px-3 py-2 text-xs hover:no-underline [&[data-state=open]]:border-b border-muted-foreground/10">
+        <div className="flex items-center gap-2">
+          <HelpCircle className="h-3.5 w-3.5 text-muted-foreground" />
+          <span>View File Format Details</span>
+        </div>
+      </AccordionTrigger>
+      <AccordionContent className="pt-0 px-3 pb-3 text-sm">
+        <div className="mt-2 space-y-2">
+          <h4 className="font-semibold text-foreground text-xs">{config.tooltip.title}</h4>
+          <p className="text-xs text-muted-foreground">
+            {config.tooltip.description}
+          </p>
+          <div className="space-y-1">
+            <p className="text-xs font-medium text-foreground">Required Fields:</p>
+            <div className="grid grid-cols-1 gap-1">
+              {config.tooltip.format.map((field, index) => (
+                <div key={index} className="text-xs">
+                  <span className="font-mono text-primary bg-primary/10 px-1 py-0.5 rounded text-[10px]">{field.field}</span>
+                  <span className="text-muted-foreground ml-1">- {field.desc}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="text-[10px] text-muted-foreground/80 border-t border-muted-foreground/10 pt-1.5 mt-2">
+            Download an example file from the "Example Files" drawer to see the correct format.
+          </div>
+        </div>
+      </AccordionContent>
+    </AccordionItem>
+  </Accordion>
+);
+
 export function CSVUploader({ onDataLoad, type, required = true }: FileUploaderProps) {
   const [files, setFiles] = useState<File[] | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -390,8 +432,13 @@ export function CSVUploader({ onDataLoad, type, required = true }: FileUploaderP
               </span>
             )}
           </div>
-          <FileFormatInfo config={config} />
+          {/* FileFormatInfo is removed from here, will be placed below FileInput */}
         </FileInput>
+        {/* Display file format information directly below the input using Accordion */}
+        {/* Wrapper to prevent click on accordion from triggering file dialog */}
+        <div onClick={(e) => { e.stopPropagation(); e.preventDefault(); }}>
+          <DirectFileFormatInfo config={config} type={type} />
+        </div>
       </motion.div>
       
       <FileUploaderContent>

@@ -136,10 +136,15 @@ const getExampleFiles = (setId: string): ExampleFile[] => {
 interface ExampleFilesDrawerProps {
   onLoadExample: (path: string) => void;
   children?: React.ReactNode;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
-export function ExampleFilesDrawer({ onLoadExample, children }: ExampleFilesDrawerProps) {
-  const [isOpen, setIsOpen] = useState(false);
+export function ExampleFilesDrawer({ onLoadExample, children, open, onOpenChange }: ExampleFilesDrawerProps) {
+  const [internalOpen, setInternalOpen] = useState(false);
+
+  const isOpen = open !== undefined ? open : internalOpen;
+  const setIsOpen = onOpenChange !== undefined ? onOpenChange : setInternalOpen;
   const [selectedSet, setSelectedSet] = useState<ExampleSet>(EXAMPLE_SETS[0]);
   const [activeFile, setActiveFile] = useState<ExampleFile | null>(null);
   const [csvData, setCsvData] = useState<{ headers: string[]; rows: string[][] } | null>(null);
@@ -474,4 +479,4 @@ export function ExampleFilesDrawer({ onLoadExample, children }: ExampleFilesDraw
       </Drawer>
     </Drawer>
   );
-} 
+}

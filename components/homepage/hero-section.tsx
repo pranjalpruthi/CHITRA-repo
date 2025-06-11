@@ -23,7 +23,7 @@ import {
 } from "lucide-react";
 import { DataFlowDiagram } from "./data-flow-diagram";
 import AnimatedText from '../ui/animated-text';
-import HyperText from '../ui/hyper-text';
+import ScrambleHover from "@/components/ui/scramble-hover";
 import { MagicCard } from "@/components/ui/magic-card";
 import Image from "next/image";
 import { Marquee } from "../ui/marquee";
@@ -64,17 +64,6 @@ export default function HeroSection() {
     const [fullscreenVideo, setFullscreenVideo] = useState<{id: string, src: string} | null>(null);
     const playerRef = useRef<ICraftPlayerInstance>(null);
 
-    const handleGetStarted = async () => {
-        setIsLoading(true);
-        try {
-            await new Promise(resolve => setTimeout(resolve, 1000));
-        } catch (error) {
-            console.error('Error:', error);
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
     return (
         <section className="relative w-full overflow-hidden">
             <Particles
@@ -97,7 +86,7 @@ export default function HeroSection() {
                                 className="w-full space-y-3 xs:space-y-4 sm:space-y-8"
                             >
                             {/* Feature Tags */}
-                            <div className="flex flex-wrap justify-center gap-2">
+                            <div className="flex flex-wrap justify-center gap-2 sm:gap-3 xl:justify-start">
                                 <Badge variant="secondary" className="bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400">
                                   #Synteny
                                 </Badge>
@@ -120,10 +109,12 @@ export default function HeroSection() {
                                         CHITRA
                                     </h1>
                                     <div className="relative flex justify-center xl:justify-start">
-                                        <HyperText 
-                                            text="Chromosome Interactive Tool for Rearrangement Analysis"
-                                            className="text-[8px] xs:text-[10px] sm:text-sm md:text-base text-muted-foreground font-medium text-center xl:text-left"
-                                            duration={1000}
+                                        <ScrambleHover 
+                                            text="CHROMOSOME INTERACTIVE TOOL FOR REARRANGEMENT ANALYSIS"
+                                            scrambleSpeed={50}
+                                            maxIterations={8}
+                                            useOriginalCharsOnly={true}
+                                            className="text-[10px] xs:text-xs sm:text-base md:text-lg text-muted-foreground font-medium text-center xl:text-left"
                                         />
                                     </div>
                                 </div>
@@ -141,7 +132,12 @@ export default function HeroSection() {
                                             transition={{ delay: 0.5 }}
                                             className="flex items-center justify-center gap-1.5 xs:gap-2 sm:gap-3"
                                         >
-                                            <Link href="/chitra" className="inline-flex" onClick={handleGetStarted}>
+                                            <Link 
+                                                href="/chitra" 
+                                                className="inline-flex" 
+                                                onClick={() => setIsLoading(true)}
+                                                {...(isLoading && { target: "_self" })}
+                                            >
                                                 <div className="relative overflow-hidden rounded-full shadow group p-0.5">
                                                     <span className={cn(
                                                         "absolute inset-[-1000%] animate-[spin_5s_linear_infinite_reverse]",
@@ -306,10 +302,13 @@ export default function HeroSection() {
             <div className="relative z-10 py-12 bg-white/5 backdrop-blur-sm">
                 <div className="container mx-auto px-4">
                     <h2 className="text-3xl font-bold text-center mb-8">
-                        <HyperText 
+                        <ScrambleHover 
                             text="Workflow & Features" 
+                            scrambleSpeed={50}
+                            maxIterations={8}
+                            useOriginalCharsOnly={false}
+                            characters="abcdefghijklmnopqrstuvwxyz!@#$%^&*()_+-=[]{}|;':\,./<>?"
                             className="text-right"
-                            duration={1000}
                         />
                     </h2>
                     <div className="grid lg:grid-cols-2 gap-8 items-start">
@@ -407,4 +406,3 @@ export default function HeroSection() {
         </section>
     );
 }
-

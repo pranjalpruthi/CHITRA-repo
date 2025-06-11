@@ -1,3 +1,4 @@
+import million from 'million/compiler';
 import { createMDX } from 'fumadocs-mdx/next';
 
 const withMDX = createMDX();
@@ -18,6 +19,7 @@ const nextConfig = {
       '@tremor/react'
     ]
   },
+  allowedDevOrigins: ['http://192.168.60.42:3000'],
   images: {
     remotePatterns: [{
       protocol: 'https',
@@ -73,4 +75,4 @@ const nextConfig = {
   }
 };
 
-export default withMDX(nextConfig);
+export default million.next(withMDX(nextConfig), { auto: true });

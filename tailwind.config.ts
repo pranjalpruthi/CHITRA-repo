@@ -1,5 +1,4 @@
 import type { Config } from "tailwindcss";
-import { createPreset } from 'fumadocs-ui/tailwind-plugin';
 
 const svgToDataUri = require("mini-svg-data-uri");
 
@@ -9,14 +8,6 @@ const {
 } = require("tailwindcss/lib/util/flattenColorPalette");
 
 const config: Config = {
-  // Adding fumadocs-ui preset
-  presets: [
-    createPreset({
-      preset: 'ocean',
-      cssPrefix: '', // Remove prefix to avoid conflicts
-    })
-  ],
-  
   // Merging content arrays including fumadocs-ui
   content: [
     "./pages/**/*.{js,ts,jsx,tsx,mdx}",

@@ -57,13 +57,25 @@ interface Dimensions {
   height: number;
 }
 
+interface SyntenyTooltipData {
+  symbol: string;
+  strand: '+' | '-';
+  class: string;
+  position: string;
+  isCluster?: boolean;
+  geneCount?: number;
+  name?: string;
+  locus_tag?: string;
+  GeneID: string;
+}
+
 interface TooltipInfo {
   x: number;
   y: number;
   content: string | GeneTooltipData | ReactElement;
   isOpen: boolean;
   type?: 'gene' | 'synteny' | 'chromosome';
-  data?: GeneTooltipData | ChromosomeData;
+  data?: GeneTooltipData | ChromosomeData | SyntenyTooltipData;
 }
 
 interface ChromosomeSyntenyProps {
@@ -129,7 +141,7 @@ function GeneTooltip({ gene, x, y }: { gene: GeneAnnotation; x: number; y: numbe
   );
 }
 
-const AlignmentFilterButton = ({ 
+export const AlignmentFilterButton = ({ 
   filter, 
   currentFilter, 
   onClick, 
@@ -168,23 +180,16 @@ const AlignmentFilterButton = ({
     <button
       onClick={() => onClick(filter)}
       className={cn(
-        'group relative inline-flex h-7 items-center justify-center overflow-hidden rounded-md',
+        'group relative inline-flex h-7 items-center justify-center overflow-hidden rounded-md px-3',
         'bg-background border transition-all duration-200',
         filter === currentFilter 
-          ? colors.active + ' w-24' 
-          : 'border-border ' + colors.hover + ' text-muted-foreground w-7 hover:w-24'
+          ? colors.active
+          : 'border-border ' + colors.hover + ' text-muted-foreground'
       )}
     >
-      <div className={cn(
-        'inline-flex whitespace-nowrap transition-all duration-200',
-        filter === currentFilter 
-          ? '-translate-x-2 opacity-100' 
-          : 'opacity-0 group-hover:-translate-x-2 group-hover:opacity-100'
-      )}>
+      <div className="inline-flex items-center whitespace-nowrap">
+        <Icon className="h-4 w-4 mr-2" />
         {label}
-      </div>
-      <div className="absolute right-2">
-        <Icon className="h-4 w-4" />
       </div>
     </button>
   );
@@ -980,10 +985,7 @@ export function ChromosomeSynteny({
         geneCount: link.geneCount,
         name: link.name,
         locus_tag: link.locus_tag,
-        GeneID: link.GeneID,
-        genomic_accession: link.genomic_accession || '',
-        start: link.query_start,
-        end: link.query_end
+        GeneID: link.GeneID
       }
     });
     
@@ -1693,14 +1695,14 @@ export function ChromosomeSynteny({
                   currentFilter={alignmentFilter}
                   onClick={setAlignmentFilter}
                   icon={ArrowRight}
-                  label="Forward"
+                  label="Forward Only"
                 />
                 <AlignmentFilterButton
                   filter="reverse"
                   currentFilter={alignmentFilter}
                   onClick={setAlignmentFilter}
                   icon={ArrowLeft}
-                  label="Reverse"
+                  label="Reverse Only"
                 />
               </div>
             </div>
@@ -1724,19 +1726,21 @@ export function ChromosomeSynteny({
           <div className="flex items-center gap-1.5">
             <Button
               variant="ghost"
-              size="icon"
+              size="sm"
               onClick={() => setIsSettingsOpen(true)}
-              className="h-7 w-7"
+              className="h-7 px-2"
             >
-              <Settings2 className="h-4 w-4" />
+              <Settings2 className="h-4 w-4 mr-2" />
+              <span className="hidden lg:inline">Settings</span>
             </Button>
 
             {/* Show full controls on larger screens */}
             <div className="hidden md:flex items-center gap-1.5">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className="h-7 w-7">
-                    <Save className="h-4 w-4" />
+                  <Button variant="ghost" size="sm" className="h-7 px-2">
+                    <Save className="h-4 w-4 mr-2" />
+                    <span className="hidden lg:inline">Save</span>
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
@@ -1755,20 +1759,29 @@ export function ChromosomeSynteny({
               <Separator orientation="vertical" className="h-6" />
 
               <div className="flex items-center gap-1">
-                <Button variant="ghost" size="icon" onClick={onZoomOut} className="h-7 w-7">
-                  <ZoomOut className="h-4 w-4" />
+                <Button variant="ghost" size="sm" onClick={onZoomOut} className="h-7 px-2">
+                  <ZoomOut className="h-4 w-4 mr-2" />
+                  <span className="hidden lg:inline">Zoom Out</span>
                 </Button>
-                <Button variant="ghost" size="icon" onClick={onReset} className="h-7 w-7">
-                  <RefreshCw className="h-4 w-4" />
+                <Button variant="ghost" size="sm" onClick={onReset} className="h-7 px-2">
+                  <RefreshCw className="h-4 w-4 mr-2" />
+                  <span className="hidden lg:inline">Reset</span>
                 </Button>
-                <Button variant="ghost" size="icon" onClick={onZoomIn} className="h-7 w-7">
-                  <ZoomIn className="h-4 w-4" />
+                <Button variant="ghost" size="sm" onClick={onZoomIn} className="h-7 px-2">
+                  <ZoomIn className="h-4 w-4 mr-2" />
+                  <span className="hidden lg:inline">Zoom In</span>
                 </Button>
-                <Button variant="ghost" size="icon" onClick={onFullscreen} className="h-7 w-7">
+                <Button variant="ghost" size="sm" onClick={onFullscreen} className="h-7 px-2">
                   {isFullscreen ? (
-                    <Minimize2 className="h-4 w-4" />
+                    <>
+                      <Minimize2 className="h-4 w-4 mr-2" />
+                      <span className="hidden lg:inline">Exit Fullscreen</span>
+                    </>
                   ) : (
-                    <Maximize2 className="h-4 w-4" />
+                    <>
+                      <Maximize2 className="h-4 w-4 mr-2" />
+                      <span className="hidden lg:inline">Fullscreen</span>
+                    </>
                   )}
                 </Button>
               </div>

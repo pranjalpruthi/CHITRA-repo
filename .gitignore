@@ -168,3 +168,6 @@ next-env.d.ts
 
 # Bun
 #bun.lockb
+
+# Million Lint
+.million

@@ -27,8 +27,10 @@ import {
   RotateCcw,
   ArrowLeft,
   ChevronRight,
+  Layers, // Added for Konva switch button
 } from "lucide-react";
 import * as d3 from 'd3';
+import { KonvaSynteny } from './konva-synteny'; // Import KonvaSynteny
 import { SyntenyData, ChromosomeData, ReferenceGenomeData, GeneAnnotation, ChromosomeBreakpoint } from '../types';
 import { useTheme } from "next-themes";
 import {
@@ -44,7 +46,9 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { ShinyRotatingBorderButton } from "@/components/ui/shiny-rotating-border-button";
 import { cn } from "@/lib/utils";
-import AiButton from "@/components/animata/button/ai-button";
+// import AiButton from "@/components/animata/button/ai-button"; // Replaced with LiquidButton
+import { LiquidButton } from "@/components/ui/liquid";
+import { FlipButton } from "@/components/ui/flip"; // Added FlipButton import
 import { FeatureTableConverter } from "@/components/chromoviz/feature-table-converter";
 import {
   Table,
@@ -84,6 +88,7 @@ import { config } from 'process';
 import { TipsCarousel } from "@/components/chromoviz/tips-carousel";
 import { useRouter } from 'next/navigation';
 import { MutationType } from "@/components/chromoviz/synteny-ribbon";
+import BreathingText from "@/components/ui/breathing-text";
 
 const parseCSVRow = (d: any): any => {
   return {
@@ -139,33 +144,53 @@ function parseBreakpointRow(d: d3.DSVRowString): ChromosomeBreakpoint {
 
 // Add a loading skeleton component
 function LoadingSkeleton() {
+  const messages = [
+    "Analyzing Genomes...",
+    "Mapping Chromosomes...",
+    "Visualizing Synteny...",
+    "Loading Annotations...",
+    "Preparing Data...",
+  ];
+  const [message, setMessage] = useState(messages[0]);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setMessage(messages[Math.floor(Math.random() * messages.length)]);
+    }, 2000);
+    return () => clearInterval(interval);
+  }, []);
+
   return (
-    <div className="space-y-4 w-full">
-      {/* Header Skeleton */}
-      <div className="space-y-2">
-        <Skeleton className="h-10 w-48" />
-        <Skeleton className="h-6 w-96" />
-        <div className="flex gap-2">
-          <Skeleton className="h-5 w-20" />
-          <Skeleton className="h-5 w-24" />
-          <Skeleton className="h-5 w-20" />
+    <div className="space-y-4 w-full p-4 sm:p-6">
+      <div className="flex flex-col items-center justify-center space-y-4">
+        <BreathingText
+          label={message}
+          staggerDuration={0.1}
+          fromFontVariationSettings="'wght' 100, 'slnt' 0"
+          toFontVariationSettings="'wght' 800, 'slnt' -10"
+          className="text-lg font-semibold text-gray-600 dark:text-gray-300"
+        />
+        <div className="w-full max-w-md">
+          <div className="relative h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+            <motion.div
+              className="absolute top-0 left-0 h-full bg-blue-500"
+              initial={{ width: "0%" }}
+              animate={{ width: "100%" }}
+              transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+            />
+          </div>
         </div>
       </div>
 
-      <Skeleton className="h-px w-full" /> {/* Separator */}
-
-      {/* Main Content Skeleton */}
-      <div className="grid grid-cols-12 gap-4 sm:gap-6">
-        {/* Left Column */}
+      {/* Main Content Skeleton with pulsing animation */}
+      <div className="grid grid-cols-12 gap-4 sm:gap-6 mt-8">
         <div className="col-span-12 lg:col-span-4 space-y-4">
-          <Skeleton className="h-[400px] w-full" /> {/* Upload Card */}
-          <Skeleton className="h-[200px] w-full" /> {/* Controls Card */}
+          <Skeleton className="h-[400px] w-full animate-pulse" />
+          <Skeleton className="h-[200px] w-full animate-pulse" style={{ animationDelay: '0.1s' }} />
         </div>
-
-        {/* Right Column */}
         <div className="col-span-12 lg:col-span-8 space-y-4">
-          <Skeleton className="h-[600px] sm:h-[700px] md:h-[800px] w-full" />
-          <Skeleton className="h-6 w-full max-w-lg mx-auto" />
+          <Skeleton className="h-[600px] sm:h-[700px] md:h-[800px] w-full animate-pulse" style={{ animationDelay: '0.2s' }} />
+          <Skeleton className="h-6 w-full max-w-lg mx-auto animate-pulse" style={{ animationDelay: '0.3s' }} />
         </div>
       </div>
     </div>
@@ -364,6 +389,7 @@ export default function ChromoViz() {
   const [isDetailViewOpen, setIsDetailViewOpen] = useState(true);
   const [selectedMutationTypes, setSelectedMutationTypes] = useState<Map<string, MutationType>>(new Map());
   const [customSpeciesColors, setCustomSpeciesColors] = useState<Map<string, string>>(new Map());
+  const [showKonvaDemo, setShowKonvaDemo] = useState(false); // State for Konva demo
   
   // Initialize from localStorage
   useEffect(() => {
@@ -922,6 +948,17 @@ export default function ChromoViz() {
                                 <span className="hidden sm:inline">Go Back</span>
                               </Button>
                               <CardTitle className="text-lg font-medium">Synteny Visualization</CardTitle>
+                              {!showKonvaDemo && (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => setShowKonvaDemo(true)}
+                                  className="h-8 px-2 text-xs ml-auto"
+                                >
+                                  <Layers className="h-3.5 w-3.5 mr-1.5" />
+                                  Konva View
+                                </Button>
+                              )}
                             </div>
                             <div className="h-8 border-l pl-4 hidden sm:block">
                               <TipsCarousel variant="compact" className="w-[300px]" />
@@ -932,7 +969,17 @@ export default function ChromoViz() {
 
                       {isLoading ? (
                         <div className="p-4 flex-1">
-                          <Skeleton className="h-full w-full" />
+                          <LoadingSkeleton />
+                        </div>
+                      ) : showKonvaDemo && syntenyData.length > 0 && !showWelcomeCard ? (
+                        <div className="flex-1 min-h-0">
+                          <KonvaSynteny
+                            referenceData={filteredData.referenceData}
+                            syntenyData={filteredData.syntenyData}
+                            alignmentFilter={alignmentFilter}
+                            setAlignmentFilter={setAlignmentFilter}
+                            onBack={() => setShowKonvaDemo(false)}
+                          />
                         </div>
                       ) : syntenyData.length > 0 && !showWelcomeCard ? (
                         <div className="flex-1 min-h-0">
@@ -1035,7 +1082,36 @@ export default function ChromoViz() {
                               </div>
                             </div>
 
-                            {/* Example Sets Grid */}
+                            {/* Upload Button and More Examples - MOVED UP */}
+                            <div className="pt-4 flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6 p-4">
+                              <FileUploaderGroup 
+                                onDataLoad={onDataLoad}
+                                trigger={
+                                  <LiquidButton 
+                                    variant="default" // Assuming default variant aligns with a blue-ish theme
+                                    size="lg" // To match h-12, lg is typically 3rem (48px)
+                                    className="min-w-[190px]"
+                                  >
+                                    <Upload className="h-5 w-5" />
+                                    <span className="text-base">Upload Files</span>
+                                  </LiquidButton>
+                                }
+                              />
+
+                              <ExampleFilesDrawer onLoadExample={loadExampleData}>
+                                <FlipButton
+                                  frontText="Examples"
+                                  backText="View Sets"
+                                  className="min-w-[190px] h-12 text-base" // Added h-12 and text-base
+                                  frontClassName="bg-amber-100 text-amber-700 dark:bg-amber-700/30 dark:text-amber-300"
+                                  backClassName="bg-amber-500 text-white dark:bg-amber-600 dark:text-white"
+                                />
+                                {/* The FileText icon is omitted as FlipButton frontText/backText expect strings. */}
+                                {/* If icon is desired, FlipButton may need modification or icon placed externally. */}
+                              </ExampleFilesDrawer>
+                            </div>
+
+                            {/* Example Sets Grid - NOW BELOW BUTTONS */}
                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                               {[
                                 {
@@ -1094,37 +1170,6 @@ export default function ChromoViz() {
                                   </div>
                                 </motion.button>
                               ))}
-                            </div>
-
-                            {/* Upload Button and More Examples */}
-                            <div className="pt-4 flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6 p-4">
-                              <FileUploaderGroup 
-                                onDataLoad={onDataLoad}
-                                trigger={
-                                  <AiButton 
-                                    className="w-full sm:min-w-[200px] h-12 relative bg-blue-500/10 
-                                      dark:bg-blue-500/20 hover:bg-blue-500/20 dark:hover:bg-blue-500/30 
-                                      transition-colors"
-                                    color="blue"
-                                  >
-                                    <Upload className="h-5 w-5" />
-                                    <span className="text-base">Upload Files</span>
-                                  </AiButton>
-                                }
-                              />
-
-                              <ExampleFilesDrawer onLoadExample={loadExampleData}>
-                                <AiButton
-                                  variant="simple"
-                                  color="amber"
-                                  className="w-full sm:min-w-[200px] h-12 relative bg-amber-500/10 
-                                    dark:bg-amber-500/20 hover:bg-amber-500/20 dark:hover:bg-amber-500/30 
-                                    transition-colors"
-                                >
-                                  <FileText className="h-5 w-5" />
-                                  <span className="text-base">Examples</span>
-                                </AiButton>
-                              </ExampleFilesDrawer>
                             </div>
                           </motion.div>
                         </div>

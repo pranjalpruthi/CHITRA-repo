@@ -115,6 +115,8 @@ function NavButton({ href, icon: Icon, children }: { href: string; icon: any; ch
 }
 
 function NavActions() {
+  const [isGuideOpen, setIsGuideOpen] = useState(false);
+
   return (
     <>
       {/* Desktop view */}
@@ -128,15 +130,14 @@ function NavActions() {
             <span className="ml-2">About</span>
           </Button>
         </AboutSheet>
-        <GuideSheet>
-          <Button 
-            variant="ghost" 
-            className="h-8 w-auto hover:bg-background/80 text-sm p-2"
-          >
-            <BookOpen className="h-4 w-4" />
-            <span className="ml-2">Guide</span>
-          </Button>
-        </GuideSheet>
+        <Button 
+          variant="ghost" 
+          className="h-8 w-auto hover:bg-background/80 text-sm p-2"
+          onClick={() => setIsGuideOpen(true)}
+        >
+          <BookOpen className="h-4 w-4" />
+          <span className="ml-2">Guide</span>
+        </Button>
         <NavButton href="/docs" icon={FileText}>
           Docs
         </NavButton>
@@ -154,14 +155,13 @@ function NavActions() {
           </Button>
         </AboutSheet>
         
-        <GuideSheet>
-          <Button 
-            variant="ghost" 
-            className="h-7 w-7 p-0 hover:bg-background/80"
-          >
-            <BookOpen className="h-3.5 w-3.5" />
-          </Button>
-        </GuideSheet>
+        <Button 
+          variant="ghost" 
+          className="h-7 w-7 p-0 hover:bg-background/80"
+          onClick={() => setIsGuideOpen(true)}
+        >
+          <BookOpen className="h-3.5 w-3.5" />
+        </Button>
         
         <Link href="/docs">
           <Button 
@@ -183,6 +183,7 @@ function NavActions() {
           <Copy className="h-3.5 w-3.5" />
         </Button>
       </div>
+      <GuideSheet open={isGuideOpen} onOpenChange={setIsGuideOpen} />
     </>
   )
 }
