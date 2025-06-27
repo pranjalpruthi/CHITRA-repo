@@ -194,6 +194,9 @@ importers:
       '@vercel/analytics':
         specifier: ^1.2.2
         version: 1.5.0(next@15.3.4(@babel/core@7.27.7)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(react@19.1.0)
+      antd:
+        specifier: ^5.26.2
+        version: 5.26.2(date-fns@3.6.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
       aspect-ratio:
         specifier: ^2.1.5
         version: 2.1.5
