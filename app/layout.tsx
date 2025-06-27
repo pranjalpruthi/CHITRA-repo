@@ -9,25 +9,23 @@ import './globals.css'
 import { RootProvider } from 'fumadocs-ui/provider';
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://starter.rasmic.xyz"),
+  metadataBase: new URL("https://chitra.bioinformaticsonline.com"),
   title: {
-    default: 'CHITRA - Chromosome Interactive Tool for Rearrangement Analysis',
+    default: 'CHITRA: An Interactive Visualization Tool for Comparative Genomic Rearrangement Analysis',
     template: `%s | CHITRA`
   },
-  description: 'CHITRA (Chromosome Interactive Tool for Rearrangement Analysis) - A powerful tool for analyzing chromosome rearrangements and synteny visualization',
+  description: 'Here, we present CHITRA, a web-based interactive tool designed to visualize synteny blocks, chromosomal rearrangements, and breakpoints in both linear and circular styles. CHITRA enables real-time exploration of genome structural variations with an intuitive graphical interface, customizable visualization options, and high-resolution export capabilities for publication-ready figures. The tool supports chromosome- and scaffold-level assemblies and allows users to filter, highlight, and interactively examine syntenic relationships.',
   openGraph: {
-    description: 'CHITRA (CHromosome Interactive Tool for Rearrangement Analysis) - A powerful tool for analyzing chromosome rearrangements and synteny visualization',
-    images: ['https://utfs.io/f/8a428f85-ae83-4ca7-9237-6f8b65411293-eun6ii.png'],
-    url: 'https://starter.rasmic.xyz/'
+    title: 'CHITRA: An Interactive Visualization Tool for Comparative Genomic Rearrangement Analysis',
+    description: 'Here, we present CHITRA, a web-based interactive tool designed to visualize synteny blocks, chromosomal rearrangements, and breakpoints in both linear and circular styles. CHITRA enables real-time exploration of genome structural variations with an intuitive graphical interface, customizable visualization options, and high-resolution export capabilities for publication-ready figures. The tool supports chromosome- and scaffold-level assemblies and allows users to filter, highlight, and interactively examine syntenic relationships.',
+    images: ['/assets/Chitra-meta.png'],
+    url: 'https://chitra.bioinformaticsonline.com'
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'CHITRA - CHromosome Interactive Tool for Rearrangement Analysis',
-    description: 'CHITRA (CHromosome Interactive Tool for Rearrangement Analysis) - A powerful tool for analyzing chromosome rearrangements and synteny visualization',
-    siteId: "",
-    creator: "@rasmic",
-    creatorId: "",
-    images: ['https://utfs.io/f/8a428f85-ae83-4ca7-9237-6f8b65411293-eun6ii.png'],
+    title: 'CHITRA: An Interactive Visualization Tool for Comparative Genomic Rearrangement Analysis',
+    description: 'Here, we present CHITRA, a web-based interactive tool designed to visualize synteny blocks, chromosomal rearrangements, and breakpoints in both linear and circular styles. CHITRA enables real-time exploration of genome structural variations with an intuitive graphical interface, customizable visualization options, and high-resolution export capabilities for publication-ready figures. The tool supports chromosome- and scaffold-level assemblies and allows users to filter, highlight, and interactively examine syntenic relationships.',
+    images: ['/assets/Chitra-meta.png'],
   },
 }
 
@@ -40,16 +38,13 @@ export default function RootLayout({
     <AuthWrapper>
       <html lang="en" suppressHydrationWarning>
         <head>
-          <link
-            rel="preload"
-            href="https://utfs.io/f/31dba2ff-6c3b-4927-99cd-b928eaa54d5f-5w20ij.png"
-            as="image"
-          />
-          <link
-            rel="preload"
-            href="https://utfs.io/f/69a12ab1-4d57-4913-90f9-38c6aca6c373-1txg2.png"
-            as="image"
-          />
+          <link rel="shortcut icon" href="/favicon.ico" />
+          <link rel="icon" type="image/x-icon" sizes="16x16 32x32" href="/favicon.ico" />
+          <link rel="icon" sizes="192x192" href="/favicon-192.png" />
+          <link rel="apple-touch-icon" sizes="180x180" href="/favicon-180-precomposed.png" />
+          <meta name="msapplication-TileColor" content="#FFFFFF" />
+          <meta name="msapplication-TileImage" content="/favicon-144.png" />
+          <link rel="manifest" href="/manifest.json" />
         </head>
         <body className={`${GeistSans.className} flex min-h-screen flex-col`}>
           <ThemeProvider
