@@ -3,10 +3,10 @@
 import { useEffect, useRef, useState, useCallback, RefObject } from "react";
 import * as d3 from "d3";
 import { Button } from "@/components/ui/button";
-import { ZoomIn, ZoomOut, RefreshCw, Maximize2, Minimize2, Save, ChevronDown, ChevronLeft, ChevronRight, ChevronUp, Circle, ArrowUp, ArrowDown, ArrowUpDown, ArrowLeftRight, ArrowRight, ArrowLeft, Settings2, MoreVertical, Image } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { ChevronDown, ChevronLeft, ChevronRight, ChevronUp, Circle, ArrowUp, ArrowDown, ArrowUpDown, ArrowLeftRight, ArrowRight, ArrowLeft, Settings2, MoreVertical, Image, Palette, ZoomIn, ZoomOut, RefreshCw, Maximize2, Minimize2 } from "lucide-react";
 import { ChromosomeData, SyntenyData, ReferenceGenomeData, ChromosomeBreakpoint } from "../types";
 import { cn } from "@/lib/utils";
-import { motion, AnimatePresence } from "framer-motion";
 import { useDebounce } from "use-debounce";
 import { useEventListener } from "@/hooks/use-event-listener";
 import { MiniMap } from "@/components/chromoviz/mini-map";
@@ -19,9 +19,6 @@ import {
   getSyntenyTooltip,
   GeneTooltipData 
 } from "@/components/chromoviz/tooltip";
-import { Badge } from "@/components/ui/badge";
-import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
 import React, { ReactElement } from "react";
 import { 
   CHROMOSOME_CONFIG,
@@ -32,17 +29,12 @@ import {
   type GeneClass,
   OPTIMIZATION_CONFIG
 } from "@/config/chromoviz.config";
-import { SettingsPanel } from "@/components/chromoviz/settings-panel";
-import { 
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuCheckboxItem
-} from "@/components/ui/dropdown-menu";
-import { Separator } from "@/components/ui/separator";
+// import { SettingsPanel } from "@/components/chromoviz/settings-panel"; // No longer needed
+import { ChromosomeScrollbar } from "@/components/chromoviz/chromosome-scrollbar";
+import { ControlsMenu } from "@/components/chromoviz/controls-menu";
+import { MutationTypeDropdown } from "@/components/chromoviz/mutation-type-dropdown";
+import { GeneTooltip } from "@/components/chromoviz/gene-tooltip";
+import { MutationTypeDataDrawer } from "@/components/chromoviz/mutation-type-data-drawer";
 import { MutationType, MUTATION_COLORS } from "@/components/chromoviz/synteny-ribbon";
 
 // First, add these type definitions at the top
@@ -102,9 +94,11 @@ interface ChromosomeSyntenyProps {
   showTooltips: boolean;
   setShowTooltips: (show: boolean) => void;
   selectedMutationTypes: Map<string, MutationType>;
-  onMutationTypeSelect: (syntenyId: string, mutationType: MutationType) => void;
+  onMutationTypeSelect: (syntenyId: string, mutationType?: MutationType) => void; // Allow undefined
   customSpeciesColors: Map<string, string>;
   onSpeciesColorChange: (species: string, color: string) => void;
+  showConnectedOnly: boolean;
+  setShowConnectedOnly: (show: boolean) => void;
 }
 
 // Add this interface for gene annotations
@@ -117,83 +111,7 @@ interface GeneAnnotationProps {
   onMouseLeave: () => void;
 }
 
-// Add this component for gene annotation tooltips
-function GeneTooltip({ gene, x, y }: { gene: GeneAnnotation; x: number; y: number }) {
-  return (
-    <div
-      className="absolute z-50 p-2 text-sm bg-background border rounded-lg shadow-lg"
-      style={{
-        left: x + 10,
-        top: y - 10,
-        maxWidth: '300px'
-      }}
-    >
-      <div className="font-medium">{gene.symbol || gene.locusTag || 'Unknown gene'}</div>
-      <div className="text-xs text-muted-foreground">
-        <div>{gene.name}</div>
-        <div>
-          {gene.chromosome}:{gene.start.toLocaleString()}-{gene.end.toLocaleString()}
-        </div>
-        <div>Strand: {gene.strand}</div>
-        <div>Type: {gene.class}</div>
-      </div>
-    </div>
-  );
-}
-
-export const AlignmentFilterButton = ({ 
-  filter, 
-  currentFilter, 
-  onClick, 
-  icon: Icon, 
-  label 
-}: { 
-  filter: 'all' | 'forward' | 'reverse';
-  currentFilter: 'all' | 'forward' | 'reverse';
-  onClick: (filter: 'all' | 'forward' | 'reverse') => void;
-  icon: any;
-  label: string;
-}) => {
-  const getColorClasses = (type: 'all' | 'forward' | 'reverse') => {
-    switch(type) {
-      case 'forward':
-        return {
-          active: 'border-blue-500 text-blue-500',
-          hover: 'hover:border-blue-500/50 hover:text-blue-500'
-        };
-      case 'reverse':
-        return {
-          active: 'border-red-500 text-red-500',
-          hover: 'hover:border-red-500/50 hover:text-red-500'
-        };
-      default:
-        return {
-          active: 'border-primary text-primary',
-          hover: 'hover:border-primary/50 hover:text-primary'
-        };
-    }
-  };
-
-  const colors = getColorClasses(filter);
-
-  return (
-    <button
-      onClick={() => onClick(filter)}
-      className={cn(
-        'group relative inline-flex h-7 items-center justify-center overflow-hidden rounded-md px-3',
-        'bg-background border transition-all duration-200',
-        filter === currentFilter 
-          ? colors.active
-          : 'border-border ' + colors.hover + ' text-muted-foreground'
-      )}
-    >
-      <div className="inline-flex items-center whitespace-nowrap">
-        <Icon className="h-4 w-4 mr-2" />
-        {label}
-      </div>
-    </button>
-  );
-};
+// GeneTooltip component has been moved to components/chromoviz/gene-tooltip.tsx
 
 // Add this interface for visualization settings
 interface VisualConfig {
@@ -226,513 +144,6 @@ const ZOOM_LEVELS = {
   SEQUENCE: 4       // Show sequence details
 };
 
-// Add this component
-const ChromosomeScrollbar = ({ 
-  svgRef, 
-  containerRef, 
-  zoomBehaviorRef,
-  width,
-  height 
-}: {
-  svgRef: RefObject<SVGSVGElement>;
-  containerRef: RefObject<HTMLDivElement>;
-  zoomBehaviorRef: React.MutableRefObject<any>;
-  width: number;
-  height: number;
-}) => {
-  const scrollTrackRef = useRef<HTMLDivElement>(null);
-  const scrollThumbRef = useRef<HTMLDivElement>(null);
-  const [isDragging, setIsDragging] = useState(false);
-  const [startX, setStartX] = useState(0);
-  const [scrollLeft, setScrollLeft] = useState(0);
-
-  const EXTRA_SCROLL_SPACE = 200; // Increased from 120 to 150 for more space
-
-  const getThumbWidth = useCallback(() => {
-    if (!containerRef.current || !svgRef.current) return 100;
-    const contentWidth = svgRef.current.getBBox().width;
-    const viewportWidth = containerRef.current.clientWidth;
-    // Include extra scroll space in the ratio calculation
-    const totalWidth = contentWidth + EXTRA_SCROLL_SPACE;
-    const ratio = viewportWidth / totalWidth;
-    return Math.max(50, ratio * viewportWidth);
-  }, [containerRef, svgRef]);
-
-  const handleThumbMouseDown = useCallback((e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDragging(true);
-    setStartX(e.clientX - scrollThumbRef.current!.offsetLeft);
-  }, []);
-
-  const handleMouseMove = useCallback((e: MouseEvent) => {
-    if (!isDragging || !scrollTrackRef.current || !scrollThumbRef.current || !svgRef.current) return;
-
-    e.preventDefault();
-    e.stopPropagation();
-
-    const trackRect = scrollTrackRef.current.getBoundingClientRect();
-    const thumbWidth = scrollThumbRef.current.clientWidth;
-    const x = e.clientX - trackRect.left - startX;
-    
-    // Allow scrolling into negative space
-    const boundedX = Math.max(-EXTRA_SCROLL_SPACE, Math.min(x, trackRect.width - thumbWidth));
-    
-    // Adjust scroll ratio calculation to account for negative space
-    const scrollRange = trackRect.width - thumbWidth + EXTRA_SCROLL_SPACE;
-    const scrollRatio = (boundedX + EXTRA_SCROLL_SPACE) / scrollRange;
-    
-    if (zoomBehaviorRef.current) {
-      const transform = d3.zoomTransform(svgRef.current);
-      const bbox = svgRef.current.getBBox();
-      const totalWidth = bbox.width + EXTRA_SCROLL_SPACE;
-      
-      // Calculate new translation with extra space consideration
-      const newTranslateX = -scrollRatio * (totalWidth - width) + EXTRA_SCROLL_SPACE;
-      
-      const newTransform = d3.zoomIdentity
-        .translate(newTranslateX, transform.y)
-        .scale(transform.k);
-      
-      d3.select(svgRef.current)
-        .transition()
-        .duration(0)
-        .call(zoomBehaviorRef.current.transform, newTransform);
-    }
-
-    setScrollLeft(boundedX);
-  }, [isDragging, startX, width, zoomBehaviorRef]);
-
-  const handleMouseUp = useCallback(() => {
-    setIsDragging(false);
-  }, []);
-
-  useEffect(() => {
-    if (isDragging) {
-      window.addEventListener('mousemove', handleMouseMove);
-      window.addEventListener('mouseup', handleMouseUp);
-    }
-    return () => {
-      window.removeEventListener('mousemove', handleMouseMove);
-      window.removeEventListener('mouseup', handleMouseUp);
-    };
-  }, [isDragging, handleMouseMove, handleMouseUp]);
-
-  return (
-    <div 
-      className="absolute bottom-4 left-4 right-4 h-6 select-none"
-      onMouseDown={(e) => e.stopPropagation()}
-    >
-      <div 
-        ref={scrollTrackRef}
-        className="relative w-full h-2 bg-muted rounded-full select-none"
-        onMouseDown={(e) => e.stopPropagation()}
-      >
-        <div
-          ref={scrollThumbRef}
-          style={{ 
-            width: `${getThumbWidth()}px`,
-            left: scrollLeft,
-            userSelect: 'none',
-            WebkitUserSelect: 'none',
-            MozUserSelect: 'none',
-            msUserSelect: 'none'
-          }}
-          className={cn(
-            "absolute top-0 h-full rounded-full bg-primary/50",
-            "cursor-grab hover:bg-primary/70 transition-colors",
-            "select-none touch-none",
-            isDragging && "cursor-grabbing bg-primary"
-          )}
-          onMouseDown={handleThumbMouseDown}
-          onDragStart={(e) => e.preventDefault()}
-        />
-      </div>
-    </div>
-  );
-};
-
-// Add this menu component
-const ControlsMenu = ({
-  alignmentFilter,
-  setAlignmentFilter,
-  showAnnotations,
-  setShowAnnotations,
-  onZoomIn,
-  onZoomOut,
-  onReset,
-  onFullscreen,
-  isFullscreen,
-  handleSaveAsSVG,
-  handleExportImage,
-  selectedSynteny,
-  selectedMutationTypes,
-  onMutationTypeSelect,
-}: {
-  alignmentFilter: 'all' | 'forward' | 'reverse';
-  setAlignmentFilter: (filter: 'all' | 'forward' | 'reverse') => void;
-  showAnnotations: boolean;
-  setShowAnnotations: (show: boolean) => void;
-  onZoomIn: () => void;
-  onZoomOut: () => void;
-  onReset: () => void;
-  onFullscreen: () => void;
-  isFullscreen: boolean;
-  handleSaveAsSVG: () => void;
-  handleExportImage: (format: 'png' | 'jpg') => void;
-  selectedSynteny: SyntenyData[];
-  selectedMutationTypes: Map<string, MutationType>;
-  onMutationTypeSelect: (syntenyId: string, mutationType: MutationType) => void;
-}) => (
-  <DropdownMenu>
-    <DropdownMenuTrigger asChild>
-      <Button variant="ghost" size="icon" className="h-7 w-7">
-        <MoreVertical className="h-4 w-4" />
-      </Button>
-    </DropdownMenuTrigger>
-    <DropdownMenuContent align="end" className="w-48">
-      <DropdownMenuLabel>Alignment</DropdownMenuLabel>
-      <DropdownMenuItem onClick={() => setAlignmentFilter('all')}>
-        <ArrowLeftRight className="h-4 w-4 mr-2" />
-        All Alignments
-      </DropdownMenuItem>
-      <DropdownMenuItem onClick={() => setAlignmentFilter('forward')}>
-        <ArrowRight className="h-4 w-4 mr-2" />
-        Forward Only
-      </DropdownMenuItem>
-      <DropdownMenuItem onClick={() => setAlignmentFilter('reverse')}>
-        <ArrowLeft className="h-4 w-4 mr-2" />
-        Reverse Only
-      </DropdownMenuItem>
-      
-      <DropdownMenuSeparator />
-      <DropdownMenuLabel>View</DropdownMenuLabel>
-      <DropdownMenuCheckboxItem
-        checked={showAnnotations}
-        onCheckedChange={setShowAnnotations}
-      >
-        Show Annotations
-      </DropdownMenuCheckboxItem>
-      
-      <DropdownMenuSeparator />
-      <DropdownMenuLabel>Zoom</DropdownMenuLabel>
-      <DropdownMenuItem onClick={onZoomIn}>
-        <ZoomIn className="h-4 w-4 mr-2" />
-        Zoom In
-      </DropdownMenuItem>
-      <DropdownMenuItem onClick={onZoomOut}>
-        <ZoomOut className="h-4 w-4 mr-2" />
-        Zoom Out
-      </DropdownMenuItem>
-      <DropdownMenuItem onClick={onReset}>
-        <RefreshCw className="h-4 w-4 mr-2" />
-        Reset View
-      </DropdownMenuItem>
-      
-      <DropdownMenuSeparator />
-      <DropdownMenuLabel>Export</DropdownMenuLabel>
-      <DropdownMenuItem onClick={handleSaveAsSVG}>
-        <Save className="h-4 w-4 mr-2" />
-        Save as SVG
-      </DropdownMenuItem>
-      <DropdownMenuItem onClick={() => handleExportImage('png')}>
-        <Image className="h-4 w-4 mr-2" />
-        Export as PNG
-      </DropdownMenuItem>
-      <DropdownMenuItem onClick={() => handleExportImage('jpg')}>
-        <Image className="h-4 w-4 mr-2" />
-        Export as JPG
-      </DropdownMenuItem>
-      
-      <DropdownMenuSeparator />
-      <DropdownMenuItem onClick={onFullscreen}>
-        {isFullscreen ? (
-          <>
-            <Minimize2 className="h-4 w-4 mr-2" />
-            Exit Fullscreen
-          </>
-        ) : (
-          <>
-            <Maximize2 className="h-4 w-4 mr-2" />
-            Enter Fullscreen
-          </>
-        )}
-      </DropdownMenuItem>
-
-      {selectedSynteny.length > 0 && (
-        <>
-          <DropdownMenuSeparator />
-          <DropdownMenuLabel>Mutation Types</DropdownMenuLabel>
-          {selectedSynteny.map(link => {
-            const syntenyId = `${link.ref_chr}-${link.query_chr}-${link.ref_start}-${link.query_start}`;
-            const currentType = selectedMutationTypes.get(syntenyId);
-            
-            return (
-              <DropdownMenuItem 
-                key={syntenyId} 
-                className="flex items-center gap-2 py-2" // Added more padding
-                onSelect={(e) => e.preventDefault()}
-              >
-                <div className="flex-1">
-                  {link.ref_chr} → {link.query_chr}
-                </div>
-                <MutationTypeSelector
-                  currentType={currentType}
-                  onSelect={(type) => onMutationTypeSelect(syntenyId, type)}
-                />
-              </DropdownMenuItem>
-            );
-          })}
-        </>
-      )}
-    </DropdownMenuContent>
-  </DropdownMenu>
-);
-
-// Add this component for mutation type selection
-const MutationTypeSelector = ({ 
-  onSelect,
-  currentType 
-}: { 
-  onSelect: (type: MutationType) => void;
-  currentType?: MutationType;
-}) => (
-  <DropdownMenu>
-    <DropdownMenuTrigger asChild>
-      <Button 
-        variant="outline" 
-        className={cn(
-          "h-7 gap-2",
-          currentType && `border-${MUTATION_COLORS[currentType]}/50 text-${MUTATION_COLORS[currentType]}`
-        )}
-      >
-        <div 
-          className="h-3 w-3 rounded-full" 
-          style={{ backgroundColor: currentType ? MUTATION_COLORS[currentType] : 'currentColor' }} 
-        />
-        {currentType || 'Set Mutation Type'}
-      </Button>
-    </DropdownMenuTrigger>
-    <DropdownMenuContent>
-      {Object.entries(MUTATION_COLORS).map(([type, color]) => (
-        <DropdownMenuItem
-          key={type}
-          onClick={() => onSelect(type as MutationType)}
-          className="gap-2"
-        >
-          <div 
-            className="h-3 w-3 rounded-full" 
-            style={{ backgroundColor: color }} 
-          />
-          {type}
-        </DropdownMenuItem>
-      ))}
-    </DropdownMenuContent>
-  </DropdownMenu>
-);
-
-// First, memoize the MutationTypeDropdown component
-const MarqueeText = ({ text }: { text: string }) => {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const textRef = useRef<HTMLDivElement>(null);
-  const [shouldAnimate, setShouldAnimate] = useState(false);
-
-  useEffect(() => {
-    if (containerRef.current && textRef.current) {
-      setShouldAnimate(textRef.current.offsetWidth > containerRef.current.offsetWidth);
-    }
-  }, [text]);
-
-  if (!shouldAnimate) {
-    return <span>{text}</span>;
-  }
-
-  return (
-    <div 
-      ref={containerRef} 
-      className="overflow-hidden relative w-[40px]"
-      onMouseEnter={() => setShouldAnimate(true)}
-      onMouseLeave={() => setShouldAnimate(false)}
-    >
-      <motion.div
-        ref={textRef}
-        animate={shouldAnimate ? {
-          x: [-10, -((textRef.current?.offsetWidth || 0) + 10)],
-        } : { x: 0 }}
-        transition={shouldAnimate ? {
-          duration: Math.max(2, ((textRef.current?.offsetWidth || 0) / 50)),
-          repeat: Infinity,
-          repeatType: "reverse",
-          ease: "linear",
-          repeatDelay: 0.5,
-        } : undefined}
-        className="whitespace-nowrap"
-      >
-        {text}
-      </motion.div>
-    </div>
-  );
-};
-
-const MutationTypeDropdown = React.memo(({
-  selectedSynteny,
-  selectedMutationTypes,
-  onMutationTypeSelect,
-  customSpeciesColors
-}: {
-  selectedSynteny: SyntenyData[];
-  selectedMutationTypes: Map<string, MutationType>;
-  onMutationTypeSelect: (syntenyId: string, mutationType: MutationType) => void;
-  customSpeciesColors?: Map<string, string>;
-}) => {
-  // Memoize the mutation type selection handler
-  const handleMutationTypeSelect = useCallback((syntenyId: string, type: MutationType) => {
-    // Prevent default dropdown behavior
-    requestAnimationFrame(() => {
-      onMutationTypeSelect(syntenyId, type);
-    });
-  }, [onMutationTypeSelect]);
-
-  // Format position numbers to be more readable
-  const formatPosition = (pos: number) => {
-    if (pos >= 1000000) {
-      return `${(pos / 1000000).toFixed(1)}Mb`;
-    } else if (pos >= 1000) {
-      return `${(pos / 1000).toFixed(1)}kb`;
-    }
-    return `${pos}bp`;
-  };
-
-  // Create a more detailed label for each synteny
-  const getSyntenyLabel = (link: SyntenyData) => {
-    const refPos = formatPosition(link.ref_start);
-    const queryPos = formatPosition(link.query_start);
-    return (
-      <div className="flex flex-col gap-0.5">
-        <div className="flex items-center gap-1.5">
-          <div className="flex items-center gap-1 text-xs font-medium">
-            <div className="flex items-center gap-1 bg-blue-50 rounded-full px-1.5 py-0.5">
-              <div className="h-1.5 w-1.5 rounded-full bg-blue-500" />
-              <span className="text-[8px] text-blue-700 uppercase tracking-wide">R</span>
-            </div>
-            {link.ref_chr}
-            <ArrowRight className="h-3 w-3 text-muted-foreground" />
-            <div className="flex items-center gap-1 bg-purple-50 rounded-full px-1.5 py-0.5">
-              <div className="h-1.5 w-1.5 rounded-full bg-purple-500" />
-              <span className="text-[8px] text-purple-700 uppercase tracking-wide">Q</span>
-            </div>
-            {link.query_chr}
-          </div>
-          <Badge variant="secondary" className="h-4 text-[10px] px-1 font-normal overflow-hidden">
-            <MarqueeText text={link.query_name || 'Species 2'} />
-          </Badge>
-        </div>
-        <div className="flex items-center gap-1.5">
-          <div className="text-[10px] text-muted-foreground">
-            {refPos} - {queryPos}
-          </div>
-          <div className="text-[10px] text-muted-foreground">
-            ({link.query_strand === '+' ? 'Forward' : 'Reverse'})
-          </div>
-        </div>
-      </div>
-    );
-  };
-
-  if (selectedSynteny.length === 0) return null;
-
-  return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button 
-          variant="outline" 
-          size="sm"
-          className="h-7 gap-2"
-        >
-          <div className="flex items-center gap-1.5">
-            <Circle className="h-3 w-3" />
-            <span className="hidden md:inline">Color Tags</span>
-          </div>
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-80"> {/* Increased width */}
-        <DropdownMenuLabel className="flex items-center justify-between">
-          <span>Mutation Types</span>
-          <span className="text-xs text-muted-foreground">
-            {selectedSynteny.length} selected
-          </span>
-        </DropdownMenuLabel>
-        <div className="max-h-[300px] overflow-y-auto">
-          {selectedSynteny.map(link => {
-            const syntenyId = `${link.ref_chr}-${link.query_chr}-${link.ref_start}-${link.query_start}`;
-            const currentType = selectedMutationTypes.get(syntenyId);
-            
-            return (
-              <DropdownMenuItem 
-                key={syntenyId} 
-                className="flex items-center gap-2 py-2" // Added more padding
-                onSelect={(e) => e.preventDefault()}
-              >
-                <div className="flex-1">
-                  {getSyntenyLabel(link)}
-                </div>
-                <div className="flex items-center gap-1">
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button 
-                        variant="ghost" 
-                        size="sm"
-                        className="h-6 px-2 gap-1.5"
-                      >
-                        <div 
-                          className="h-2.5 w-2.5 rounded-full" 
-                          style={{ 
-                            backgroundColor: currentType ? MUTATION_COLORS[currentType] : 'currentColor',
-                            opacity: currentType ? 1 : 0.5
-                          }} 
-                        />
-                        <span className="text-xs min-w-[50px]">{currentType || 'None'}</span>
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent 
-                      side="right" 
-                      align="start"
-                      className="max-h-[200px] overflow-y-auto" // Also make mutation type list scrollable if needed
-                    >
-                      <DropdownMenuItem 
-                        onClick={() => handleMutationTypeSelect(syntenyId, undefined as any)}
-                        className="gap-2"
-                      >
-                        <div className="h-2.5 w-2.5 rounded-full opacity-50" />
-                        None
-                      </DropdownMenuItem>
-                      {Object.entries(MUTATION_COLORS).map(([type, color]) => (
-                        <DropdownMenuItem
-                          key={type}
-                          onClick={() => handleMutationTypeSelect(syntenyId, type as MutationType)}
-                          className="gap-2"
-                        >
-                          <div 
-                            className="h-2.5 w-2.5 rounded-full" 
-                            style={{ backgroundColor: color }} 
-                          />
-                          {type}
-                        </DropdownMenuItem>
-                      ))}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
-              </DropdownMenuItem>
-            );
-          })}
-        </div>
-      </DropdownMenuContent>
-    </DropdownMenu>
-  );
-});
-
-MutationTypeDropdown.displayName = 'MutationTypeDropdown';
-
 export function ChromosomeSynteny({
   referenceData,
   syntenyData,
@@ -760,8 +171,11 @@ export function ChromosomeSynteny({
   onMutationTypeSelect,
   customSpeciesColors,
   onSpeciesColorChange,
+  showConnectedOnly,
+  setShowConnectedOnly
 }: ChromosomeSyntenyProps) {
   const [zoom, setZoom] = useState(1);
+  const [isMutationDrawerOpen, setIsMutationDrawerOpen] = useState(false);
   const [tooltipInfo, setTooltipInfo] = useState<TooltipInfo | null>(null);
   const [debouncedHoverInfo] = useDebounce(tooltipInfo, 50); // Debounce hover info updates
   const [viewport, setViewport] = useState<Dimensions>({
@@ -822,8 +236,8 @@ export function ChromosomeSynteny({
       .filter(chr => chr.startsWith('ref:'))
       .map(chr => chr.replace('ref:', ''));
 
-    // If there are selected reference chromosomes, only show synteny for those
-    if (selectedRefChrs.length > 0) {
+    // If there are selected reference chromosomes and showConnectedOnly is true, only show synteny for those
+    if (selectedRefChrs.length > 0 && showConnectedOnly) {
       filteredData = filteredData.filter(link => 
         selectedRefChrs.includes(link.ref_chr)
       );
@@ -843,7 +257,7 @@ export function ChromosomeSynteny({
   // Filter synteny data before rendering
   const filteredSyntenyData = React.useMemo(() => {
     return filterSyntenyData(syntenyData);
-  }, [syntenyData, selectedChromosomes, alignmentFilter]);
+  }, [syntenyData, selectedChromosomes, alignmentFilter, showConnectedOnly]);
 
   const handleFullscreenChange = useCallback(() => {
     const isFullscreenNow = Boolean(document.fullscreenElement);
@@ -1256,7 +670,7 @@ export function ChromosomeSynteny({
     const speciesColorScale = d3.scaleOrdinal<string>()
       .domain(uniqueSpecies)
       .range(uniqueSpecies.map(species => 
-        customSpeciesColors?.get(species) || d3.schemeSet3[uniqueSpecies.indexOf(species) % 12]
+        customSpeciesColors?.get(species) || d3.schemePastel1[uniqueSpecies.indexOf(species) % d3.schemePastel1.length]
       ));
 
     // Get reference species from synteny data
@@ -1458,7 +872,8 @@ export function ChromosomeSynteny({
     showTooltips,
     selectedMutationTypes,
     onMutationTypeSelect,
-    customSpeciesColors
+    customSpeciesColors,
+    showConnectedOnly
   ]);
 
   // Add window resize handler
@@ -1500,8 +915,6 @@ export function ChromosomeSynteny({
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, [viewport, containerRef]);
-
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
   const optimizeChromosomeLayout = (chromosomes: ChromosomeData[]) => {
     // Group chromosomes by size ranges
@@ -1655,8 +1068,8 @@ export function ChromosomeSynteny({
     <div 
       ref={containerRef}
       className="w-full h-full relative select-none"
-      style={{ 
-        overflow: 'auto',
+      style={{
+        overflow: isFullscreen ? 'visible' : 'auto',
         WebkitUserSelect: 'none',
         MozUserSelect: 'none',
         msUserSelect: 'none',
@@ -1664,153 +1077,55 @@ export function ChromosomeSynteny({
       }}
     >
       <div className={cn(
-        "absolute inset-0 transition-opacity duration-200",
-        isFullscreen ? "opacity-100 backdrop-blur-md" : "opacity-0"
+        "absolute inset-0 transition-opacity duration-200 pointer-events-none",
+        isFullscreen ? "opacity-100" : "opacity-0"
       )} />
 
       <div className={cn(
-        "relative w-full h-full z-10",
+        "relative w-full h-full z-30",
         isFullscreen && "bg-background"
       )}>
         {/* Header Controls */}
         <div className={cn(
           "absolute top-0 left-0 right-0 flex items-center justify-between gap-2 p-1",
           "border-b border-border/20",
-          "bg-background/10 backdrop-blur-md z-10"
+          "bg-background/10 z-[55]"
         )}>
-          {/* Left Side Controls */}
-          <div className="flex items-center gap-2">
-            {/* Show full controls on larger screens */}
-            <div className="hidden md:flex items-center gap-2">
-              <div className="flex items-center gap-1.5">
-                <AlignmentFilterButton
-                  filter="all"
-                  currentFilter={alignmentFilter}
-                  onClick={setAlignmentFilter}
-                  icon={ArrowLeftRight}
-                  label="All"
-                />
-                <AlignmentFilterButton
-                  filter="forward"
-                  currentFilter={alignmentFilter}
-                  onClick={setAlignmentFilter}
-                  icon={ArrowRight}
-                  label="Forward Only"
-                />
-                <AlignmentFilterButton
-                  filter="reverse"
-                  currentFilter={alignmentFilter}
-                  onClick={setAlignmentFilter}
-                  icon={ArrowLeft}
-                  label="Reverse Only"
-                />
-              </div>
-            </div>
-
-            <Badge variant="secondary" className="text-xs">
-              {Math.round(zoom * 100)}%
-            </Badge>
-          </div>
-          
-          {/* Center Controls - Add Mutation Type Dropdown */}
-          <div className="flex items-center gap-2">
-            <MutationTypeDropdown
-              selectedSynteny={selectedSynteny}
-              selectedMutationTypes={selectedMutationTypes}
-              onMutationTypeSelect={onMutationTypeSelect}
-              customSpeciesColors={customSpeciesColors}
-            />
-          </div>
-          
-          {/* Right Side Controls */}
-          <div className="flex items-center gap-1.5">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setIsSettingsOpen(true)}
-              className="h-7 px-2"
-            >
-              <Settings2 className="h-4 w-4 mr-2" />
-              <span className="hidden lg:inline">Settings</span>
-            </Button>
-
-            {/* Show full controls on larger screens */}
-            <div className="hidden md:flex items-center gap-1.5">
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="sm" className="h-7 px-2">
-                    <Save className="h-4 w-4 mr-2" />
-                    <span className="hidden lg:inline">Save</span>
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={() => handleSaveAsSVG()}>
-                    Save as SVG
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => handleExportImage('png')}>
-                    Export as PNG
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => handleExportImage('jpg')}>
-                    Export as JPG
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-
-              <Separator orientation="vertical" className="h-6" />
-
-              <div className="flex items-center gap-1">
-                <Button variant="ghost" size="sm" onClick={onZoomOut} className="h-7 px-2">
-                  <ZoomOut className="h-4 w-4 mr-2" />
-                  <span className="hidden lg:inline">Zoom Out</span>
-                </Button>
-                <Button variant="ghost" size="sm" onClick={onReset} className="h-7 px-2">
-                  <RefreshCw className="h-4 w-4 mr-2" />
-                  <span className="hidden lg:inline">Reset</span>
-                </Button>
-                <Button variant="ghost" size="sm" onClick={onZoomIn} className="h-7 px-2">
-                  <ZoomIn className="h-4 w-4 mr-2" />
-                  <span className="hidden lg:inline">Zoom In</span>
-                </Button>
-                <Button variant="ghost" size="sm" onClick={onFullscreen} className="h-7 px-2">
-                  {isFullscreen ? (
-                    <>
-                      <Minimize2 className="h-4 w-4 mr-2" />
-                      <span className="hidden lg:inline">Exit Fullscreen</span>
-                    </>
-                  ) : (
-                    <>
-                      <Maximize2 className="h-4 w-4 mr-2" />
-                      <span className="hidden lg:inline">Fullscreen</span>
-                    </>
-                  )}
-                </Button>
-              </div>
-            </div>
-
-            {/* Show three-dot menu on small screens */}
-            <div className="md:hidden">
-              <ControlsMenu
-                alignmentFilter={alignmentFilter}
-                setAlignmentFilter={setAlignmentFilter}
-                showAnnotations={showAnnotations}
-                setShowAnnotations={setShowAnnotations}
-                onZoomIn={onZoomIn}
-                onZoomOut={onZoomOut}
-                onReset={onReset}
-                onFullscreen={onFullscreen}
-                isFullscreen={isFullscreen}
-                handleSaveAsSVG={handleSaveAsSVG}
-                handleExportImage={handleExportImage}
-                selectedSynteny={selectedSynteny}
-                selectedMutationTypes={selectedMutationTypes}
-                onMutationTypeSelect={onMutationTypeSelect}
-              />
-            </div>
-          </div>
+          <ControlsMenu
+            alignmentFilter={alignmentFilter}
+            setAlignmentFilter={setAlignmentFilter}
+            showAnnotations={showAnnotations}
+            setShowAnnotations={setShowAnnotations}
+            onZoomIn={onZoomIn}
+            onZoomOut={onZoomOut}
+            onReset={onReset}
+            onFullscreen={onFullscreen}
+            isFullscreen={isFullscreen}
+            handleSaveAsSVG={handleSaveAsSVG}
+            handleExportImage={handleExportImage}
+            selectedSynteny={selectedSynteny}
+            selectedMutationTypes={selectedMutationTypes}
+            onMutationTypeSelect={onMutationTypeSelect}
+            customSpeciesColors={customSpeciesColors}
+            onSpeciesColorChange={onSpeciesColorChange}
+            speciesData={referenceData}
+            showConnectedOnly={showConnectedOnly}
+            setShowConnectedOnly={setShowConnectedOnly}
+            zoomLevel={zoom}
+            onViewMutations={() => setIsMutationDrawerOpen(true)}
+            fullscreenContainerRef={containerRef}
+          />
         </div>
 
+        <MutationTypeDataDrawer
+          isOpen={isMutationDrawerOpen}
+          onClose={() => setIsMutationDrawerOpen(false)}
+          selectedSynteny={selectedSynteny}
+          selectedMutationTypes={selectedMutationTypes}
+        />
+
         {/* Main Content Area */}
-        <div className="relative flex-1 h-[calc(100vh-6rem)]">
+        <div className="relative flex-1 h-full">
           <div className="w-full h-full">
             <svg
               ref={svgRef}
@@ -1933,13 +1248,7 @@ export function ChromosomeSynteny({
           height={dimensions.height}
         />
       </div>
-      <SettingsPanel
-        isOpen={isSettingsOpen}
-        onOpenChange={setIsSettingsOpen}
-        customSpeciesColors={customSpeciesColors}
-        onSpeciesColorChange={onSpeciesColorChange}
-        speciesData={referenceData}
-      />
+      {/* SettingsPanel removed as functionality is now in ControlsMenu */}
     </div>
   );
 }

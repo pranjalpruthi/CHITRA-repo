@@ -2,7 +2,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { Github, Copy, CheckCheck, Building } from 'lucide-react';
-import { motion, useInView } from 'framer-motion';
+import { motion, useInView } from 'motion/react';
 import { useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';

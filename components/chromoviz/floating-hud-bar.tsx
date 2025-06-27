@@ -1,6 +1,6 @@
 'use client'
 
-import { motion, useMotionValue, useTransform } from "framer-motion";
+import { motion, useMotionValue, useTransform, AnimatePresence } from "motion/react";
 import React, { useState, useEffect } from "react";
 import { 
   ArrowRight, 
@@ -23,12 +23,29 @@ import {
   LayoutPanelTop,
   Database,
   Moon,
-  Sun
+  Sun,
+  Share2, // Added Share2 icon
+  User as UserIcon,
+  LogOut,
+  LogIn
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import AiButton from "@/components/animata/button/ai-button";
 import { Separator } from "@/components/ui/separator";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import Link from "next/link";
+import { supabase } from "@/lib/supabaseClient";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import { FilterDrawer } from '@/components/chromoviz/filter-drawer';
+import { UserActions } from './user-actions';
 import { GuideSheet } from "@/components/chromoviz/guide";
 import { FileUploaderGroup } from '@/components/chromoviz/file-uploader';
 import { ExampleFilesDrawer } from "@/components/chromoviz/example-files-drawer";
@@ -36,8 +53,10 @@ import { DataViewerDrawer } from "./data-viewer-drawer";
 import { cn } from "@/lib/utils";
 import { ChromosomeData, SyntenyData } from "@/app/types";
 import { useTheme } from "next-themes";
+import { User } from "@supabase/supabase-js";
 
 interface FloatingHUDBarProps {
+  user: User | null;
   onLoadExample: (path: string) => void;
   selectedSpecies: string[];
   setSelectedSpecies: (species: string[]) => void;
@@ -63,9 +82,11 @@ interface FloatingHUDBarProps {
   onToggleTooltips: () => void;
   onResetToWelcome: () => void;
   speciesData?: ChromosomeData[];
+  onShare?: () => Promise<string | null>;
 }
 
 export function FloatingHUDBar({
+  user,
   onLoadExample,
   selectedSpecies,
   setSelectedSpecies,
@@ -82,16 +103,24 @@ export function FloatingHUDBar({
   onToggleTooltips,
   onResetToWelcome,
   speciesData,
+  onShare, // Added onShare
 }: FloatingHUDBarProps) {
   const x = useMotionValue(0);
   const y = useMotionValue(0);
   const [isVertical, setIsVertical] = useState(false);
   const [forceVertical, setForceVertical] = useState(false);
   const { theme, setTheme } = useTheme();
+  const router = useRouter();
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    router.push('/');
+    toast.success("You have been signed out.");
+  };
 
   // Check position relative to window edge
   useEffect(() => {
-    const unsubscribeX = x.onChange((latest) => {
+    const unsubscribeX = x.on("change", (latest) => {
       const windowWidth = window.innerWidth;
       if (!forceVertical) {
         setIsVertical(latest > windowWidth - 100);
@@ -127,7 +156,10 @@ export function FloatingHUDBar({
       whileHover={{ scale: 1.02 }}
       whileDrag={{ scale: 1.05 }}
       style={{ x, y }}
-      className="fixed bottom-4 sm:bottom-8 inset-x-0 mx-auto w-fit z-50 cursor-grab active:cursor-grabbing"
+      className={cn(
+        "fixed bottom-4 sm:bottom-8 inset-x-0 mx-auto w-fit cursor-grab active:cursor-grabbing",
+        isFullScreen ? "z-[51]" : "z-50" // Ensure HUD is on top in fullscreen
+      )}
     >
       <div className="relative">
         <div className={cn(
@@ -154,6 +186,13 @@ export function FloatingHUDBar({
             "flex items-center gap-1 sm:gap-2 [&>*]:!text-gray-700 dark:[&>*]:!text-white [&_svg]:!stroke-gray-600 dark:[&_svg]:!stroke-white",
             isVertical ? "flex-col" : "flex-row justify-center"
           )}>
+            {/* User Profile / Sign In Button */}
+            <div className="relative">
+              <UserActions user={user} onSignOut={handleSignOut} onShare={onShare} />
+            </div>
+
+            {!isVertical && <Separator orientation="vertical" className="h-6 mx-1 bg-white/20" />}
+
             {/* Reset/Go Back Button */}
             <Button
               variant="ghost"
@@ -182,7 +221,7 @@ export function FloatingHUDBar({
             </Button>
 
             {/* Upload Button */}
-            <FileUploaderGroup onDataLoad={onDataLoad}>
+            <FileUploaderGroup onDataLoad={onDataLoad} user={user}>
               <Button 
                 variant="ghost" 
                 size="sm"
@@ -275,18 +314,18 @@ export function FloatingHUDBar({
 
             {/* View Data Button */}
             <DataViewerDrawer
-              syntenyData={syntenyData as SyntenyData[]} 
+              syntenyData={syntenyData as SyntenyData[]}
               speciesData={speciesData}
               referenceData={referenceGenomeData}
               isVertical={isVertical}
             >
-              <Button 
-                variant="ghost" 
+              <Button
+                variant="ghost"
                 size="sm"
                 className={cn(
                   "bg-amber-500/20 text-amber-600 dark:text-amber-400 hover:bg-amber-500/30 transition-colors group [&_svg]:stroke-amber-500",
-                  isVertical 
-                    ? "h-8 w-8 p-0" 
+                  isVertical
+                    ? "h-8 w-8 p-0"
                     : "h-8 px-2 text-xs font-medium"
                 )}
               >
@@ -340,14 +379,20 @@ export function FloatingHUDBar({
               size="icon"
               onClick={onToggleFullScreen}
               className={cn(
-                "hover:bg-accent hover:text-accent-foreground",
-                isVertical ? "h-8 w-8" : "h-8 w-8"
+                "hover:bg-accent hover:text-accent-foreground bg-blue-500/20 text-blue-600 dark:text-blue-400",
+                isVertical ? "h-8 w-8 p-0" : "h-8 px-3 text-xs font-medium min-w-[120px]"
               )}
             >
               {isFullScreen ? (
-                <Minimize2 className="h-4 w-4" />
+                <>
+                  <Minimize2 className="h-3.5 w-3.5" />
+                  {!isVertical && <span className="hidden sm:inline ml-1.5">Exit Full View</span>}
+                </>
               ) : (
-                <Maximize2 className="h-4 w-4" />
+                <>
+                  <Maximize2 className="h-3.5 w-3.5" />
+                  {!isVertical && <span className="hidden sm:inline ml-1.5">Full Screen</span>}
+                </>
               )}
             </Button>
 

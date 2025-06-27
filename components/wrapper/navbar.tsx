@@ -1,8 +1,8 @@
 "use client"
 
-import { motion, AnimatePresence } from "framer-motion"
+import { motion, AnimatePresence } from "motion/react"
 import ModeToggle from '@/components/mode-toggle'
-import { UserProfile } from '@/components/user-profile'
+import { UserActions } from '@/components/chromoviz/user-actions'
 import config from '@/config'
 import { ChevronRight, HomeIcon, Info, BookOpen, FileText, Copy, MoreHorizontal, Loader2 } from 'lucide-react'
 import Link from 'next/link'
@@ -16,6 +16,8 @@ import { Button } from "@/components/ui/button"
 import { ShareDrawer } from "@/components/share-drawer"
 import { useToast } from "@/components/ui/use-toast"
 import { toast } from "sonner"
+import { supabase } from "@/lib/supabaseClient"
+import { User } from "@supabase/supabase-js"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -192,6 +194,33 @@ export default function NavBar() {
   const [isScrolled, setIsScrolled] = useState(false)
   const pathname = usePathname()
   const isHomePage = pathname === '/'
+  const [user, setUser] = useState<User | null>(null)
+  const router = useRouter()
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      setUser(session?.user ?? null);
+    };
+    fetchUser();
+
+    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
+      setUser(session?.user ?? null);
+      if (event === 'SIGNED_IN' || event === 'SIGNED_OUT') {
+        router.refresh();
+      }
+    });
+
+    return () => {
+      authListener.subscription.unsubscribe();
+    };
+  }, [router]);
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    router.push('/');
+    toast.success("You have been signed out.");
+  };
 
   useEffect(() => {
     const handleScroll = () => {
@@ -278,7 +307,7 @@ export default function NavBar() {
             </div>
             <div className="flex items-center gap-1 sm:gap-2">
               {config?.auth?.enabled && (
-                <UserProfile />
+                <UserActions user={user} onSignOut={handleSignOut} />
               )}
               <ShareDrawer />
               <ModeToggle />

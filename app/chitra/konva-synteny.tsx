@@ -4,13 +4,15 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Stage, Layer, Rect, Text, Line, Group, Shape } from 'react-konva/lib/ReactKonvaCore';
 import { Button } from "@/components/ui/button";
 import { ZoomIn, ZoomOut, RefreshCw, Maximize2, Minimize2, Save, ArrowLeftRight, ArrowRight, ArrowLeft, ArrowLeftFromLine } from "lucide-react";
-import { AlignmentFilterButton } from './chromosome-synteny';
+import { ControlsMenu } from '@/components/chromoviz/controls-menu';
 import 'konva/lib/shapes/Text';
 import 'konva/lib/shapes/Rect';
 import 'konva/lib/shapes/Line';
 import Konva from 'konva';
 import * as d3 from 'd3';
 import { ChromosomeData, SyntenyData } from '../types';
+import { MutationType } from '@/components/chromoviz/synteny-ribbon';
+import { MutationTypeDataDrawer } from '@/components/chromoviz/mutation-type-data-drawer';
 
 interface KonvaSyntenyProps {
   referenceData: ChromosomeData[];
@@ -34,7 +36,14 @@ export const KonvaSynteny: React.FC<KonvaSyntenyProps> = ({ referenceData: initi
     text: '',
     visible: false,
   });
+  const [showAnnotations, setShowAnnotations] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [selectedSynteny, setSelectedSynteny] = useState<SyntenyData[]>([]);
+  const [selectedMutationTypes, setSelectedMutationTypes] = useState<Map<string, MutationType>>(new Map());
+  const [customSpeciesColors, setCustomSpeciesColors] = useState<Map<string, string>>(new Map());
+  const [showConnectedOnly, setShowConnectedOnly] = useState(false);
   const stageRef = useRef<Konva.Stage>(null);
+  const [isMutationDrawerOpen, setIsMutationDrawerOpen] = useState(false);
 
   useEffect(() => {
     const initialPositions: any = {};
@@ -100,6 +109,8 @@ export const KonvaSynteny: React.FC<KonvaSyntenyProps> = ({ referenceData: initi
     if (stageRef.current) {
       const oldScale = stageRef.current.scaleX();
       const newScale = oldScale * 1.2;
+      stageRef.current.scaleX(newScale);
+      stageRef.current.scaleY(newScale);
       setStage({ ...stage, scale: newScale });
     }
   };
@@ -108,12 +119,46 @@ export const KonvaSynteny: React.FC<KonvaSyntenyProps> = ({ referenceData: initi
     if (stageRef.current) {
       const oldScale = stageRef.current.scaleX();
       const newScale = oldScale / 1.2;
+      stageRef.current.scaleX(newScale);
+      stageRef.current.scaleY(newScale);
       setStage({ ...stage, scale: newScale });
     }
   };
 
   const handleReset = () => {
-    setStage({ scale: 1, x: 0, y: 0 });
+    if (stageRef.current) {
+      stageRef.current.scaleX(1);
+      stageRef.current.scaleY(1);
+      stageRef.current.x(0);
+      stageRef.current.y(0);
+      setStage({ scale: 1, x: 0, y: 0 });
+    }
+  };
+
+  const toggleFullscreen = () => {
+    setIsFullscreen(!isFullscreen);
+  };
+
+  const handleSaveAsSVG = () => {
+    // Placeholder for SVG export functionality
+    console.log("Export as SVG functionality not implemented yet.");
+  };
+
+  const handleExportImage = (format: 'png' | 'jpg') => {
+    // Placeholder for image export functionality
+    console.log(`Export as ${format.toUpperCase()} functionality not implemented yet.`);
+  };
+
+  const handleMutationTypeSelect = (syntenyId: string, mutationType: MutationType) => {
+    const updatedMutationTypes = new Map(selectedMutationTypes);
+    updatedMutationTypes.set(syntenyId, mutationType);
+    setSelectedMutationTypes(updatedMutationTypes);
+  };
+
+  const handleSpeciesColorChange = (species: string, color: string) => {
+    const updatedColors = new Map(customSpeciesColors);
+    updatedColors.set(species, color);
+    setCustomSpeciesColors(updatedColors);
   };
 
   const filteredSyntenyData = syntenyData.filter(link => {
@@ -125,43 +170,37 @@ export const KonvaSynteny: React.FC<KonvaSyntenyProps> = ({ referenceData: initi
 
   return (
     <div className="relative w-full h-full">
-      <div className="absolute top-2 left-2 z-10 flex items-center gap-2">
-        <Button variant="ghost" size="icon" onClick={onBack}>
-          <ArrowLeftFromLine className="h-4 w-4" />
-        </Button>
-        <AlignmentFilterButton
-          filter="all"
-          currentFilter={alignmentFilter}
-          onClick={setAlignmentFilter}
-          icon={ArrowLeftRight}
-          label="All"
-        />
-        <AlignmentFilterButton
-          filter="forward"
-          currentFilter={alignmentFilter}
-          onClick={setAlignmentFilter}
-          icon={ArrowRight}
-          label="Forward"
-        />
-        <AlignmentFilterButton
-          filter="reverse"
-          currentFilter={alignmentFilter}
-          onClick={setAlignmentFilter}
-          icon={ArrowLeft}
-          label="Reverse"
-        />
-      </div>
       <div className="absolute top-2 right-2 z-10 flex items-center gap-2">
-        <Button variant="ghost" size="icon" onClick={handleZoomIn}>
-          <ZoomIn className="h-4 w-4" />
-        </Button>
-        <Button variant="ghost" size="icon" onClick={handleZoomOut}>
-          <ZoomOut className="h-4 w-4" />
-        </Button>
-        <Button variant="ghost" size="icon" onClick={handleReset}>
-          <RefreshCw className="h-4 w-4" />
-        </Button>
+            <ControlsMenu
+              alignmentFilter={alignmentFilter}
+              setAlignmentFilter={setAlignmentFilter}
+              showAnnotations={showAnnotations}
+              setShowAnnotations={() => setShowAnnotations(!showAnnotations)}
+              onZoomIn={handleZoomIn}
+              onZoomOut={handleZoomOut}
+              onReset={handleReset}
+              onFullscreen={toggleFullscreen}
+              isFullscreen={isFullscreen}
+              handleSaveAsSVG={handleSaveAsSVG}
+              handleExportImage={handleExportImage}
+              selectedSynteny={selectedSynteny}
+              selectedMutationTypes={selectedMutationTypes}
+              onMutationTypeSelect={handleMutationTypeSelect}
+              customSpeciesColors={customSpeciesColors}
+              onSpeciesColorChange={handleSpeciesColorChange}
+              speciesData={referenceData}
+              showConnectedOnly={showConnectedOnly}
+              setShowConnectedOnly={() => setShowConnectedOnly(!showConnectedOnly)}
+              zoomLevel={stage.scale}
+              onViewMutations={() => setIsMutationDrawerOpen(true)}
+            />
       </div>
+      <MutationTypeDataDrawer
+        isOpen={isMutationDrawerOpen}
+        onClose={() => setIsMutationDrawerOpen(false)}
+        selectedSynteny={selectedSynteny}
+        selectedMutationTypes={selectedMutationTypes}
+      />
       <Stage
         ref={stageRef}
         width={window.innerWidth - 100}

@@ -7,10 +7,14 @@ CHITRA is a web-based tool for interactive visualization of synteny blocks, chro
 
 Ready to dive in?
 
-<div align="center">
-  <a href="https://chitra.bioinformaticsonline.com/" style="font-size: 2.5em; text-decoration: none;">✨ Try it out</a>  •
-  <a href="https://chitra.bioinformaticsonline.com/docs" style="font-size: 2.5em; text-decoration: none;">📖 Learn more</a>  •
-</div>
+&lt;p align="center">
+  &lt;br>
+  &lt;h3 align="center">
+    &lt;a href="https://chitra.bioinformaticsonline.com">✨ Try it out&lt;/a>
+    &nbsp;•&nbsp;
+    &lt;a href="https://chitra.bioinformaticsonline.com/docs">📖 Learn more&lt;/a>
+  &lt;/h3>
+&lt;/p>
 
 ## Features
 

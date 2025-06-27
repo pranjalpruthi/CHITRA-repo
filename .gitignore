@@ -171,3 +171,4 @@ next-env.d.ts
 
 # Million Lint
 .million
+.clinerules

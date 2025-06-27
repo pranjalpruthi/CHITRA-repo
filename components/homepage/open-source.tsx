@@ -4,7 +4,7 @@ import { Star, FileQuestion, Cpu, FileInput, Database, Settings, HelpCircle } fr
 import { Button } from "@/components/ui/button";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import Link from "next/link";
-import { motion } from "framer-motion";
+import { motion } from "motion/react";
 
 export default function OpenSource() {
     const faqs = [

@@ -8,7 +8,7 @@ import { BackgroundBeamsWithCollision } from "../ui/background-beams-with-collis
 import { RainbowButton } from "../ui/rainbow-button";
 import { Button } from "../ui/button";
 import Link from "next/link";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion } from "motion/react";
 import { BentoGrid } from "./bento-grid";
 import { Dialog } from "@/components/ui/dialog";
 

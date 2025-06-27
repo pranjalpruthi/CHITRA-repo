@@ -17,7 +17,7 @@ import {
   DrawerTitle,
   DrawerTrigger,
 } from "@/components/ui/drawer"
-import { motion } from 'framer-motion'
+import { motion } from 'motion/react'
 
 interface FilterBadgeProps {
   count: number
@@ -214,7 +214,7 @@ export const FilterDrawer = ({
   const totalSelectedFilters = selectedSpecies.length + selectedChromosomes.length;
 
   return (
-    <Drawer>
+    <Drawer direction="left">
       <DrawerTrigger asChild>
         {children}
       </DrawerTrigger>

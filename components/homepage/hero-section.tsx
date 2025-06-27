@@ -3,7 +3,7 @@ import { ArrowRight, Github, Loader2 } from 'lucide-react';
 import Link from "next/link";
 import { Button } from "../ui/button";
 import { Badge } from "../ui/badge";
-import { motion } from "framer-motion";
+import { motion } from "motion/react";
 import { useState } from 'react';
 import { cn } from "@/lib/utils";
 import Particles from "../ui/particles";
@@ -234,6 +234,7 @@ export default function HeroSection() {
                                                 onClick={() => setFullscreenVideo(video)}
                                             >
                                                 <video
+                                                    suppressHydrationWarning={true} // Added to handle potential browser extension interference
                                                     autoPlay
                                                     muted
                                                     loop

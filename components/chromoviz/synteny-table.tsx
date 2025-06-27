@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { FileSpreadsheet, GripHorizontal, MousePointerClick, Table as TableIcon, X, ChevronUp, ChevronLeft, ChevronRight , AlertCircle} from "lucide-react"
-import { motion, AnimatePresence, useDragControls } from "framer-motion"
+import { motion, AnimatePresence, useDragControls } from "motion/react"
 import { useState, useEffect, useRef } from "react"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { cn } from "@/lib/utils"
@@ -93,13 +93,22 @@ export function SyntenyTable({
         </div>,
         {
           duration: 5000,
-          position: "top-right",
+          position: "bottom-left",
           className: "bg-background/95 backdrop-blur-sm border-blue-200 dark:border-blue-800",
         }
       );
       setHasShownFirstToast(true);
     }
   }, [selectedSynteny.length, hasShownFirstToast]);
+
+  // Effect to detect new selections for button animation
+  useEffect(() => {
+    if (selectedSynteny.length > 0) {
+      setHasNewSelection(true);
+      const timer = setTimeout(() => setHasNewSelection(false), 1000); // Animation duration
+      return () => clearTimeout(timer);
+    }
+  }, [selectedSynteny]);
 
   return (
     <motion.div
@@ -134,7 +143,7 @@ export function SyntenyTable({
                 "h-16 w-16 md:w-auto md:px-6",
                 "hover:bg-blue-500 dark:hover:bg-blue-950/50",
                 "group",
-                hasNewSelection && "ring-2 ring-blue-500 ring-offset-4 dark:ring-offset-gray-950"
+                hasNewSelection && "ring-2 ring-blue-500 ring-offset-4 dark:ring-offset-gray-950 animate-pulse" // Added animate-pulse
               )}
             >
               <div className="relative flex items-center justify-center gap-2">

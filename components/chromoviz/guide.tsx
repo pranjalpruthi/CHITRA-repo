@@ -21,7 +21,7 @@ import {
     DrawerTitle,
 } from "@/components/ui/drawer";
 import { cn } from "@/lib/utils";
-import { motion } from "framer-motion";
+import { motion } from "motion/react";
 import Autoplay from "embla-carousel-autoplay"
 import { ExampleFilesDrawer } from "./example-files-drawer";
 import Link from "next/link";

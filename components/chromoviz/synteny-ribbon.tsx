@@ -29,8 +29,8 @@ interface SyntenyRibbonProps {
 }
 
 const SYNTENY_COLORS = {
-  FORWARD: '#2563eb1a',
-  REVERSE: '#dc26261a',
+  FORWARD: '#2563eb66',
+  REVERSE: '#dc262666',
   BLOCK_FORWARD: '#2563eb',
   BLOCK_REVERSE: '#dc2626',
   STROKE_WIDTH: {
@@ -39,7 +39,7 @@ const SYNTENY_COLORS = {
     LARGE: 3.5
   },
   OPACITY: {
-    DEFAULT: 0.45,
+    DEFAULT: 0.65, // Increased from 0.45 for better visibility
     HOVER: 0.75,
     SELECTED: 0.9,
     ACTIVE: 1.0
@@ -69,11 +69,21 @@ export const MUTATION_COLORS = {
 
 export type MutationType = keyof typeof MUTATION_COLORS;
 
+// Add and export this
+export const mutationFullNames: Record<string, string> = {
+  SYN: "Synteny",
+  DUP: "Duplication",
+  INV: "Inversion",
+  TRANS: "Translocation",
+  INVTR: "Inverted Translocation",
+  INVDP: "Inverted Duplication"
+};
+
 // Add opacity variants for each mutation type
 const MUTATION_COLOR_VARIANTS = Object.entries(MUTATION_COLORS).reduce((acc, [key, color]) => ({
   ...acc,
   [key]: {
-    DEFAULT: `${color}1a`, // Light version for fill
+    DEFAULT: `${color}66`, // Light version for fill
     SOLID: color,          // Solid version for stroke
   }
 }), {} as Record<MutationType, { DEFAULT: string; SOLID: string }>);
@@ -256,27 +266,27 @@ export function renderSyntenyRibbon({
   gradient.append("stop")
     .attr("offset", "0%")
     .attr("stop-color", queryColor)
-    .attr("stop-opacity", "0.5");  // Increased from 0.4
+    .attr("stop-opacity", "0.7");  // Option 2: Increased from 0.6
 
   gradient.append("stop")
     .attr("offset", "15%")
     .attr("stop-color", queryColor)
-    .attr("stop-opacity", "0.8");  // Increased from 0.7
+    .attr("stop-opacity", "1.0");  // Option 2: Increased from 0.9
 
   gradient.append("stop")
     .attr("offset", "50%")
     .attr("stop-color", queryColor)
-    .attr("stop-opacity", "1.0");  // Increased from 0.9
+    .attr("stop-opacity", "1.0");  // Remains 1.0
 
   gradient.append("stop")
     .attr("offset", "85%")
     .attr("stop-color", queryColor)
-    .attr("stop-opacity", "0.8");  // Increased from 0.7
+    .attr("stop-opacity", "1.0");  // Option 2: Increased from 0.9
 
   gradient.append("stop")
     .attr("offset", "100%")
     .attr("stop-color", queryColor)
-    .attr("stop-opacity", "0.5");  // Increased from 0.4
+    .attr("stop-opacity", "0.7");  // Option 2: Increased from 0.6
 
   // Use this color in gradient creation
   gradient.selectAll("stop")
@@ -305,6 +315,8 @@ export function renderSyntenyRibbon({
   const ribbon = blockGroup.append("path")
     .attr("d", path.toString())
     .attr("fill", `url(#${gradientId})`)
+    .attr("stroke", "rgba(0,0,0,0.3)") // Add border
+    .attr("stroke-width", 0.5)          // Add border width
     .attr("opacity", isSelected ? SYNTENY_COLORS.OPACITY.SELECTED : SYNTENY_COLORS.OPACITY.DEFAULT)
     .attr("class", `synteny-ribbon ${isSelected ? 'selected' : ''}`)
     .attr("data-synteny-id", syntenyId)

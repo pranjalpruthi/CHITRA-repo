@@ -1,7 +1,9 @@
 'use client'
 
 import { useVirtualizer } from '@tanstack/react-virtual'
-import { useRef, useState } from 'react'
+import { useRef, useState, useEffect } from 'react'
+import { motion, AnimatePresence, Transition } from 'motion/react'
+import useMeasure from 'react-use-measure'
 import {
   createColumnHelper,
   flexRender,
@@ -13,26 +15,35 @@ import {
   ColumnFiltersState,
   CellContext
 } from '@tanstack/react-table'
-import { 
-  Drawer, 
-  DrawerTrigger, 
-  DrawerContent,
-  DrawerHeader, 
-  DrawerTitle,
-  DrawerClose
-} from "@/components/ui/drawer"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import {
+  MorphingDialog,
+  MorphingDialogTrigger,
+  MorphingDialogContent,
+  MorphingDialogTitle,
+  MorphingDialogClose,
+  MorphingDialogContainer,
+} from '@/components/motion-primitives/morphing-dialog';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/animate-ui/radix/tabs"
 import { Input } from "@/components/ui/input"
 import { Database, X, ArrowUpDown } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { SyntenyData, ChromosomeData, GeneAnnotation, ReferenceGenomeData } from "@/app/types"
 import { cn } from "@/lib/utils"
 
+// Props for the RawDataTablesDisplay component
+interface RawDataTablesDisplayProps {
+  syntenyData?: SyntenyData[]
+  speciesData?: ChromosomeData[]
+  referenceData?: ReferenceGenomeData | null // Allow null
+  className?: string
+}
+
 interface DataViewerDrawerProps {
   children: React.ReactNode
   syntenyData?: SyntenyData[]
   speciesData?: ChromosomeData[]
-  referenceData?: ReferenceGenomeData
+  referenceData?: ReferenceGenomeData | null // Allow null
   isVertical?: boolean
 }
 
@@ -91,15 +102,14 @@ function VirtualTable<T>({
         />
       )}
       
-      <div ref={parentRef} className="h-[calc(80vh-200px)] overflow-auto border rounded-md">
+      <div ref={parentRef} className="h-[60vh] overflow-auto border rounded-md">
         <table className="w-full">
-          <thead className="sticky top-0 bg-background border-b">
-            {table.getHeaderGroups().map((headerGroup: any) => (
+          <thead className="sticky top-0 bg-background border-b z-10">{/* Added z-index */}{table.getHeaderGroups().map((headerGroup: any) => (
               <tr key={headerGroup.id}>
                 {headerGroup.headers.map((header: any) => (
                   <th 
                     key={header.id}
-                    className="h-12 px-4 text-left align-middle font-medium text-muted-foreground"
+                    className="h-12 px-4 text-left align-middle font-medium text-muted-foreground bg-background" // Ensure header bg for sticky
                     style={{ width: header.getSize() }}
                   >
                     {header.isPlaceholder ? null : (
@@ -107,7 +117,7 @@ function VirtualTable<T>({
                         variant="ghost"
                         onClick={header.column.getToggleSortingHandler()}
                         className={cn(
-                          "h-8 flex items-center gap-1.5",
+                          "h-8 flex items-center gap-1.5 px-1", // Reduced padding
                           header.column.getCanSort() ? "cursor-pointer select-none" : ""
                         )}
                       >
@@ -134,9 +144,9 @@ function VirtualTable<T>({
             {virtualRows.map((virtualRow: any) => {
               const row = rows[virtualRow.index]
               return (
-                <tr key={row.id} className="border-b">
+                <tr key={row.id} className="border-b hover:bg-muted/50">
                   {row.getVisibleCells().map((cell: any) => (
-                    <td key={cell.id} className="p-4">
+                    <td key={cell.id} className="p-3 text-sm"> {/* Reduced padding, smaller text */}
                       {flexRender(
                         cell.column.columnDef.cell,
                         cell.getContext()
@@ -154,7 +164,7 @@ function VirtualTable<T>({
           </tbody>
         </table>
       </div>
-      <div className="text-sm text-muted-foreground">
+      <div className="text-xs text-muted-foreground pt-1"> {/* Smaller text */}
         Showing {rows.length} rows
       </div>
     </div>
@@ -165,287 +175,164 @@ function VirtualTable<T>({
 const columnHelper = createColumnHelper<any>()
 
 const syntenyColumns = [
-  columnHelper.accessor('query_name', {
-    header: 'Query Name',
-    size: 150,
-  }),
-  columnHelper.accessor('query_chr', {
-    header: 'Query Chr',
-    size: 100,
-  }),
-  columnHelper.accessor('query_start', {
-    header: 'Query Start',
-    size: 120,
-    cell: (info: CellContext<any, number>) => info.getValue().toLocaleString(),
-  }),
-  columnHelper.accessor('query_end', {
-    header: 'Query End',
-    size: 120,
-    cell: (info: CellContext<any, number>) => info.getValue().toLocaleString(),
-  }),
-  columnHelper.accessor('query_strand', {
-    header: 'Strand',
-    size: 80,
-  }),
-  columnHelper.accessor('ref_chr', {
-    header: 'Ref Chr',
-    size: 100,
-  }),
-  columnHelper.accessor('ref_start', {
-    header: 'Ref Start',
-    size: 120,
-    cell: (info: CellContext<any, number>) => info.getValue().toLocaleString(),
-  }),
-  columnHelper.accessor('ref_end', {
-    header: 'Ref End',
-    size: 120,
-    cell: (info: CellContext<any, number>) => info.getValue().toLocaleString(),
-  }),
-  columnHelper.accessor('ref_species', {
-    header: 'Ref Species',
-    size: 150,
-  }),
-  columnHelper.accessor('symbol', {
-    header: 'Symbol',
-    size: 100,
-  }),
-  columnHelper.accessor('class', {
-    header: 'Class',
-    size: 120,
-  }),
-  columnHelper.accessor('GeneID', {
-    header: 'Gene ID',
-    size: 120,
-  }),
+  columnHelper.accessor('query_name', { header: 'Query Name', size: 140 }),
+  columnHelper.accessor('query_chr', { header: 'Query Chr', size: 90 }),
+  columnHelper.accessor('query_start', { header: 'Query Start', size: 110, cell: (info: CellContext<any, number>) => info.getValue().toLocaleString() }),
+  columnHelper.accessor('query_end', { header: 'Query End', size: 110, cell: (info: CellContext<any, number>) => info.getValue().toLocaleString() }),
+  columnHelper.accessor('query_strand', { header: 'Strand', size: 70 }),
+  columnHelper.accessor('ref_chr', { header: 'Ref Chr', size: 90 }),
+  columnHelper.accessor('ref_start', { header: 'Ref Start', size: 110, cell: (info: CellContext<any, number>) => info.getValue().toLocaleString() }),
+  columnHelper.accessor('ref_end', { header: 'Ref End', size: 110, cell: (info: CellContext<any, number>) => info.getValue().toLocaleString() }),
+  columnHelper.accessor('ref_species', { header: 'Ref Species', size: 140 }),
+  columnHelper.accessor('symbol', { header: 'Symbol', size: 90 }),
+  columnHelper.accessor('class', { header: 'Class', size: 110 }),
+  columnHelper.accessor('GeneID', { header: 'Gene ID', size: 110 }),
 ]
 
 const speciesColumns = [
-  columnHelper.accessor('species_name', {
-    header: 'Species Name',
-    size: 150,
-  }),
-  columnHelper.accessor('chr_id', {
-    header: 'Chromosome ID',
-    size: 120,
-  }),
-  columnHelper.accessor('chr_type', {
-    header: 'Type',
-    size: 100,
-  }),
-  columnHelper.accessor('chr_size_bp', {
-    header: 'Size (bp)',
-    size: 120,
-    cell: (info: CellContext<any, number>) => info.getValue().toLocaleString(),
-  }),
-  columnHelper.accessor('centromere_start', {
-    header: 'Centromere Start',
-    size: 140,
-    cell: (info: CellContext<any, number>) => info.getValue()?.toLocaleString() ?? 'N/A',
-  }),
-  columnHelper.accessor('centromere_end', {
-    header: 'Centromere End',
-    size: 140,
-    cell: (info: CellContext<any, number>) => info.getValue()?.toLocaleString() ?? 'N/A',
-  }),
+  columnHelper.accessor('species_name', { header: 'Species Name', size: 150 }),
+  columnHelper.accessor('chr_id', { header: 'Chr ID', size: 110 }),
+  columnHelper.accessor('chr_type', { header: 'Type', size: 90 }),
+  columnHelper.accessor('chr_size_bp', { header: 'Size (bp)', size: 120, cell: (info: CellContext<any, number>) => info.getValue().toLocaleString() }),
+  columnHelper.accessor('centromere_start', { header: 'Centro. Start', size: 130, cell: (info: CellContext<any, number>) => info.getValue()?.toLocaleString() ?? 'N/A' }),
+  columnHelper.accessor('centromere_end', { header: 'Centro. End', size: 130, cell: (info: CellContext<any, number>) => info.getValue()?.toLocaleString() ?? 'N/A' }),
 ]
 
 const referenceColumns = [
-  columnHelper.accessor('chromosome', {
-    header: 'Chromosome',
-    size: 120,
-  }),
-  columnHelper.accessor('size', {
-    header: 'Size',
-    size: 120,
-    cell: (info: CellContext<any, number>) => info.getValue().toLocaleString(),
-  }),
-  columnHelper.accessor('centromere_start', {
-    header: 'Centromere Start',
-    size: 140,
-    cell: (info: CellContext<any, number>) => info.getValue()?.toLocaleString() ?? 'N/A',
-  }),
-  columnHelper.accessor('centromere_end', {
-    header: 'Centromere End',
-    size: 140,
-    cell: (info: CellContext<any, number>) => info.getValue()?.toLocaleString() ?? 'N/A',
-  }),
+  columnHelper.accessor('chromosome', { header: 'Chromosome', size: 120 }),
+  columnHelper.accessor('size', { header: 'Size', size: 120, cell: (info: CellContext<any, number>) => info.getValue().toLocaleString() }),
+  columnHelper.accessor('centromere_start', { header: 'Centro. Start', size: 140, cell: (info: CellContext<any, number>) => info.getValue()?.toLocaleString() ?? 'N/A' }),
+  columnHelper.accessor('centromere_end', { header: 'Centro. End', size: 140, cell: (info: CellContext<any, number>) => info.getValue()?.toLocaleString() ?? 'N/A' }),
 ]
 
 const geneColumns = [
-  columnHelper.accessor('chromosome', {
-    header: 'Chromosome',
-    size: 120,
-  }),
-  columnHelper.accessor('genomic_accession', {
-    header: 'Accession',
-    size: 150,
-  }),
-  columnHelper.accessor('start', {
-    header: 'Start',
-    size: 120,
-    cell: (info: CellContext<any, number>) => info.getValue().toLocaleString(),
-  }),
-  columnHelper.accessor('end', {
-    header: 'End',
-    size: 120,
-    cell: (info: CellContext<any, number>) => info.getValue().toLocaleString(),
-  }),
-  columnHelper.accessor('strand', {
-    header: 'Strand',
-    size: 80,
-  }),
-  columnHelper.accessor('class', {
-    header: 'Class',
-    size: 150,
-  }),
-  columnHelper.accessor('symbol', {
-    header: 'Symbol',
-    size: 100,
-    cell: (info: CellContext<any, number>) => info.getValue() || 'N/A',
-  }),
-  columnHelper.accessor('name', {
-    header: 'Name',
-    size: 200,
-    cell: (info: CellContext<any, number>) => info.getValue() || 'N/A',
-  }),
-  columnHelper.accessor('locus_tag', {
-    header: 'Locus Tag',
-    size: 120,
-    cell: (info: CellContext<any, number>) => info.getValue() || 'N/A',
-  }),
-  columnHelper.accessor('GeneID', {
-    header: 'Gene ID',
-    size: 120,
-  }),
+  columnHelper.accessor('chromosome', { header: 'Chr', size: 100 }),
+  columnHelper.accessor('genomic_accession', { header: 'Accession', size: 140 }),
+  columnHelper.accessor('start', { header: 'Start', size: 110, cell: (info: CellContext<any, number>) => info.getValue().toLocaleString() }),
+  columnHelper.accessor('end', { header: 'End', size: 110, cell: (info: CellContext<any, number>) => info.getValue().toLocaleString() }),
+  columnHelper.accessor('strand', { header: 'Strand', size: 70 }),
+  columnHelper.accessor('class', { header: 'Class', size: 140 }),
+  columnHelper.accessor('symbol', { header: 'Symbol', size: 90, cell: (info: CellContext<any, string>) => info.getValue() || 'N/A' }),
+  columnHelper.accessor('name', { header: 'Name', size: 180, cell: (info: CellContext<any, string>) => info.getValue() || 'N/A' }),
+  columnHelper.accessor('locus_tag', { header: 'Locus Tag', size: 110, cell: (info: CellContext<any, string>) => info.getValue() || 'N/A' }),
+  columnHelper.accessor('GeneID', { header: 'Gene ID', size: 110 }),
 ]
 
 const breakpointColumns = [
-  columnHelper.accessor('ref_chr', {
-    header: 'Reference Chromosome',
-    size: 180,
-  }),
-  columnHelper.accessor('ref_start', {
-    header: 'Start Position',
-    size: 140,
-    cell: (info: CellContext<any, number>) => info.getValue().toLocaleString(),
-  }),
-  columnHelper.accessor('ref_end', {
-    header: 'End Position',
-    size: 140,
-    cell: (info: CellContext<any, number>) => info.getValue().toLocaleString(),
-  }),
-  columnHelper.accessor('breakpoint', {
-    header: 'Breakpoint Type',
-    size: 150,
-  }),
+  columnHelper.accessor('ref_chr', { header: 'Ref Chr', size: 160 }),
+  columnHelper.accessor('ref_start', { header: 'Start Pos', size: 130, cell: (info: CellContext<any, number>) => info.getValue().toLocaleString() }),
+  columnHelper.accessor('ref_end', { header: 'End Pos', size: 130, cell: (info: CellContext<any, number>) => info.getValue().toLocaleString() }),
+  columnHelper.accessor('breakpoint', { header: 'Breakpoint Type', size: 140 }),
 ]
+
+// New component to display raw data tables directly
+export function RawDataTablesDisplay({
+  syntenyData,
+  speciesData,
+  referenceData,
+  className,
+}: RawDataTablesDisplayProps) {
+  const TABS = [
+    { id: 'synteny', label: 'Synteny', data: syntenyData, columns: syntenyColumns, filterColumn: 'query_name' },
+    { id: 'species', label: 'Species', data: speciesData, columns: speciesColumns, filterColumn: 'species_name' },
+    { id: 'reference', label: 'Reference', data: referenceData?.chromosomeSizes, columns: referenceColumns, filterColumn: 'chromosome' },
+    { id: 'genes', label: 'Genes', data: referenceData?.geneAnnotations, columns: geneColumns, filterColumn: 'symbol' },
+    { id: 'breakpoints', label: 'Breakpoints', data: referenceData?.breakpoints, columns: breakpointColumns, filterColumn: 'ref_chr' },
+  ];
+  const [ref, { height }] = useMeasure();
+  const [activeTab, setActiveTab] = useState(TABS[0].id);
+
+  const transition: Transition = {
+    type: "spring",
+    duration: 0.4,
+    bounce: 0.2,
+  };
+
+  return (
+    <div className={cn("w-full", className)}>
+      <Tabs defaultValue="synteny" onValueChange={setActiveTab} className="mt-2">
+        <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 md:grid-cols-5 text-xs">
+          {TABS.map(tab => (
+            <TabsTrigger key={tab.id} value={tab.id} className="py-1.5 px-2">{tab.label}</TabsTrigger>
+          ))}
+        </TabsList>
+        <motion.div animate={{ height: height || "auto" }} transition={transition}>
+        <div ref={ref}>
+        <AnimatePresence initial={false} mode="wait">
+          {TABS.map(tab =>
+            activeTab === tab.id ? (
+              <motion.div
+                key={tab.id}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={transition}
+              >
+                <TabsContent value={tab.id} className="mt-3">
+                  {tab.data && tab.data.length > 0 ? (
+                    <VirtualTable
+                      data={tab.data as any[]}
+                      columns={tab.columns}
+                      filterColumn={tab.filterColumn}
+                    />
+                  ) : (
+                    <div className="p-4 text-center text-sm text-muted-foreground">
+                      No {tab.label.toLowerCase()} data loaded
+                    </div>
+                  )}
+                </TabsContent>
+              </motion.div>
+            ) : null
+          )}
+        </AnimatePresence>
+        </div>
+      </motion.div>
+      </Tabs>
+    </div>
+  );
+}
 
 export function DataViewerDrawer({
   children,
   syntenyData,
   speciesData,
   referenceData,
-  isVertical
 }: DataViewerDrawerProps) {
   return (
-    <Drawer>
-      <DrawerTrigger asChild>
+    <MorphingDialog
+      transition={{
+        type: 'spring',
+        stiffness: 200,
+        damping: 24,
+      }}
+    >
+      <MorphingDialogTrigger>
         {children}
-      </DrawerTrigger>
-      <DrawerContent className="h-[85vh]">
-        <div className="mx-auto w-full max-w-7xl">
-          <DrawerHeader className="flex justify-between items-center">
-            <DrawerTitle>Data Viewer</DrawerTitle>
-            <DrawerClose asChild>
-              <Button variant="ghost" size="icon">
-                <X className="h-4 w-4" />
-              </Button>
-            </DrawerClose>
-          </DrawerHeader>
-          <div className="p-4">
-            <Tabs defaultValue="synteny" className="mt-4">
-              <TabsList className="grid w-full grid-cols-5">
-                <TabsTrigger value="synteny">Synteny</TabsTrigger>
-                <TabsTrigger value="species">Species</TabsTrigger>
-                <TabsTrigger value="reference">Reference</TabsTrigger>
-                <TabsTrigger value="genes">Genes</TabsTrigger>
-                <TabsTrigger value="breakpoints">Breakpoints</TabsTrigger>
-              </TabsList>
-
-              <TabsContent value="synteny" className="mt-4">
-                {syntenyData ? (
-                  <VirtualTable 
-                    data={syntenyData} 
-                    columns={syntenyColumns}
-                    filterColumn="query_name"
-                  />
-                ) : (
-                  <div className="p-4 text-center text-muted-foreground">
-                    No synteny data loaded
-                  </div>
-                )}
-              </TabsContent>
-
-              <TabsContent value="species" className="mt-4">
-                {speciesData ? (
-                  <VirtualTable 
-                    data={speciesData} 
-                    columns={speciesColumns}
-                    filterColumn="species_name"
-                  />
-                ) : (
-                  <div className="p-4 text-center text-muted-foreground">
-                    No species data loaded
-                  </div>
-                )}
-              </TabsContent>
-
-              <TabsContent value="reference" className="mt-4">
-                {referenceData?.chromosomeSizes ? (
-                  <VirtualTable 
-                    data={referenceData.chromosomeSizes} 
-                    columns={referenceColumns}
-                    filterColumn="chromosome"
-                  />
-                ) : (
-                  <div className="p-4 text-center text-muted-foreground">
-                    No reference data loaded
-                  </div>
-                )}
-              </TabsContent>
-
-              <TabsContent value="genes" className="mt-4">
-                {referenceData?.geneAnnotations ? (
-                  <VirtualTable 
-                    data={referenceData.geneAnnotations} 
-                    columns={geneColumns}
-                    filterColumn="symbol"
-                  />
-                ) : (
-                  <div className="p-4 text-center text-muted-foreground">
-                    No gene annotation data loaded
-                  </div>
-                )}
-              </TabsContent>
-
-              <TabsContent value="breakpoints" className="mt-4">
-                {referenceData?.breakpoints ? (
-                  <VirtualTable 
-                    data={referenceData.breakpoints} 
-                    columns={breakpointColumns}
-                    filterColumn="ref_chr"
-                  />
-                ) : (
-                  <div className="p-4 text-center text-muted-foreground">
-                    No breakpoint data loaded
-                  </div>
-                )}
-              </TabsContent>
-
-            </Tabs>
-          </div>
-        </div>
-      </DrawerContent>
-    </Drawer>
-  )
-} 
+      </MorphingDialogTrigger>
+      <MorphingDialogContainer>
+        <MorphingDialogContent
+          style={{
+            borderRadius: '12px',
+          }}
+          className='relative h-auto w-[90vw] max-w-7xl border border-gray-100 bg-background'
+        >
+          <ScrollArea className='h-[90vh]'>
+            <div className='relative p-6'>
+              <MorphingDialogTitle className='text-foreground text-2xl font-bold mb-4'>
+                Raw Data Viewer
+              </MorphingDialogTitle>
+              <div className='mt-4'>
+                <RawDataTablesDisplay
+                  syntenyData={syntenyData}
+                  speciesData={speciesData}
+                  referenceData={referenceData}
+                />
+              </div>
+            </div>
+          </ScrollArea>
+          <MorphingDialogClose className='text-zinc-500' />
+        </MorphingDialogContent>
+      </MorphingDialogContainer>
+    </MorphingDialog>
+  );
+}

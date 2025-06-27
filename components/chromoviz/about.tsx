@@ -6,7 +6,7 @@ import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { Github, Twitter, Linkedin, Globe, BookOpen, GraduationCap, Mail } from "lucide-react";
 import Link from "next/link";
-import { motion } from "framer-motion";
+import { motion } from "motion/react";
 import { cn } from "@/lib/utils";
 import { AnimatedTooltip } from "@/components/ui/animated-tooltip";
 interface TeamMember {

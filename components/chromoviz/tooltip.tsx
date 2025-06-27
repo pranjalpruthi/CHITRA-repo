@@ -1,6 +1,6 @@
 "use client";
 
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, Variants } from "motion/react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { ArrowRight, ArrowLeft } from "lucide-react";
@@ -329,7 +329,7 @@ export function Tooltip({
 }: TooltipProps) {
   if (!enabled || !showTooltips || !info || !info.isOpen) return null;
 
-  const tooltipVariants = {
+  const tooltipVariants: Variants = {
     hidden: { 
       opacity: 0, 
       scale: 0.95,
@@ -429,7 +429,7 @@ export function HoverTooltip({
 
   if (!showTooltips || !isRendered) return null;
 
-  const tooltipVariants = {
+  const tooltipVariants: Variants = {
     hidden: { 
       opacity: 0, 
       y: 10,

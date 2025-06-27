@@ -29,6 +29,7 @@ interface ChromosomeViewProps {
   };
   breakpoints?: ChromosomeBreakpoint[];
   isReferenceChromosome?: boolean;
+  useStandardPalette?: boolean; // Added for distinct default colors
 }
 
 function formatGenomicPosition(position: number): string {
@@ -148,8 +149,17 @@ export function renderChromosome({
   },
   breakpoints = [],
   isReferenceChromosome = false,
+  useStandardPalette = false, // Added prop with default
 }: ChromosomeViewProps) {
   const chrWidth = xScale(chr.chr_size_bp);
+
+  // Determine the effective color for the chromosome
+  let effectiveColor = speciesColor;
+  if (useStandardPalette) {
+    const colorPalette = d3.scaleOrdinal(d3.schemeCategory10);
+    effectiveColor = colorPalette(chr.chr_id);
+  }
+
   const chrPath = d3.path();
   const roundedEnd = config.chromosomeHeight / 2;
   const centromereWidth = config.chromosomeHeight * 0.8;
@@ -208,8 +218,8 @@ export function renderChromosome({
     .attr("class", "chromosome-body")
     .attr("data-chr", chr.chr_id)
     .attr("data-species", chr.species_name)
-    .attr("fill", speciesColor)
-    .attr("stroke", d3.color(speciesColor)?.darker(0.5)?.toString() ?? speciesColor)
+    .attr("fill", effectiveColor) // Use effectiveColor
+    .attr("stroke", d3.color(effectiveColor)?.darker(0.5)?.toString() ?? effectiveColor) // Use effectiveColor
     .attr("stroke-width", 1.5)
     .attr("stroke-linejoin", "round")
     .style("transition", "opacity 0.2s ease-in-out");
@@ -250,7 +260,7 @@ export function renderChromosome({
           L ${centromereMiddle + centromereWidth/2} ${y + config.chromosomeHeight - centromereIndent}
           L ${centromereMiddle - centromereWidth/2} ${y + config.chromosomeHeight - centromereIndent}
           L ${centromereStart} ${y + config.chromosomeHeight} Z`)
-      .attr("fill", d3.color(speciesColor)?.darker(0.3)?.toString() ?? speciesColor)
+      .attr("fill", d3.color(effectiveColor)?.darker(0.3)?.toString() ?? effectiveColor) // Use effectiveColor
       .attr("stroke", "none");
   }
 

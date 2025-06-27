@@ -33,62 +33,30 @@ import * as d3 from 'd3';
 import { KonvaSynteny } from './konva-synteny'; // Import KonvaSynteny
 import { SyntenyData, ChromosomeData, ReferenceGenomeData, GeneAnnotation, ChromosomeBreakpoint } from '../types';
 import { useTheme } from "next-themes";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { CSVUploader } from "@/components/chromoviz/file-uploader";
-import { motion } from "framer-motion";
+import { motion } from "motion/react";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
-import { ShinyRotatingBorderButton } from "@/components/ui/shiny-rotating-border-button";
 import { cn } from "@/lib/utils";
 // import AiButton from "@/components/animata/button/ai-button"; // Replaced with LiquidButton
 import { LiquidButton } from "@/components/ui/liquid";
 import { FlipButton } from "@/components/ui/flip"; // Added FlipButton import
-import { FeatureTableConverter } from "@/components/chromoviz/feature-table-converter";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Switch } from "@/components/ui/switch";
 import { DetailedSyntenyView } from "./detailed-synteny-view";
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "@/components/ui/sheet"
-import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
-import { SyntenyTable } from "@/components/chromoviz/synteny-table";
+import { SyntenyTable } from "@/components/chromoviz/synteny-table"; // This is the floating button
+import { InlineSyntenyDisplay } from "@/components/chromoviz/inline-synteny-display"; 
+import { RawDataTablesDisplay } from "@/components/chromoviz/data-viewer-drawer"; // Changed import
 import PageWrapper from '@/components/wrapper/page-wrapper';
-import { ScrollArea } from "@/components/ui/scroll-area"
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible"
-import { ChevronDown } from "lucide-react"
-import { FilterDrawer } from '@/components/chromoviz/filter-drawer';
-import { GuideSheet } from "@/components/chromoviz/guide";
 import { FloatingHUDBar } from "@/components/chromoviz/floating-hud-bar";
 import { ExampleFilesDrawer } from "@/components/chromoviz/example-files-drawer";
 import { FileUploaderGroup } from "@/components/chromoviz/file-uploader";
-import { config } from 'process';
 import { TipsCarousel } from "@/components/chromoviz/tips-carousel";
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { MutationType } from "@/components/chromoviz/synteny-ribbon";
 import BreathingText from "@/components/ui/breathing-text";
+import { supabase } from '@/lib/supabaseClient'; // Added Supabase client
+import { toast } from "sonner"; // For notifications
+import { User } from '@supabase/supabase-js';
 
 const parseCSVRow = (d: any): any => {
   return {
@@ -140,6 +108,35 @@ function parseBreakpointRow(d: d3.DSVRowString): ChromosomeBreakpoint {
     ref_end: +d.ref_end,
     breakpoint: d.breakpoint
   };
+}
+
+// Interface for the shared visualization state
+interface VisualizationState {
+  version: string;
+  dataSetType: 'example' | 'custom_db';
+  exampleDataSetPath?: string;
+  datasetId?: string; // For custom data
+
+  // Selections & Filters
+  selectedSpecies: string[];
+  selectedChromosomes: string[];
+  selectedSyntenyIds: string[]; // Store unique IDs for synteny blocks
+  alignmentFilter: 'all' | 'forward' | 'reverse';
+  selectedMutationTypes: Array<[string, MutationType]>; // Serialized Map
+  customSpeciesColors: Array<[string, string]>; // Serialized Map
+
+  // Main Visualization View State
+  mainViewTransform: { k: number; x: number; y: number }; // D3 zoom transform
+  showAnnotations: boolean;
+  showTooltips: boolean;
+
+  // UI State
+  isDetailViewOpen?: boolean; // Optional, as it might not always be relevant
+  currentSelectedBlockIndex?: number; // Optional
+  // Add other relevant UI states if necessary
+  
+  // User Info
+  user_id?: string;
 }
 
 // Add a loading skeleton component
@@ -366,7 +363,7 @@ const SpeciesColorPicker = ({
 };
 
 
-export default function ChromoViz() {
+function ChromoVizContent() {
   const { theme, setTheme } = useTheme();
   const [syntenyData, setSyntenyData] = useState<SyntenyData[]>([]);
   const [speciesData, setSpeciesData] = useState<ChromosomeData[]>([]);
@@ -383,6 +380,7 @@ export default function ChromoViz() {
   const [containerHeight, setContainerHeight] = useState<number>(800);
   const mainCardRef = useRef<HTMLDivElement>(null);
   const [showTooltips, setShowTooltips] = useState(true);
+  const [showConnectedOnly, setShowConnectedOnly] = useState(true);
   const [currentBlockIndex, setCurrentBlockIndex] = useState<number>(0);
   const router = useRouter();
   const [isAtRoot, setIsAtRoot] = useState(true);
@@ -390,7 +388,30 @@ export default function ChromoViz() {
   const [selectedMutationTypes, setSelectedMutationTypes] = useState<Map<string, MutationType>>(new Map());
   const [customSpeciesColors, setCustomSpeciesColors] = useState<Map<string, string>>(new Map());
   const [showKonvaDemo, setShowKonvaDemo] = useState(false); // State for Konva demo
+  const [currentShareId, setCurrentShareId] = useState<string | null>(null); // For storing the ID of a saved state
+  const [isLoadingShare, setIsLoadingShare] = useState(false); // To indicate when sharing/loading shared state
+  const [user, setUser] = useState<User | null>(null);
+  const [currentDatasetId, setCurrentDatasetId] = useState<string | null>(null);
   
+  useEffect(() => {
+    const checkUser = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      setUser(session?.user ?? null);
+    };
+    checkUser();
+
+    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
+      setUser(session?.user ?? null);
+      if (event === 'SIGNED_IN' || event === 'SIGNED_OUT') {
+        router.refresh();
+      }
+    });
+
+    return () => {
+      authListener.subscription.unsubscribe();
+    };
+  }, [router]);
+
   // Initialize from localStorage
   useEffect(() => {
     const saved = localStorage.getItem('selectedSpecies');
@@ -454,16 +475,29 @@ export default function ChromoViz() {
   useEffect(() => {
     if (speciesData.length > 0 && selectedSpecies.length === 0 && isInitialized) {
       // Only set all species as selected by default if there are no saved selections
-      const allSpecies = speciesOptions.map(option => option.value);
-      setSelectedSpecies(allSpecies);
-      localStorage.setItem('selectedSpecies', JSON.stringify(allSpecies));
+      const allSpeciesValues = speciesOptions.map(option => option.value);
+      setSelectedSpecies(allSpeciesValues);
+      localStorage.setItem('selectedSpecies', JSON.stringify(allSpeciesValues));
       
-      // Set all chromosomes as selected by default
-      setSelectedChromosomes(
-        Object.values(chromosomeOptions)
-          .flat()
-          .map(option => option.value)
-      );
+      // Set top N chromosomes as selected by default for each species
+      const initialSelectedChromosomes: string[] = [];
+      const maxChromosomesPerSpecies = 3;
+
+      for (const speciesName in chromosomeOptions) {
+        if (chromosomeOptions.hasOwnProperty(speciesName)) {
+          const speciesChrOptions = chromosomeOptions[speciesName];
+          // Sort chromosomes by label (e.g., Chr1, Chr2, ..., Chr10, etc.)
+          // This assumes a natural sort order is desired for "top N"
+          const sortedChrOptions = [...speciesChrOptions].sort((a, b) => 
+            a.label.localeCompare(b.label, undefined, { numeric: true, sensitivity: 'base' })
+          );
+          const topNChrValues = sortedChrOptions
+            .slice(0, maxChromosomesPerSpecies)
+            .map(option => option.value);
+          initialSelectedChromosomes.push(...topNChrValues);
+        }
+      }
+      setSelectedChromosomes(initialSelectedChromosomes);
     }
   }, [speciesData, speciesOptions, chromosomeOptions, selectedSpecies, isInitialized]);
 
@@ -502,6 +536,12 @@ export default function ChromoViz() {
     setError(null);
     setIsUsingExample(true);
     setShowWelcomeCard(false);
+
+    // Reset selections to ensure new data is not filtered by stale selections
+    setSelectedSpecies([]);
+    setSelectedChromosomes([]);
+    setSelectedSynteny([]); // Also reset selected synteny blocks
+
     try {
       // Load required files first
       const [syntenyResponse, referenceResponse, refChromosomeSizes] = 
@@ -544,12 +584,13 @@ export default function ChromoViz() {
 
   // Handlers for file uploads
   const handleDataLoad = {
-    synteny: (data: SyntenyData[]) => {
-      console.log('Loading synteny data:', data);
+    synteny: (data: SyntenyData[], datasetId?: string) => {
       setSyntenyData(data);
       setShowWelcomeCard(false);
+      if (datasetId) setCurrentDatasetId(datasetId);
+      setIsUsingExample(false);
     },
-    species: (data: ChromosomeData[]) => {
+    species: (data: ChromosomeData[], datasetId?: string) => {
       console.log('Loading species data:', data);
       setSpeciesData(prev => {
         const newData = [...data];
@@ -562,8 +603,7 @@ export default function ChromoViz() {
         return newData;
       });
     },
-    reference: (data: any[]) => {
-      console.log('Loading reference data:', data);
+    reference: (data: any[], datasetId?: string) => {
       setReferenceData(prev => ({
         ...prev,
         chromosomeSizes: data.map(d => ({
@@ -574,7 +614,7 @@ export default function ChromoViz() {
         }))
       }));
     },
-    annotations: (data: GeneAnnotation[]) => {
+    annotations: (data: GeneAnnotation[], datasetId?: string) => {
       console.log('Loading annotation data:', data);
       setReferenceData(prev => {
         if (!prev) {
@@ -591,7 +631,7 @@ export default function ChromoViz() {
         };
       });
     },
-    breakpoints: (data: ChromosomeBreakpoint[]) => {
+    breakpoints: (data: ChromosomeBreakpoint[], datasetId?: string) => {
       console.log('Loading breakpoints data:', data);
       setBreakpointsData(data);
       setReferenceData(prev => {
@@ -622,11 +662,35 @@ export default function ChromoViz() {
     }, 1000);
   };
 
-  // Update the filteredData function to include chromosome filtering
+  // Update the filteredData function to include chromosome filtering and connected only filter
   const filteredData = React.useMemo(() => {
-    if (!referenceData || !referenceSpecies) {
-      console.log('Missing reference data:', { referenceData, referenceSpecies });
-      return { referenceData: speciesData, syntenyData };
+    // Ensure all critical data pieces are available before full computation
+    if (!referenceData?.chromosomeSizes || 
+        !syntenyData || syntenyData.length === 0 || 
+        !speciesData || speciesData.length === 0 || 
+        !referenceSpecies) {
+      console.log('FilteredData: Essential data not yet ready for full computation.', {
+        hasRefSizes: !!referenceData?.chromosomeSizes,
+        hasSynteny: !!syntenyData && syntenyData.length > 0,
+        hasSpecies: !!speciesData && speciesData.length > 0,
+        referenceSpeciesVal: referenceSpecies, // renamed to avoid conflict if referenceSpecies is a var name
+      });
+      // Return a minimal, safe structure if data is incomplete
+      const refChrsWhenIncomplete = referenceData?.chromosomeSizes
+        ? referenceData.chromosomeSizes.map(chr => ({
+            species_name: referenceSpecies || "Reference", 
+            chr_id: chr.chromosome,
+            chr_type: 'chromosome' as 'chromosome',
+            chr_size_bp: +chr.size,
+            centromere_start: chr.centromere_start ? +chr.centromere_start : undefined,
+            centromere_end: chr.centromere_end ? +chr.centromere_end : undefined,
+            annotations: [] as GeneAnnotation[]
+          }))
+        : [];
+      return { 
+        referenceData: refChrsWhenIncomplete, 
+        syntenyData: [] // Return empty synteny if critical data is missing for full processing
+      };
     }
 
     // Create reference chromosome data from ref_chromosome_sizes.csv
@@ -675,12 +739,21 @@ export default function ChromoViz() {
     });
 
     // Filter synteny data based on both species and chromosomes
-    const filteredSynteny = syntenyData.filter(d =>
+    let filteredSynteny = syntenyData.filter(d =>
       (selectedSpecies.length === 0 || selectedSpecies.includes(d.query_name)) &&
       (selectedChromosomes.length === 0 || 
         (selectedChromosomes.includes(`ref:${d.ref_chr}`) || 
          selectedChromosomes.includes(`${d.query_name}:${d.query_chr}`)))
     );
+
+    // Apply connected only filter if enabled
+    if (showConnectedOnly) {
+      const selectedRefChrs = selectedChromosomes.filter(chr => chr.startsWith('ref:'));
+      if (selectedRefChrs.length > 0) {
+        const refChrsWithoutPrefix = selectedRefChrs.map(chr => chr.replace('ref:', ''));
+        filteredSynteny = filteredSynteny.filter(d => refChrsWithoutPrefix.includes(d.ref_chr));
+      }
+    }
 
     return { 
       referenceData: filteredReference, 
@@ -819,7 +892,7 @@ export default function ChromoViz() {
     setIsUsingExample(true);
   };
 
-  const handleMutationTypeSelect = useCallback((syntenyId: string, mutationType: MutationType) => {
+  const handleMutationTypeSelect = useCallback((syntenyId: string, mutationType?: MutationType) => {
     setSelectedMutationTypes(prev => {
       const newMap = new Map(prev);
       if (mutationType === undefined) {
@@ -854,6 +927,184 @@ export default function ChromoViz() {
     }
   }, []);
 
+  // Effect to load shared state from URL
+  const searchParams = useSearchParams();
+  const [processedShareId, setProcessedShareId] = useState<string | null>(null);
+
+  useEffect(() => {
+    const shareId = searchParams.get('shareId');
+
+      if (shareId && shareId !== processedShareId) {
+        const loadSharedState = async () => {
+          setIsLoadingShare(true);
+          setShowWelcomeCard(false);
+          try {
+            const { data, error: dbError } = await supabase
+              .from('shared_visualizations')
+              .select('visualization_state')
+              .eq('id', shareId)
+              .single();
+
+            if (dbError) throw dbError;
+
+            if (data?.visualization_state) {
+              const state = data.visualization_state as VisualizationState;
+              
+              setProcessedShareId(shareId);
+
+              if (state.dataSetType === 'example' && state.exampleDataSetPath) {
+                await loadExampleData(state.exampleDataSetPath); 
+                localStorage.setItem('lastExamplePath', state.exampleDataSetPath);
+              } else if (state.dataSetType === 'custom_db' && state.datasetId) {
+                // Load data from Supabase Storage
+                const { data: files, error: listError } = await supabase.storage
+                  .from('user-uploads')
+                  .list(`${state.user_id}/${state.datasetId}`);
+
+                if (listError) throw listError;
+
+                const dataPromises = files.map(async (file) => {
+                  const { data: blobData, error: downloadError } = await supabase.storage
+                    .from('user-uploads')
+                    .download(`${state.user_id}/${state.datasetId}/${file.name}`);
+                  
+                  if (downloadError) throw downloadError;
+
+                  const text = await blobData.text();
+                  return { name: file.name, data: text };
+                });
+
+                const loadedFiles = await Promise.all(dataPromises);
+                
+                // This is a simplified parsing logic. You might need to make this more robust
+                // based on file names to map to the correct data type (synteny, species, etc.)
+                loadedFiles.forEach(file => {
+                  if (file.name.includes('synteny')) {
+                    handleDataLoad.synteny(d3.csvParse(file.data, parseCSVRow));
+                  } else if (file.name.includes('species')) {
+                    handleDataLoad.species(d3.csvParse(file.data, parseChromosomeRow));
+                  } else if (file.name.includes('ref_chromosome_sizes')) {
+                    handleDataLoad.reference(d3.csvParse(file.data, parseChromosomeSizeRow));
+                  } else if (file.name.includes('ref_gene_annotations')) {
+                    handleDataLoad.annotations(d3.csvParse(file.data, parseGeneAnnotationRow));
+                  } else if (file.name.includes('bp')) {
+                    handleDataLoad.breakpoints(d3.csvParse(file.data, parseBreakpointRow));
+                  }
+                });
+              }
+
+              setSelectedSpecies(state.selectedSpecies || []);
+              setSelectedChromosomes(state.selectedChromosomes || []);
+            setAlignmentFilter(state.alignmentFilter || 'all');
+            setSelectedMutationTypes(new Map(state.selectedMutationTypes || []));
+            setCustomSpeciesColors(new Map(state.customSpeciesColors || []));
+            
+            // Defer transform application until syntenyData might be loaded by loadExampleData
+            // This can be tricky if loadExampleData is async and updates state that ChromosomeSynteny depends on.
+            // A more robust way might be to pass initialTransform to ChromosomeSynteny or have an effect there.
+            if (state.mainViewTransform && svgRef.current && zoomBehaviorRef.current) {
+                // Ensure data is loaded before applying transform if it depends on data bounds
+                // For now, apply directly, but this might need refinement if loadExampleData is slow
+                const transform = d3.zoomIdentity
+                  .translate(state.mainViewTransform.x, state.mainViewTransform.y)
+                  .scale(state.mainViewTransform.k);
+                // Apply transform after a short delay to allow data to potentially load
+                setTimeout(() => {
+                    if (svgRef.current && zoomBehaviorRef.current) {
+                        d3.select(svgRef.current).call(zoomBehaviorRef.current.transform, transform);
+                    }
+                }, 100); // Adjust delay as needed, or use a more robust data-loaded flag
+            }
+            
+            setShowAnnotations(state.showAnnotations !== undefined ? state.showAnnotations : true);
+            setShowTooltips(state.showTooltips !== undefined ? state.showTooltips : true);
+            setIsDetailViewOpen(state.isDetailViewOpen !== undefined ? state.isDetailViewOpen : true);
+            setCurrentBlockIndex(state.currentSelectedBlockIndex || 0);
+            
+            toast.success("Shared visualization loaded!");
+          } else {
+            toast.error("Could not find the shared visualization.");
+            setProcessedShareId(shareId); // Mark as processed even if not found to prevent retries
+          }
+        } catch (e) {
+          console.error("Error loading shared visualization:", e);
+          toast.error("Failed to load shared visualization.");
+          setProcessedShareId(shareId); // Mark as processed on error
+        } finally {
+          setIsLoadingShare(false);
+        }
+      };
+      loadSharedState();
+    }
+  }, [searchParams, processedShareId]); // Depend on shareId from searchParams and processedShareId
+
+  const handleShare = async (): Promise<string | null> => {
+    if (!user) {
+      toast.error("Please sign in to share your visualization.", {
+        action: {
+          label: "Sign In",
+          onClick: () => router.push('/sign-in'),
+        },
+      });
+      return null;
+    }
+
+    if (!referenceData || !zoomBehaviorRef.current) {
+      toast.error("Cannot share, data or view not fully loaded.");
+      return null;
+    }
+    setIsLoadingShare(true);
+    try {
+      const currentTransform = d3.zoomTransform(svgRef.current!);
+
+      const stateToSave: VisualizationState = {
+        version: "1.0",
+        dataSetType: isUsingExample ? 'example' : 'custom_db',
+        exampleDataSetPath: isUsingExample ? localStorage.getItem('lastExamplePath') || '/example/set1' : undefined,
+        datasetId: !isUsingExample ? (currentDatasetId ?? undefined) : undefined,
+        selectedSpecies,
+        selectedChromosomes,
+        selectedSyntenyIds: selectedSynteny.map(s => `${s.ref_chr}-${s.query_chr}-${s.ref_start}-${s.query_start}`),
+        alignmentFilter,
+        selectedMutationTypes: Array.from(selectedMutationTypes.entries()),
+        customSpeciesColors: Array.from(customSpeciesColors.entries()),
+        mainViewTransform: {
+          k: currentTransform.k,
+          x: currentTransform.x,
+          y: currentTransform.y,
+        },
+        showAnnotations,
+        showTooltips,
+        isDetailViewOpen,
+        currentSelectedBlockIndex: currentBlockIndex,
+        user_id: user.id,
+      };
+
+      const { data, error: dbError } = await supabase
+        .from('shared_visualizations')
+        .insert([{ visualization_state: stateToSave, user_id: user.id }])
+        .select('id')
+        .single();
+
+      if (dbError) {
+        throw dbError;
+      }
+
+      if (data?.id) {
+        const shareUrl = `${window.location.origin}${window.location.pathname}?shareId=${data.id}`;
+        toast.success("Shareable link generated and copied to clipboard!");
+        return shareUrl;
+      }
+      return null;
+    } catch (e) {
+      console.error("Error sharing visualization:", e);
+      toast.error("Failed to create shareable link.");
+      return null;
+    } finally {
+      setIsLoadingShare(false);
+    }
+  };
+
   if (error) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[50vh] p-4">
@@ -871,20 +1122,23 @@ export default function ChromoViz() {
 
   return (
     <PageWrapper>
+      {/* When mainCardRef (a child) is fullscreen, this outer div should not apply fixed/z-index/backdrop styles.
+          The browser handles the fullscreen layer for mainCardRef.
+          We only adjust padding based on fullscreen state here. */}
       <div className={cn(
         "relative w-full bg-background flex-1 flex flex-col",
-        isFullScreen ? "fixed inset-0 z-50 backdrop-blur-md p-0" : "py-4 sm:py-6"
+        isFullScreen ? "p-0" : "py-4 sm:py-6" // Removed fixed, z-50, backdrop-blur for isFullScreen
       )}>
         <div className={cn(
-          "flex-1 flex flex-col w-full px-4 sm:px-6",
-          isFullScreen && "h-screen p-0"
+          "flex-1 flex flex-col w-full", // Removed px-4 sm:px-6 here, will be handled by inner content or fullscreen
+          isFullScreen ? "h-screen p-0" : "px-4 sm:px-6" // Apply padding only when not fullscreen
         )}>
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             className={cn(
-              "flex-1 w-full max-w-[2000px] mx-auto flex flex-col",
-              isFullScreen && "backdrop-blur-md"
+              "flex-1 w-full max-w-[2000px] mx-auto flex flex-col"
+              // Removed: isFullScreen && "backdrop-blur-md" to simplify stacking context
             )}
           >
             {/* Main Content Grid */}
@@ -913,23 +1167,24 @@ export default function ChromoViz() {
                   onToggleTooltips={() => setShowTooltips(!showTooltips)}
                   onResetToWelcome={handleResetToWelcome}
                   speciesData={speciesData}
+                  onShare={handleShare} // Pass the handleShare function
+                  user={user}
                 />
 
-
                 {/* Responsive Layout for Visualization and Details */}
-                <div className="grid grid-cols-12 gap-4 flex-1 min-h-0">
+                <div className="grid grid-cols-12 gap-6 flex-1 min-h-0"> {/* Increased gap */}
                   {/* Main Visualization Area */}
                   <div className={cn(
                     "transition-all duration-200",
-                    selectedSynteny.length > 0 
-                      ? isDetailViewOpen 
-                        ? "col-span-12 lg:col-span-8" 
+                    selectedSynteny.length > 0
+                      ? isDetailViewOpen
+                        ? "col-span-12 lg:col-span-8"
                         : "col-span-12 lg:col-span-11"
                       : "col-span-12"
                   )}>
                     <Card className={cn(
-                      "h-full flex flex-col",
-                      isFullScreen && "pb-10"
+                      "h-[80vh] flex flex-col", // Added fixed height
+                      isFullScreen && "pb-10 h-screen" // Ensure fullscreen still takes full screen height
                     )} ref={mainCardRef}>
                       {/* Modified Card Header with integrated Tips and Back Button */}
                       {referenceData && !showWelcomeCard && (
@@ -948,17 +1203,17 @@ export default function ChromoViz() {
                                 <span className="hidden sm:inline">Go Back</span>
                               </Button>
                               <CardTitle className="text-lg font-medium">Synteny Visualization</CardTitle>
-                              {!showKonvaDemo && (
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => setShowKonvaDemo(true)}
-                                  className="h-8 px-2 text-xs ml-auto"
-                                >
-                                  <Layers className="h-3.5 w-3.5 mr-1.5" />
-                                  Konva View
-                                </Button>
-                              )}
+                              <div className="flex items-center gap-2 ml-auto">
+                                <Switch
+                                  id="draggable-view"
+                                  checked={showKonvaDemo}
+                                  onCheckedChange={() => setShowKonvaDemo(!showKonvaDemo)}
+                                  className="h-7"
+                                />
+                                <label htmlFor="draggable-view" className="text-sm text-muted-foreground whitespace-nowrap">
+                                  Draggable View
+                                </label>
+                              </div>
                             </div>
                             <div className="h-8 border-l pl-4 hidden sm:block">
                               <TipsCarousel variant="compact" className="w-[300px]" />
@@ -971,7 +1226,7 @@ export default function ChromoViz() {
                         <div className="p-4 flex-1">
                           <LoadingSkeleton />
                         </div>
-                      ) : showKonvaDemo && syntenyData.length > 0 && !showWelcomeCard ? (
+                      ) : showKonvaDemo && syntenyData.length > 0 && referenceData && !showWelcomeCard ? ( // Added referenceData check for Konva
                         <div className="flex-1 min-h-0">
                           <KonvaSynteny
                             referenceData={filteredData.referenceData}
@@ -981,7 +1236,7 @@ export default function ChromoViz() {
                             onBack={() => setShowKonvaDemo(false)}
                           />
                         </div>
-                      ) : syntenyData.length > 0 && !showWelcomeCard ? (
+                      ) : syntenyData.length > 0 && referenceData && !showWelcomeCard ? ( // Added referenceData check
                         <div className="flex-1 min-h-0">
                           <ChromosomeSynteny
                             referenceData={filteredData.referenceData}
@@ -1010,6 +1265,8 @@ export default function ChromoViz() {
                             onMutationTypeSelect={handleMutationTypeSelect}
                             customSpeciesColors={customSpeciesColors}
                             onSpeciesColorChange={handleSpeciesColorChange}
+                            showConnectedOnly={showConnectedOnly}
+                            setShowConnectedOnly={setShowConnectedOnly}
                           />
                         </div>
                       ) : (
@@ -1086,6 +1343,7 @@ export default function ChromoViz() {
                             <div className="pt-4 flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6 p-4">
                               <FileUploaderGroup 
                                 onDataLoad={onDataLoad}
+                                user={user}
                                 trigger={
                                   <LiquidButton 
                                     variant="default" // Assuming default variant aligns with a blue-ish theme
@@ -1178,7 +1436,7 @@ export default function ChromoViz() {
                   </div>
 
                   {/* Detailed View Sidebar */}
-                  {selectedSynteny.length > 0 && (
+                  {selectedSynteny.length > 0 && !showWelcomeCard && (
                     <CollapsibleDetailView
                       isOpen={isDetailViewOpen}
                       onToggle={() => setIsDetailViewOpen(prev => !prev)}
@@ -1208,33 +1466,103 @@ export default function ChromoViz() {
                       </Card>
                     </CollapsibleDetailView>
                   )}
-                  {/* Add Synteny Table - Full Width */}
-                  <div className="col-span-12">
-                    <SyntenyTable 
-                      selectedSynteny={selectedSynteny}
-                      onToggleSelection={handleSyntenyToggle}
-                      onSelectBlock={(block) => {
-                        // Simply set the current block index instead of reordering
-                        const index = selectedSynteny.findIndex(b => 
-                          b.ref_chr === block.ref_chr && 
-                          b.query_chr === block.query_chr && 
-                          b.ref_start === block.ref_start
-                        );
-                        setCurrentBlockIndex(index); // You'll need to add this state
-                      }}
-                      currentBlockIndex={currentBlockIndex} // Add this prop
-                      onExport={(data) => downloadCSV(
-                        data,
-                        `synteny-blocks-${new Date().toISOString().split('T')[0]}.csv`
-                      )}
-                    />
-                  </div>
                 </div>
+
+                {/* Floating Synteny Table Button */}
+                {!showWelcomeCard && (syntenyData.length > 0 || speciesData.length > 0 || referenceData) && (
+                  <SyntenyTable
+                    selectedSynteny={selectedSynteny}
+                    onToggleSelection={handleSyntenyToggle}
+                    onSelectBlock={(block) => {
+                      const index = selectedSynteny.findIndex(b => 
+                        b.ref_chr === block.ref_chr && 
+                        b.query_chr === block.query_chr && 
+                        b.ref_start === block.ref_start
+                      );
+                      if (index !== -1) {
+                        setCurrentBlockIndex(index);
+                      }
+                    }}
+                    currentBlockIndex={currentBlockIndex}
+                    onExport={(data) => downloadCSV(
+                      data,
+                      `synteny-blocks-${new Date().toISOString().split('T')[0]}.csv`
+                    )}
+                  />
+                )}
+
+                {/* Inline Tables Section - Below Visualization and Details */}
+                {!showWelcomeCard && (syntenyData.length > 0 || speciesData.length > 0 || referenceData) && (
+                  <div className="col-span-12 mt-6 grid grid-cols-12 gap-6">
+                    {/* Left Column: Raw Data Tables */}
+                    <div className="col-span-12 md:col-span-8 lg:col-span-9">
+                      <Card>
+                        <CardHeader className="p-3 border-b">
+                          <CardTitle className="text-base font-semibold flex items-center gap-2">
+                            <Database className="h-4 w-4 text-muted-foreground" />
+                            Raw Data Tables
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent className="p-3">
+                          <RawDataTablesDisplay
+                            syntenyData={syntenyData}
+                            speciesData={speciesData}
+                            referenceData={referenceData}
+                          />
+                        </CardContent>
+                      </Card>
+                    </div>
+
+                    {/* Right Column: Compact Selected Blocks */}
+                    <div className="col-span-12 md:col-span-4 lg:col-span-3">
+                       <Card>
+                         <CardHeader className="p-3 border-b">
+                          <CardTitle className="text-base font-semibold flex items-center gap-2">
+                            <MousePointerClick className="h-4 w-4 text-muted-foreground" />
+                            Selected Blocks
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent className="p-0"> {/* Padding handled by InlineSyntenyDisplay with isCompact */}
+                          <InlineSyntenyDisplay
+                            selectedSynteny={selectedSynteny}
+                            onToggleSelection={handleSyntenyToggle}
+                            onSelectBlock={(block) => {
+                              const index = selectedSynteny.findIndex(b => 
+                                b.ref_chr === block.ref_chr && 
+                                b.query_chr === block.query_chr && 
+                                b.ref_start === block.ref_start
+                              );
+                              if (index !== -1) {
+                                setCurrentBlockIndex(index);
+                              }
+                            }}
+                            currentBlockIndex={currentBlockIndex}
+                            // No export button in compact view to save space, can be added if needed
+                            // onExport={(data) => downloadCSV(
+                            //   data,
+                            //   `synteny-blocks-${new Date().toISOString().split('T')[0]}.csv`
+                            // )}
+                            isCompact={true} // Enable compact mode
+                            className="w-full"
+                          />
+                        </CardContent>
+                      </Card>
+                    </div>
+                  </div>
+                )}
               </motion.div>
             </div>
           </motion.div>
         </div>
       </div>
     </PageWrapper>
+  );
+}
+
+export default function ChromoViz() {
+  return (
+    <React.Suspense fallback={<LoadingSkeleton />}>
+      <ChromoVizContent />
+    </React.Suspense>
   );
 }

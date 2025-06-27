@@ -7,7 +7,7 @@ import { useOnborda } from "onborda";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { X } from "lucide-react";
-import { motion } from "framer-motion";
+import { motion } from "motion/react";
 
 export const TourCard: React.FC<CardComponentProps> = ({
   step,

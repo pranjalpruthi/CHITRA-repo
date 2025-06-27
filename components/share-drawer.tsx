@@ -13,7 +13,7 @@ import { Share2, Twitter, Facebook, Copy, Send, Link as LinkIcon, Mail, Info } f
 import { toast } from "sonner"
 import { Separator } from "@/components/ui/separator"
 import React from 'react';
-import { motion } from 'framer-motion'
+import { motion } from 'motion/react'
 
 export function ShareDrawer({ mobile = false }) {
   const [isOpen, setIsOpen] = React.useState(false)

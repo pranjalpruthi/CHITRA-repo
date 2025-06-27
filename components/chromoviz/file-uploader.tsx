@@ -3,6 +3,9 @@
 import { useState } from "react";
 import { FileUploader, FileUploaderContent, FileUploaderItem, FileInput } from "@/components/extension/file-uploader";
 import { Button } from "@/components/ui/button";
+import { supabase } from "@/lib/supabaseClient";
+import { User } from "@supabase/supabase-js";
+import { v4 as uuidv4 } from 'uuid';
 import { Upload, AlertCircle, CheckCircle2, FileText, TableProperties } from "lucide-react";
 import { toast } from "sonner";
 import * as d3 from 'd3';
@@ -13,16 +16,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { HelpCircle } from "lucide-react";
-import { motion } from "framer-motion";
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "@/components/ui/sheet";
-import { Separator } from "@/components/ui/separator";
+import { motion } from "motion/react";
 import { FeatureTableConverter } from "@/components/chromoviz/feature-table-converter";
 import {
   Drawer,
@@ -187,7 +181,7 @@ export const FILE_CONFIGS = {
 type FileType = keyof typeof FILE_CONFIGS;
 
 interface FileUploaderProps {
-  onDataLoad: (data: any) => void;
+  onDataLoad: (file: File, data: any[]) => void;
   type: FileType;
   required?: boolean;
 }
@@ -376,7 +370,7 @@ export function CSVUploader({ onDataLoad, type, required = true }: FileUploaderP
       // Validate CSV format and required fields
       if (validateCSVFormat(data)) {
         setIsValid(true);
-        onDataLoad(data);
+        onDataLoad(file, data);
         toast.success(`Successfully loaded ${config.title}`, {
           description: `Loaded ${data.length} rows of data`
         });
@@ -390,7 +384,7 @@ export function CSVUploader({ onDataLoad, type, required = true }: FileUploaderP
     } catch (error) {
       console.error('File processing error:', error);
       toast.error(`Error processing ${config.title}`, {
-        description: error instanceof Error ? error.message : 'Unknown error occurred'
+        description: (error instanceof Error && error.message) ? error.message : `An error occurred while processing the ${config.title} file.`
       });
       setIsValid(false);
       setFiles(null);
@@ -467,12 +461,13 @@ export function CSVUploader({ onDataLoad, type, required = true }: FileUploaderP
 
 interface FileUploaderGroupProps {
   onDataLoad: {
-    synteny: (data: any) => void;
-    species: (data: any) => void;
-    reference: (data: any) => void;
-    annotations: (data: any) => void;
-    breakpoints?: (data: any) => void;
+    synteny: (data: any[], datasetId?: string) => void;
+    species: (data: any[], datasetId?: string) => void;
+    reference: (data: any[], datasetId?: string) => void;
+    annotations: (data: any[], datasetId?: string) => void;
+    breakpoints?: (data: any[], datasetId?: string) => void;
   };
+  user: User | null;
   children?: React.ReactNode;
   trigger?: React.ReactNode;
 }
@@ -519,34 +514,64 @@ export function DataViewer({ data, title }: { data: any[]; title: string }) {
   );
 }
 
-export function FileUploaderGroup({ onDataLoad, children, trigger }: FileUploaderGroupProps) {
+export function FileUploaderGroup({ onDataLoad, user, children, trigger }: FileUploaderGroupProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [uploadedData, setUploadedData] = useState<{
-    synteny?: any[];
-    species?: any[];
-    reference?: any[];
-    annotations?: any[];
-    breakpoints?: any[];
+    synteny?: { file: File, data: any[] };
+    species?: { file: File, data: any[] };
+    reference?: { file: File, data: any[] };
+    annotations?: { file: File, data: any[] };
+    breakpoints?: { file: File, data: any[] };
   }>({});
   const [isReadyToVisualize, setIsReadyToVisualize] = useState(false);
 
-  const handleDataLoad = (type: keyof typeof onDataLoad, data: any[]) => {
+  const handleDataLoad = (type: keyof typeof onDataLoad, file: File, data: any[]) => {
     setUploadedData(prev => ({
       ...prev,
-      [type]: data
+      [type]: { file, data }
     }));
   };
 
-  const handleVisualize = () => {
+  const handleVisualize = async () => {
     if (uploadedData.synteny && uploadedData.species && uploadedData.reference) {
-      onDataLoad.reference(uploadedData.reference);
-      onDataLoad.species(uploadedData.species);
-      onDataLoad.synteny(uploadedData.synteny);
-      if (uploadedData.annotations) {
-        onDataLoad.annotations(uploadedData.annotations);
-      }
-      if (uploadedData.breakpoints) {
-        onDataLoad.breakpoints?.(uploadedData.breakpoints);
+      if (user) {
+        const datasetId = uuidv4();
+        const uploadPromises = Object.entries(uploadedData)
+          .filter((entry): entry is [string, { file: File; data: any[] }] => !!entry[1])
+          .map(async ([type, { file }]) => {
+            const filePath = `user-uploads/${user.id}/${datasetId}/${file.name}`;
+            const { error } = await supabase.storage.from('user-uploads').upload(filePath, file);
+            if (error) {
+              throw new Error(`Failed to upload ${file.name}: ${error.message}`);
+            }
+          });
+
+        try {
+          await Promise.all(uploadPromises);
+          toast.success("Files uploaded successfully!");
+          onDataLoad.reference(uploadedData.reference.data, datasetId);
+          onDataLoad.species(uploadedData.species.data, datasetId);
+          onDataLoad.synteny(uploadedData.synteny.data, datasetId);
+          if (uploadedData.annotations) {
+            onDataLoad.annotations(uploadedData.annotations.data, datasetId);
+          }
+          if (uploadedData.breakpoints) {
+            onDataLoad.breakpoints?.(uploadedData.breakpoints.data, datasetId);
+          }
+        } catch (error) {
+          toast.error((error as Error).message);
+          return;
+        }
+      } else {
+        onDataLoad.reference(uploadedData.reference.data);
+        onDataLoad.species(uploadedData.species.data);
+        onDataLoad.synteny(uploadedData.synteny.data);
+        if (uploadedData.annotations) {
+          onDataLoad.annotations(uploadedData.annotations.data);
+        }
+        if (uploadedData.breakpoints) {
+          onDataLoad.breakpoints?.(uploadedData.breakpoints.data);
+        }
       }
       setIsOpen(false);
     }
@@ -571,7 +596,7 @@ export function FileUploaderGroup({ onDataLoad, children, trigger }: FileUploade
         )}
       </DrawerTrigger>
       
-      <DrawerContent className="h-[85vh] max-h-[85vh] md:h-[90vh] md:max-h-[90vh] overflow-hidden">
+      <DrawerContent className="h-[85vh] max-h-[85vh] md:h-[90vh] md:max-h-[90vh] overflow-hidden bg-white/95 dark:bg-gray-950/80">
         <DrawerHeader className="pb-2 border-b border-gray-200 dark:border-gray-800">
           <div className="flex items-center justify-between">
             <div>
@@ -619,7 +644,7 @@ export function FileUploaderGroup({ onDataLoad, children, trigger }: FileUploade
                       >
                         <CSVUploader 
                           type={type as keyof typeof FILE_CONFIGS} 
-                          onDataLoad={(data) => handleDataLoad(type as keyof typeof onDataLoad, data)} 
+                          onDataLoad={(file, data) => handleDataLoad(type as keyof typeof onDataLoad, file, data)} 
                         />
                       </motion.div>
                     ))}
@@ -657,7 +682,7 @@ export function FileUploaderGroup({ onDataLoad, children, trigger }: FileUploade
                       >
                         <CSVUploader 
                           type={type as keyof typeof FILE_CONFIGS} 
-                          onDataLoad={(data) => handleDataLoad(type as keyof typeof onDataLoad, data)}
+                          onDataLoad={(file, data) => handleDataLoad(type as keyof typeof onDataLoad, file, data)}
                           required={false}
                         />
                       </motion.div>
@@ -725,7 +750,7 @@ export function FileUploaderGroup({ onDataLoad, children, trigger }: FileUploade
                 >
                   <CSVUploader 
                     type={type as keyof typeof FILE_CONFIGS} 
-                    onDataLoad={(data) => handleDataLoad(type as keyof typeof onDataLoad, data)} 
+                    onDataLoad={(file, data) => handleDataLoad(type as keyof typeof onDataLoad, file, data)} 
                   />
                 </motion.div>
               ))}
@@ -771,7 +796,7 @@ export function FileUploaderGroup({ onDataLoad, children, trigger }: FileUploade
                 >
                   <CSVUploader 
                     type={type as keyof typeof FILE_CONFIGS} 
-                    onDataLoad={(data) => handleDataLoad(type as keyof typeof onDataLoad, data)}
+                    onDataLoad={(file, data) => handleDataLoad(type as keyof typeof onDataLoad, file, data)}
                     required={false}
                   />
                 </motion.div>
