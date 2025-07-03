@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence, Transition } from 'motion/react';
 import { User as UserIcon, LogOut, Share2, X, ArrowRight, Copy, Trash2, Link as LinkIcon } from 'lucide-react';
+import { CopyButton } from '@/components/animate-ui/buttons/copy';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
@@ -14,9 +15,9 @@ import { useRouter } from 'next/navigation';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import useClickOutside from '@/hooks/useClickOutside';
+import { cn } from '@/lib/utils';
 import { LogIn } from 'lucide-react';
 
 interface SharedLink {
@@ -30,7 +31,7 @@ const transition: Transition = {
   duration: 0.3,
 };
 
-export function UserActions({ user, onSignOut, onShare }: { user: User | null; onSignOut: () => void; onShare?: () => Promise<string | null> }) {
+export function UserActions({ user, onSignOut, onShare, isVertical }: { user: User | null; onSignOut: () => void; onShare?: () => Promise<string | null>; isVertical?: boolean }) {
   const [activeTab, setActiveTab] = useState<string | null>(null);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -143,36 +144,51 @@ export function UserActions({ user, onSignOut, onShare }: { user: User | null; o
         )}
       </AnimatePresence>
 
-      <div className="flex items-center gap-1 p-1.5 bg-white/80 dark:bg-black/40 backdrop-blur-md border-[1.5px] border-indigo-200/50 dark:border-white/20 rounded-2xl shadow-lg">
+      <div className={cn(
+        "flex items-center gap-1 p-1.5 bg-white/80 dark:bg-black/40 backdrop-blur-md border-[1.5px] border-indigo-200/50 dark:border-white/20 rounded-2xl shadow-lg",
+        isVertical ? "flex-col" : "flex-row"
+      )}>
         {user ? (
           <>
             <button
               onClick={() => handleTabClick('profile')}
               className={`p-1.5 rounded-lg transition-colors flex items-center gap-2 ${activeTab === 'profile' ? 'bg-muted' : 'hover:bg-muted/50'}`}
             >
-              <Avatar className="h-6 w-6">
+              <Avatar className="h-8 w-8 ring-2 ring-offset-2 ring-blue-500 dark:ring-offset-black">
                 <AvatarImage src={user.user_metadata.avatar_url} />
                 <AvatarFallback>{user.email?.[0].toUpperCase()}</AvatarFallback>
               </Avatar>
-              <span className="text-xs font-medium hidden sm:inline">{user.email}</span>
             </button>
+            {isVertical && <Separator orientation="horizontal" className="w-6 my-1 bg-white/20" />}
             <button
               onClick={() => handleTabClick('shares')}
-              className={`p-2 rounded-lg transition-colors ${activeTab === 'shares' ? 'bg-muted' : 'hover:bg-muted/50'}`}
+              className={cn(
+                "p-2 rounded-lg transition-colors",
+                "bg-teal-500/20 text-teal-600 dark:text-teal-400 hover:bg-teal-500/30 [&_svg]:stroke-teal-500",
+                activeTab === 'shares' ? 'bg-teal-500/40' : '',
+                !isVertical && "flex items-center gap-1.5 px-3"
+              )}
             >
               <Share2 className="h-4 w-4" />
+              {!isVertical && <span className="text-xs font-medium">Share</span>}
             </button>
-            <Separator orientation="vertical" className="h-6 mx-1" />
-            <button onClick={onSignOut} className="p-2 rounded-lg hover:bg-muted/50 transition-colors">
-              <LogOut className="h-4 w-4 text-red-500" />
+            {!isVertical && <Separator orientation="vertical" className="h-6 mx-1 bg-white/20" />}
+            <button onClick={onSignOut} className="p-2 rounded-lg transition-colors bg-red-500/20 text-red-600 dark:text-red-400 hover:bg-red-500/30 [&_svg]:stroke-red-500">
+              <LogOut className="h-4 w-4" />
             </button>
           </>
         ) : (
           <button
             onClick={() => handleTabClick('signin')}
-            className={`p-2 rounded-lg transition-colors ${activeTab === 'signin' ? 'bg-muted' : 'hover:bg-muted/50'}`}
+            className={cn(
+              "p-2 rounded-lg transition-colors flex items-center gap-2 text-xs",
+              !isVertical && "px-3",
+              "bg-blue-500/20 text-blue-600 dark:text-blue-400 hover:bg-blue-500/30 [&_svg]:stroke-blue-500",
+              activeTab === 'signin' ? 'bg-blue-500/40' : ''
+            )}
           >
             <LogIn className="h-4 w-4" />
+            {!isVertical && <span>Sign in to share...</span>}
           </button>
         )}
       </div>
@@ -419,9 +435,12 @@ function SharesPanel({ user, onShare }: { user: User | null, onShare?: () => Pro
                   <p className="text-xs font-mono text-primary truncate">{`...${link.id.slice(-12)}`}</p>
                 </div>
                 <div className="flex items-center gap-1">
-                  <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => copyShareLink(link.id, false)}>
-                    <Copy className="h-3.5 w-3.5" />
-                  </Button>
+                  <CopyButton
+                    content={`${window.location.origin}/chitra?shareId=${link.id}`}
+                    variant="ghost"
+                    size="sm"
+                    className="h-7 w-7"
+                  />
                   <Button variant="ghost" size="icon" className="h-7 w-7 text-red-500 hover:text-red-500" onClick={() => handleDeleteShare(link.id)}>
                     <Trash2 className="h-3.5 w-3.5" />
                   </Button>

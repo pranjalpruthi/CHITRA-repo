@@ -59,13 +59,13 @@ const drawerContentVariants = cva("fixed z-50 flex h-auto flex-col border bg-whi
 
 const DrawerContent = React.forwardRef<
   React.ElementRef<typeof DrawerPrimitive.Content>,
-  React.ComponentPropsWithoutRef<typeof DrawerPrimitive.Content>
->(({ className, children, ...props }, ref) => {
+  React.ComponentPropsWithoutRef<typeof DrawerPrimitive.Content> & { showOverlay?: boolean }
+>(({ className, children, showOverlay = true, ...props }, ref) => {
   const { direction } = React.useContext(DrawerContext)
 
   return (
     <DrawerPortal>
-      <DrawerOverlay />
+      {showOverlay && <DrawerOverlay />}
       <DrawerPrimitive.Content
         ref={ref}
         className={cn(drawerContentVariants({ direction, className }))}

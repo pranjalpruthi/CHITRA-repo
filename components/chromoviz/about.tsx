@@ -32,7 +32,7 @@ const team: TeamMember[] = [
     role: "Core Web Developer & Research Scientist",
     bio: "Research Scientist at CSIR-IGIB: Exploring the frontiers of genomics | Skilled in IT, Full Stack Web development, Database Administration and Bioinformatics, Building innovative and user-friendly platforms",
     avatar: "bg-gradient-to-br from-purple-500 to-pink-500",
-    image: "https://pbs.twimg.com/profile_images/1866546460919205889/XF3K4o86_400x400.jpg",
+    image: "/people/pranjal.webp",
     links: {
       github: "https://github.com/pranjalpruthi",
       linkedin: "https://www.linkedin.com/in/pranjal-pruthi/",
@@ -46,7 +46,7 @@ const team: TeamMember[] = [
     role: "Principal Investigator",
     bio: "Specializing in Comparative Genomics, Genome Evolution, Adaptation, Chromosome Rearrangements, HGT, Repeats",
     avatar: "bg-gradient-to-br from-blue-500 to-green-500",
-    image: "https://pbs.twimg.com/profile_images/1759517165764427777/-q4XxNJW_400x400.jpg",
+    image: "/people/jitendra.webp",
     links: {
       website: "https://bioinformaticsonline.com/profile/admin",
       scholar: "https://scholar.google.co.uk/citations?user=ySm4BzcAAAAJ&hl=en",
@@ -59,7 +59,7 @@ const team: TeamMember[] = [
     role: "Documentation -PhD & Senior Research Fellow",
     bio: "Institute of Genomics and Integrative Biology | IGIB · Genome Informatics and Structural Biology Research Area (IGIB) | Bioinformatics and Big Data analysis #Pro in SSR analysis",
     avatar: "bg-gradient-to-br from-rose-400 to-orange-500",
-    image: "https://pbs.twimg.com/profile_images/1526164953585295360/3WX0lSZn_400x400.jpg",
+    image: "/people/preeti.webp",
     links: {
       researchgate: "https://www.researchgate.net/profile/Preeti-Agarwal-16",
       scholar: "https://scholar.google.com/citations?user=8u8WcwoAAAAJ&hl=en"
@@ -70,7 +70,7 @@ const team: TeamMember[] = [
     role: "Research Scientist - I",
     bio: "Department of Medical Mycology, Vallabhbhai Patel Chest Institute, University of Delhi",
     avatar: "bg-gradient-to-br from-emerald-500 to-teal-500",
-    image: "https://media.licdn.com/dms/image/v2/C4D03AQFEmJi_aBDJdQ/profile-displayphoto-shrink_800_800/profile-displayphoto-shrink_800_800/0/1658210701985?e=1740009600&v=beta&t=8p7yySN_7wQN7xNBSCAwO41qZ0d8HP2oOyECJQQ4g0o",
+    image: "/people/nitin.webp",
     links: {
       researchgate: "https://www.researchgate.net/profile/Nityendra-Shukla-2",
       website: "https://jitendralab.igib.res.in/profile/nityendra21",
@@ -82,7 +82,7 @@ const team: TeamMember[] = [
     role: "Data Analyst - PhD & Senior Research Fellow",
     bio: "PhD Student at Jitendra lab, Institute of Genomics and Integrative Biology | IGIB · Genome Informatics and Structural Biology Research Area (IGIB)",
     avatar: "bg-gradient-to-br from-cyan-500 to-blue-500",
-    image: "https://i1.rgstatic.net/ii/profile.image/11431281223771539-1707933700618_Q512/Ajay-Bhatia-5.jpg",
+    image: "/people/ajay.webp",
     links: {
       researchgate: "https://www.researchgate.net/profile/Ajay-Bhatia-5",
       scholar: "https://scholar.google.com"
@@ -93,7 +93,7 @@ const team: TeamMember[] = [
     role: "Scientist II, Genomics Facility | Hematological malignancies",
     bio: "Centralized Core Research Facility (CCRF), AIIMS, New Delhi | Specializing in genomics and molecular biology research",
     avatar: "bg-gradient-to-br from-violet-500 to-indigo-500",
-    image: "https://scholar.googleusercontent.com/citations?view_op=medium_photo&user=oyhfOq4AAAAJ&citpid=2",
+    image: "/people/lata.webp",
     links: {
       scholar: "https://scholar.google.com/citations?user=oyhfOq4AAAAJ&hl=en",
     }

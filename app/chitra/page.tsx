@@ -2,44 +2,31 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { ChromosomeSynteny } from './chromosome-synteny';
-import { MultiSelect } from '@/components/ui/multi-select';
 import { Button } from "@/components/ui/button";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { 
-  Moon, 
-  Sun, 
+
   RefreshCw, 
   Upload,
-  ArrowRight, 
-  FileSpreadsheet,
+
   Database,
-  ZoomIn,
-  X,
+
   MousePointerClick,
   MonitorUp,
-  Minimize2,
-  Maximize2,
-  ZoomOut,
-  BookOpen,
-  FileText,
-  TableProperties,
-  RotateCcw,
+
   ArrowLeft,
   ChevronRight,
-  Layers, // Added for Konva switch button
 } from "lucide-react";
 import * as d3 from 'd3';
-import { KonvaSynteny } from './konva-synteny'; // Import KonvaSynteny
+import { KonvaSynteny } from './konva-synteny';
 import { SyntenyData, ChromosomeData, ReferenceGenomeData, GeneAnnotation, ChromosomeBreakpoint } from '../types';
 import { useTheme } from "next-themes";
 import { motion } from "motion/react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-// import AiButton from "@/components/animata/button/ai-button"; // Replaced with LiquidButton
 import { LiquidButton } from "@/components/ui/liquid";
-import { FlipButton } from "@/components/ui/flip"; // Added FlipButton import
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { FlipButton } from "@/components/ui/flip"; 
 import { Switch } from "@/components/ui/switch";
 import { DetailedSyntenyView } from "./detailed-synteny-view";
 import { Label } from "@/components/ui/label"
@@ -54,8 +41,8 @@ import { TipsCarousel } from "@/components/chromoviz/tips-carousel";
 import { useRouter, useSearchParams } from 'next/navigation';
 import { MutationType } from "@/components/chromoviz/synteny-ribbon";
 import BreathingText from "@/components/ui/breathing-text";
-import { supabase } from '@/lib/supabaseClient'; // Added Supabase client
-import { toast } from "sonner"; // For notifications
+import { supabase } from '@/lib/supabaseClient'; 
+import { toast } from "sonner";
 import { User } from '@supabase/supabase-js';
 
 const parseCSVRow = (d: any): any => {
@@ -392,6 +379,7 @@ function ChromoVizContent() {
   const [isLoadingShare, setIsLoadingShare] = useState(false); // To indicate when sharing/loading shared state
   const [user, setUser] = useState<User | null>(null);
   const [currentDatasetId, setCurrentDatasetId] = useState<string | null>(null);
+  const [initialTransform, setInitialTransform] = useState<any>(null);
   
   useEffect(() => {
     const checkUser = async () => {
@@ -555,16 +543,19 @@ function ChromoVizContent() {
       let geneAnnotations: GeneAnnotation[] = [];
       let breakpoints: ChromosomeBreakpoint[] = [];
       
-      try {
-        geneAnnotations = await d3.csv(`${path}/ref_gene_annotations.csv`, parseGeneAnnotationRow);
-      } catch (e) {
-        console.log('Gene annotations file not found - this is optional');
-      }
+      // Only attempt to load optional files for datasets that include them (e.g., set3)
+      if (path.includes('set3')) {
+        try {
+          geneAnnotations = await d3.csv(`${path}/ref_gene_annotations.csv`, parseGeneAnnotationRow);
+        } catch (e) {
+          console.log(`Optional file ref_gene_annotations.csv not found for ${path}`);
+        }
 
-      try {
-        breakpoints = await d3.csv(`${path}/bp.csv`, parseBreakpointRow);
-      } catch (e) {
-        console.log('Breakpoints file not found - this is optional');
+        try {
+          breakpoints = await d3.csv(`${path}/bp.csv`, parseBreakpointRow);
+        } catch (e) {
+          console.log(`Optional file bp.csv not found for ${path}`);
+        }
       }
 
       setSyntenyData(syntenyResponse);
@@ -576,7 +567,9 @@ function ChromoVizContent() {
       });
     } catch (err) {
       console.error('Error loading data:', err);
-      setError(err instanceof Error ? err.message : 'An error occurred');
+      const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred while loading data.';
+      toast.error(errorMessage);
+      setError(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -999,21 +992,11 @@ function ChromoVizContent() {
             setSelectedMutationTypes(new Map(state.selectedMutationTypes || []));
             setCustomSpeciesColors(new Map(state.customSpeciesColors || []));
             
-            // Defer transform application until syntenyData might be loaded by loadExampleData
-            // This can be tricky if loadExampleData is async and updates state that ChromosomeSynteny depends on.
-            // A more robust way might be to pass initialTransform to ChromosomeSynteny or have an effect there.
-            if (state.mainViewTransform && svgRef.current && zoomBehaviorRef.current) {
-                // Ensure data is loaded before applying transform if it depends on data bounds
-                // For now, apply directly, but this might need refinement if loadExampleData is slow
+            if (state.mainViewTransform) {
                 const transform = d3.zoomIdentity
                   .translate(state.mainViewTransform.x, state.mainViewTransform.y)
                   .scale(state.mainViewTransform.k);
-                // Apply transform after a short delay to allow data to potentially load
-                setTimeout(() => {
-                    if (svgRef.current && zoomBehaviorRef.current) {
-                        d3.select(svgRef.current).call(zoomBehaviorRef.current.transform, transform);
-                    }
-                }, 100); // Adjust delay as needed, or use a more robust data-loaded flag
+                setInitialTransform(transform);
             }
             
             setShowAnnotations(state.showAnnotations !== undefined ? state.showAnnotations : true);
@@ -1028,7 +1011,8 @@ function ChromoVizContent() {
           }
         } catch (e) {
           console.error("Error loading shared visualization:", e);
-          toast.error("Failed to load shared visualization.");
+          const errorMessage = e instanceof Error ? e.message : "Failed to load shared visualization.";
+          toast.error(errorMessage);
           setProcessedShareId(shareId); // Mark as processed on error
         } finally {
           setIsLoadingShare(false);
@@ -1037,6 +1021,13 @@ function ChromoVizContent() {
       loadSharedState();
     }
   }, [searchParams, processedShareId]); // Depend on shareId from searchParams and processedShareId
+
+  useEffect(() => {
+    if (initialTransform && svgRef.current && zoomBehaviorRef.current && syntenyData.length > 0) {
+      d3.select(svgRef.current).call(zoomBehaviorRef.current.transform, initialTransform);
+      setInitialTransform(null);
+    }
+  }, [initialTransform, syntenyData]);
 
   const handleShare = async (): Promise<string | null> => {
     if (!user) {
@@ -1080,11 +1071,25 @@ function ChromoVizContent() {
         user_id: user.id,
       };
 
-      const { data, error: dbError } = await supabase
+      const { error: dbError } = await supabase
         .from('shared_visualizations')
-        .insert([{ visualization_state: stateToSave, user_id: user.id }])
+        .insert([{ visualization_state: stateToSave, user_id: user.id }]);
+
+      if (dbError) {
+        throw dbError;
+      }
+
+      const { data, error: selectError } = await supabase
+        .from('shared_visualizations')
         .select('id')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(1)
         .single();
+      
+      if (selectError) {
+        throw selectError;
+      }
 
       if (dbError) {
         throw dbError;
@@ -1098,7 +1103,8 @@ function ChromoVizContent() {
       return null;
     } catch (e) {
       console.error("Error sharing visualization:", e);
-      toast.error("Failed to create shareable link.");
+      const errorMessage = e instanceof Error ? e.message : "Failed to create shareable link.";
+      toast.error(errorMessage);
       return null;
     } finally {
       setIsLoadingShare(false);
@@ -1121,7 +1127,7 @@ function ChromoVizContent() {
   }
 
   return (
-    <PageWrapper>
+    <PageWrapper hideNavbar={isFullScreen} hideFooter={isFullScreen}>
       {/* When mainCardRef (a child) is fullscreen, this outer div should not apply fixed/z-index/backdrop styles.
           The browser handles the fullscreen layer for mainCardRef.
           We only adjust padding based on fullscreen state here. */}
@@ -1202,17 +1208,19 @@ function ChromoVizContent() {
                                 <ArrowLeft className="h-3.5 w-3.5 mr-1.5" />
                                 <span className="hidden sm:inline">Go Back</span>
                               </Button>
-                              <CardTitle className="text-lg font-medium">Synteny Visualization</CardTitle>
-                              <div className="flex items-center gap-2 ml-auto">
+                              <CardTitle className="text-lg font-medium">Linear Synteny Visualization</CardTitle>
+                              <div className="flex items-center gap-1.5 ml-auto">
                                 <Switch
                                   id="draggable-view"
                                   checked={showKonvaDemo}
                                   onCheckedChange={() => setShowKonvaDemo(!showKonvaDemo)}
-                                  className="h-7"
                                 />
-                                <label htmlFor="draggable-view" className="text-sm text-muted-foreground whitespace-nowrap">
+                                <label htmlFor="draggable-view" className="text-xs text-muted-foreground whitespace-nowrap">
                                   Draggable View
                                 </label>
+                                <Badge variant="outline" className="text-xs px-1.5 py-0.5">
+                                  Beta
+                                </Badge>
                               </div>
                             </div>
                             <div className="h-8 border-l pl-4 hidden sm:block">
@@ -1492,7 +1500,7 @@ function ChromoVizContent() {
                 )}
 
                 {/* Inline Tables Section - Below Visualization and Details */}
-                {!showWelcomeCard && (syntenyData.length > 0 || speciesData.length > 0 || referenceData) && (
+                {!isFullScreen && !showWelcomeCard && (syntenyData.length > 0 || speciesData.length > 0 || referenceData) && (
                   <div className="col-span-12 mt-6 grid grid-cols-12 gap-6">
                     {/* Left Column: Raw Data Tables */}
                     <div className="col-span-12 md:col-span-8 lg:col-span-9">

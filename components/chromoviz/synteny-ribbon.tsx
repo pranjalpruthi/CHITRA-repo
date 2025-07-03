@@ -362,7 +362,8 @@ export function renderSyntenyRibbon({
       k: currentTransform.k
     };
 
-    const newSelectedState = !isSelected;
+    const currentlySelected = blockGroup.attr("data-selected") === "true";
+    const newSelectedState = !currentlySelected;
     
     // Update all visual states
     setElementStates(newSelectedState);
@@ -382,7 +383,6 @@ export function renderSyntenyRibbon({
     }
     
     // Ensure the group transform is preserved
-    g.attr("transform", currentTransform.toString());
     
     onSelect(link, newSelectedState);
   };

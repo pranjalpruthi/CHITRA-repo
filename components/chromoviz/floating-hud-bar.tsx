@@ -1,15 +1,11 @@
 'use client'
 
-import { motion, useMotionValue, useTransform, AnimatePresence } from "motion/react";
+import { motion, useMotionValue } from "motion/react";
 import React, { useState, useEffect } from "react";
 import { 
-  ArrowRight, 
   FileText,
-  RefreshCw,
-  BookOpen,
+
   TableProperties,
-  Pin,
-  PinOff,
   Maximize2,
   Minimize2,
   MessageCircle,
@@ -24,29 +20,16 @@ import {
   Database,
   Moon,
   Sun,
-  Share2, // Added Share2 icon
   User as UserIcon,
-  LogOut,
-  LogIn
+  
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import Link from "next/link";
 import { supabase } from "@/lib/supabaseClient";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { FilterDrawer } from '@/components/chromoviz/filter-drawer';
 import { UserActions } from './user-actions';
-import { GuideSheet } from "@/components/chromoviz/guide";
 import { FileUploaderGroup } from '@/components/chromoviz/file-uploader';
 import { ExampleFilesDrawer } from "@/components/chromoviz/example-files-drawer";
 import { DataViewerDrawer } from "./data-viewer-drawer";
@@ -114,7 +97,7 @@ export function FloatingHUDBar({
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
-    router.push('/');
+    router.refresh();
     toast.success("You have been signed out.");
   };
 
@@ -188,7 +171,7 @@ export function FloatingHUDBar({
           )}>
             {/* User Profile / Sign In Button */}
             <div className="relative">
-              <UserActions user={user} onSignOut={handleSignOut} onShare={onShare} />
+              <UserActions user={user} onSignOut={handleSignOut} onShare={onShare} isVertical={isVertical} />
             </div>
 
             {!isVertical && <Separator orientation="vertical" className="h-6 mx-1 bg-white/20" />}
@@ -243,13 +226,13 @@ export function FloatingHUDBar({
                 variant="ghost" 
                 size="sm"
                 className={cn(
-                  "hover:bg-white/10 hover:text-white transition-colors group",
+                  "bg-yellow-500/20 text-yellow-600 dark:text-yellow-400 hover:bg-yellow-500/30 transition-colors group [&_svg]:stroke-yellow-500",
                   isVertical 
                     ? "h-8 w-8 p-0" 
                     : "h-8 px-2 text-xs"
                 )}
               >
-                <FileText className="h-3.5 w-3.5 group-hover:text-blue-400" />
+                <FileText className="h-3.5 w-3.5" />
                 {!isVertical && <span className="hidden sm:inline ml-1.5">Examples</span>}
               </Button>
             </ExampleFilesDrawer>

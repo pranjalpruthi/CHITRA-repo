@@ -343,6 +343,9 @@ export function ExampleFilesDrawer({ onLoadExample, children, open, onOpenChange
                           </span>
                         )}
                       </div>
+                      <a href={file.downloadUrl} download>
+                        <Download className="w-4 h-4" />
+                      </a>
                     </button>
 
                     {/* Expanded Content */}

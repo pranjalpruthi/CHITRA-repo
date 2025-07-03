@@ -21,7 +21,9 @@ import {
   MoreVertical, 
   Image, 
   X, 
-  FileType 
+  FileType,
+  ArrowRight,
+  ArrowLeft
 } from 'lucide-react';
 import { 
   DropdownMenu,
@@ -167,6 +169,7 @@ export function DetailedSyntenyView({
 }) {
   const svgRef = useRef<SVGSVGElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const zoomBehaviorRef = useRef<d3.ZoomBehavior<SVGSVGElement, unknown> | null>(null);
   const [hoveredBlock, setHoveredBlock] = useState<SyntenyData | null>(null);
   const [zoom, setZoom] = useState(1);
   const [hoveredChromosome, setHoveredChromosome] = useState<{
@@ -175,7 +178,7 @@ export function DetailedSyntenyView({
     position?: number;
     gene?: any;
   } | null>(null);
-  const [showInfo, setShowInfo] = useState(false);
+  const [showInfo, setShowInfo] = useState(true);
   const [showConfig, setShowConfig] = useState(false);
   const [config, setConfig] = useState<SyntenyViewConfig>({ ...defaultConfig, ...userConfig });
   const [isGraphFixed, setIsGraphFixed] = useState(false);
@@ -211,41 +214,21 @@ export function DetailedSyntenyView({
   }, [onFullscreen]);
 
   const handleZoomIn = () => {
-    if (!svgRef.current) return;
+    if (!svgRef.current || !zoomBehaviorRef.current) return;
     const svg = d3.select(svgRef.current);
-    const currentZoom = d3.zoomTransform(svg.node() as any);
-    svg.transition()
-      .duration(750)
-      .call(
-        d3.zoom<SVGSVGElement, unknown>().transform as any,
-        currentZoom.scale(currentZoom.k * 1.2)
-      );
-    setZoom(currentZoom.k * 1.2);
+    zoomBehaviorRef.current.scaleBy(svg.transition().duration(750), 1.2);
   };
 
   const handleZoomOut = () => {
-    if (!svgRef.current) return;
+    if (!svgRef.current || !zoomBehaviorRef.current) return;
     const svg = d3.select(svgRef.current);
-    const currentZoom = d3.zoomTransform(svg.node() as any);
-    svg.transition()
-      .duration(750)
-      .call(
-        d3.zoom<SVGSVGElement, unknown>().transform as any,
-        currentZoom.scale(currentZoom.k * 0.8)
-      );
-    setZoom(currentZoom.k * 0.8);
+    zoomBehaviorRef.current.scaleBy(svg.transition().duration(750), 0.8);
   };
 
   const handleReset = () => {
-    if (!svgRef.current) return;
+    if (!svgRef.current || !zoomBehaviorRef.current) return;
     const svg = d3.select(svgRef.current);
-    svg.transition()
-      .duration(750)
-      .call(
-        d3.zoom<SVGSVGElement, unknown>().transform as any,
-        d3.zoomIdentity
-      );
-    setZoom(1);
+    zoomBehaviorRef.current.transform(svg.transition().duration(750), d3.zoomIdentity);
   };
 
   // Replace the existing handleSaveAsSVG function with these new export functions
@@ -331,9 +314,11 @@ export function DetailedSyntenyView({
             const downloadLink = document.createElement('a');
             downloadLink.href = URL.createObjectURL(blob);
             downloadLink.download = `chromoviz-synteny-${new Date().toISOString().split('T')[0]}.${format}`;
-            document.body.appendChild(downloadLink);
+            
+            const container = containerRef.current || document.body;
+            container.appendChild(downloadLink);
             downloadLink.click();
-            document.body.removeChild(downloadLink);
+            container.removeChild(downloadLink);
             
             URL.revokeObjectURL(downloadLink.href);
             URL.revokeObjectURL(url);
@@ -394,9 +379,10 @@ export function DetailedSyntenyView({
     downloadLink.href = URL.createObjectURL(svgBlob);
     downloadLink.download = `chromoviz-synteny-${new Date().toISOString().split('T')[0]}.svg`;
     
-    document.body.appendChild(downloadLink);
+    const container = containerRef.current || document.body;
+    container.appendChild(downloadLink);
     downloadLink.click();
-    document.body.removeChild(downloadLink);
+    container.removeChild(downloadLink);
     
     URL.revokeObjectURL(downloadLink.href);
   }, [svgRef]);
@@ -440,12 +426,17 @@ export function DetailedSyntenyView({
   useEffect(() => {
     if (!svgRef.current || !selectedBlock) return;
 
-    const zoomBehavior = d3.zoom()
+    if (!zoomBehaviorRef.current) {
+      zoomBehaviorRef.current = d3.zoom<SVGSVGElement, unknown>();
+    }
+
+    zoomBehaviorRef.current
       .scaleExtent(config.interaction.zoomExtent)
       .on('zoom', (event) => {
         if (!svgRef.current) return;
+        const { width, height } = viewBoxDimensions;
         const g = d3.select(svgRef.current).select('g');
-        g.attr('transform', event.transform);
+        g.attr('transform', `translate(${width / 2}, ${height / 2}) ${event.transform}`);
         setZoom(event.transform.k);
       });
 
@@ -454,7 +445,9 @@ export function DetailedSyntenyView({
 
     // Only apply zoom behavior if graph is not fixed
     if (!isGraphFixed) {
-      svg.call(zoomBehavior as any);
+      svg.call(zoomBehaviorRef.current as any);
+    } else {
+      svg.on('.zoom', null);
     }
 
     // Helper function to format base pairs
@@ -477,8 +470,7 @@ export function DetailedSyntenyView({
     };
     
     // Create main group
-    const g = svg.append('g')
-      .attr('transform', `translate(${width/2},${height/2})`);
+    const g = svg.append('g');
 
     // Create layers
     const ribbonLayer = g.append('g').attr('class', 'ribbon-layer');
@@ -532,34 +524,20 @@ export function DetailedSyntenyView({
         .attr('cursor', 'pointer')
         .on('mousemove', (event) => {
           const [x, y] = d3.pointer(event);
-          const angle = Math.atan2(y, x) + Math.PI / 2;
+          let angle = Math.atan2(y, x) + Math.PI / 2;
+          if (angle < 0) angle += 2 * Math.PI;
           const position = refScale.invert(angle);
           setHoveredChromosome({
             size: refChromosome.chr_size_bp,
             isRef: true,
             position: Math.round(position)
           });
-          setHoveredBlock(selectedBlock);
         })
         .on('mouseleave', () => {
           setHoveredChromosome(null);
           setHoveredBlock(null);
         });
 
-    // Add reference label
-    const refEndAngle = gapAngle + (refArcLength * refRelativeSize);
-    const refMidAngle = gapAngle + (refArcLength * refRelativeSize / 2);
-    const refLabelX = (innerRadius + trackWidth + 80) * Math.cos(refMidAngle - Math.PI/2);
-    const refLabelY = (innerRadius + trackWidth + 80) * Math.sin(refMidAngle - Math.PI/2);
-    
-    chromosomeLayer.append('text')
-      .attr('class', 'chromosome-label')
-      .attr('transform', `translate(${refLabelX}, ${refLabelY})`)
-      .attr('text-anchor', refMidAngle > Math.PI ? 'end' : 'start')
-      .attr('dominant-baseline', 'middle')
-      .attr('fill', 'currentColor')
-      .attr('font-size', '14px')
-      .text(`Reference: ${refChromosome.species_name} ${refChromosome.chr_id}`);
 
     chromosomeLayer.append('path')
       .attr('d', queryArc({} as any) as string)
@@ -568,34 +546,20 @@ export function DetailedSyntenyView({
       .attr('cursor', 'pointer')
       .on('mousemove', (event) => {
         const [x, y] = d3.pointer(event);
-        const angle = Math.atan2(y, x) + Math.PI / 2;
+        let angle = Math.atan2(y, x) + Math.PI / 2;
+        if (angle < 0) angle += 2 * Math.PI;
         const position = queryScale.invert(angle);
         setHoveredChromosome({
           size: queryChromosome.chr_size_bp,
           isRef: false,
           position: Math.round(position)
         });
-        setHoveredBlock(selectedBlock);
       })
       .on('mouseleave', () => {
         setHoveredChromosome(null);
         setHoveredBlock(null);
       });
 
-    // Add query label
-    const queryStartAngle = Math.PI + gapAngle;
-    const queryMidAngle = queryStartAngle + (queryArcLength * queryRelativeSize / 2);
-    const queryLabelX = (innerRadius + trackWidth + 80) * Math.cos(queryMidAngle - Math.PI/2);
-    const queryLabelY = (innerRadius + trackWidth + 80) * Math.sin(queryMidAngle - Math.PI/2);
-    
-    chromosomeLayer.append('text')
-      .attr('class', 'chromosome-label')
-      .attr('transform', `translate(${queryLabelX}, ${queryLabelY})`)
-      .attr('text-anchor', queryMidAngle > 2 * Math.PI || queryMidAngle < Math.PI ? 'start' : 'end')
-      .attr('dominant-baseline', 'middle')
-      .attr('fill', 'currentColor')
-      .attr('font-size', '14px')
-      .text(`Query: ${queryChromosome.species_name} ${queryChromosome.chr_id}`);
 
     // Add gene annotations for reference chromosome
     if (refChromosome && refChromosome.annotations && config.annotations.show) {
@@ -862,6 +826,12 @@ export function DetailedSyntenyView({
       .attr('fill', 'currentColor')
       .text(`${((selectedBlock.ref_end - selectedBlock.ref_start) / 1_000_000).toFixed(1)}Mb`);
 
+    const initialTransform = d3.zoomIdentity;
+    const currentTransform = d3.zoomTransform(svg.node() as any);
+    if (currentTransform.k === 1 && currentTransform.x === 0 && currentTransform.y === 0) {
+      (zoomBehaviorRef.current as any).transform(svg, initialTransform);
+    }
+    
     // Cleanup
     return () => {
       svg.on('.zoom', null); // Remove zoom behavior on cleanup
@@ -885,31 +855,33 @@ export function DetailedSyntenyView({
     <div 
       ref={containerRef}
       className={cn(
-        "relative w-full h-full flex flex-col",
+        "relative w-full h-full",
         isFullscreen && "fixed inset-0 bg-background/95 backdrop-blur-sm z-50"
       )}
     >
       {/* Controls Header - Updated to take full width in fullscreen */}
       <div className={cn(
-        "flex items-center justify-between p-2 border-b",
-        isFullscreen && "w-full"
+        "relative flex items-center justify-between p-2 border-b",
+        isFullscreen && "absolute top-0 left-0 right-0 w-full z-[100]"
       )}>
         <div className="flex items-center gap-2">
           <Button
             variant="ghost"
             size="sm"
             onClick={() => setShowInfo(!showInfo)}
-            className="h-8 w-8 p-0"
+            className={cn("h-8 text-blue-500 hover:text-blue-600", isFullscreen ? "px-3" : "w-8 p-0")}
           >
             <Info className="h-4 w-4" />
+            {isFullscreen && <span className="ml-2 text-xs">Info</span>}
           </Button>
           <Button
             variant="ghost"
             size="sm"
             onClick={() => setShowConfig(!showConfig)}
-            className="h-8 w-8 p-0"
+            className={cn("h-8 text-gray-500 hover:text-gray-600", isFullscreen ? "px-3" : "w-8 p-0")}
           >
             <Settings className="h-4 w-4" />
+            {isFullscreen && <span className="ml-2 text-xs">Settings</span>}
           </Button>
           <Separator orientation="vertical" className="h-6 mx-1" />
           
@@ -919,9 +891,10 @@ export function DetailedSyntenyView({
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-8 w-8 p-0"
+                className={cn("h-8 text-green-500 hover:text-green-600", isFullscreen ? "px-3" : "w-8 p-0")}
               >
                 <Save className="h-4 w-4" />
+                {isFullscreen && <span className="ml-2 text-xs">Export</span>}
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start">
@@ -947,153 +920,137 @@ export function DetailedSyntenyView({
         
         <div className="flex items-center gap-2">
           <Button
-            variant={isGraphFixed ? "default" : "outline"}
+            variant={isGraphFixed ? "secondary" : "outline"}
             size="sm"
             onClick={() => setIsGraphFixed(!isGraphFixed)}
-            className="h-8 w-8 p-0"
+            className={cn("h-8", isFullscreen ? "px-3" : "w-8 p-0")}
           >
             {isGraphFixed ? <Lock className="h-4 w-4" /> : <Unlock className="h-4 w-4" />}
+            {isFullscreen && <span className="ml-2 text-xs">{isGraphFixed ? 'Unlock' : 'Lock'}</span>}
           </Button>
           <Button
             variant="outline"
             size="sm"
             onClick={handleZoomOut}
-            className="h-8 w-8 p-0"
+            className={cn("h-8", isFullscreen ? "px-3" : "w-8 p-0")}
             disabled={isGraphFixed}
           >
             <ZoomOut className="h-4 w-4" />
+            {isFullscreen && <span className="ml-2 text-xs">Zoom Out</span>}
           </Button>
           <Button
             variant="outline"
             size="sm"
             onClick={handleReset}
-            className="h-8 w-8 p-0"
+            className={cn("h-8", isFullscreen ? "px-3" : "w-8 p-0")}
             disabled={isGraphFixed}
           >
             <RefreshCw className="h-4 w-4" />
+            {isFullscreen && <span className="ml-2 text-xs">Reset</span>}
           </Button>
           <Button
             variant="outline"
             size="sm"
             onClick={handleZoomIn}
-            className="h-8 w-8 p-0"
+            className={cn("h-8", isFullscreen ? "px-3" : "w-8 p-0")}
             disabled={isGraphFixed}
           >
             <ZoomIn className="h-4 w-4" />
+            {isFullscreen && <span className="ml-2 text-xs">Zoom In</span>}
           </Button>
           <Button
             variant="outline"
             size="sm"
             onClick={handleFullscreen}
-            className="h-8 w-8 p-0"
+            className={cn("h-8", isFullscreen ? "px-3" : "w-8 p-0")}
           >
             {isFullscreen ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
+            {isFullscreen && <span className="ml-2 text-xs">Exit</span>}
           </Button>
         </div>
       </div>
 
       {/* Main Content Area - Updated to take full width */}
       <div className={cn(
-        "relative flex-1 min-h-0",
-        isFullscreen && "w-full h-full flex items-center justify-center"
+        "relative w-full h-full",
+        isFullscreen && "pt-[50px]"
       )}>
-        {/* Info Card - Left side */}
+        {/* Info Bars */}
         <AnimatePresence>
           {showInfo && (
-            <motion.div
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              className={cn(
-                "absolute top-2 left-2 z-20",
-                isFullscreen && "fixed top-[80px]"
-              )}
-            >
-              <Card className="w-[300px] bg-white/40 dark:bg-gray-950/40 backdrop-blur-md border-white/50 dark:border-gray-800/50">
-                <div className="flex justify-between items-center p-3 border-b">
-                  <h4 className="font-medium text-sm">Block Information</h4>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setShowInfo(false)}
-                    className="h-6 w-6 p-0"
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
-                </div>
-                <CardContent className="p-4 space-y-4">
-                  {/* Reference Section */}
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <Badge 
-                        variant="outline" 
-                        className="bg-blue-50/50 text-blue-900 dark:bg-blue-900/20 dark:text-blue-100 border-blue-200/50 dark:border-blue-800/50"
-                      >
-                        Reference
-                      </Badge>
-                      <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                        {selectedBlock?.ref_species}
-                      </span>
-                    </div>
-                    <div className="grid grid-cols-2 gap-2">
-                      <Badge variant="secondary" className="bg-blue-100/50 text-blue-900 dark:bg-blue-900/30 dark:text-blue-100">
-                        Chr: {selectedBlock?.ref_chr}
-                      </Badge>
-                      <Badge variant="outline" className="bg-white/40 dark:bg-gray-950/40">
-                        {((refChromosome?.chr_size_bp ?? 0) / 1_000_000).toFixed(1)}Mb
-                      </Badge>
-                    </div>
-                    <div className="flex gap-2 text-xs">
-                      <Badge variant="outline" className="flex-1">
-                        Start: {(selectedBlock?.ref_start! / 1_000_000).toFixed(1)}Mb
-                      </Badge>
-                      <Badge variant="outline" className="flex-1">
-                        End: {(selectedBlock?.ref_end! / 1_000_000).toFixed(1)}Mb
-                      </Badge>
-                    </div>
+            <>
+              {/* Top Info Bar */}
+              <motion.div
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.2 }}
+                className={cn(
+                  "absolute top-0 left-0 right-0 z-20 p-1.5 bg-white/40 dark:bg-gray-950/40 backdrop-blur-md border-b border-white/50 dark:border-gray-800/50",
+                  isFullscreen && "fixed top-[50px]"
+                )}
+              >
+                <div className="flex items-center justify-center gap-4 text-xs">
+                  <span className="font-semibold">Synteny Block:</span>
+                  <div className="flex items-center gap-2">
+                    <Badge variant="outline" className="bg-blue-50/50 text-blue-900 dark:bg-blue-900/20 dark:text-blue-100 border-blue-200/50 dark:border-blue-800/50">
+                      Ref
+                    </Badge>
+                    <span className="font-medium text-gray-900 dark:text-gray-100">
+                      {selectedBlock?.ref_species} Chr: {selectedBlock?.ref_chr}
+                    </span>
                   </div>
+                  <div className="flex items-center gap-2">
+                    <Badge variant="outline" className="bg-purple-50/50 text-purple-900 dark:bg-purple-900/20 dark:text-purple-100 border-purple-200/50 dark:border-purple-800/50">
+                      Query
+                    </Badge>
+                    <span className="font-medium text-gray-900 dark:text-gray-100">
+                      {selectedBlock?.query_name} Chr: {selectedBlock?.query_chr}
+                    </span>
+                  </div>
+                </div>
+              </motion.div>
 
-                  <Separator className="bg-gray-200 dark:bg-gray-800" />
-
-                  {/* Query Section */}
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <Badge 
-                        variant="outline" 
-                        className="bg-purple-50/50 text-purple-900 dark:bg-purple-900/20 dark:text-purple-100 border-purple-200/50 dark:border-purple-800/50"
-                      >
-                        Query
-                      </Badge>
-                      <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                        {selectedBlock?.query_name}
-                      </span>
-                    </div>
-                    <div className="grid grid-cols-2 gap-2">
-                      <Badge variant="secondary" className="bg-purple-100/50 text-purple-900 dark:bg-purple-900/30 dark:text-purple-100">
-                        Chr: {selectedBlock?.query_chr}
-                      </Badge>
-                      <Badge variant="outline" className="bg-white/40 dark:bg-gray-950/40">
-                        {((queryChromosome?.chr_size_bp ?? 0) / 1_000_000).toFixed(1)}Mb
-                      </Badge>
-                    </div>
-                    <div className="flex gap-2 text-xs">
-                      <Badge variant="outline" className="flex-1">
-                        Start: {(selectedBlock?.query_start! / 1_000_000).toFixed(1)}Mb
-                      </Badge>
-                      <Badge variant="outline" className="flex-1">
-                        End: {(selectedBlock?.query_end! / 1_000_000).toFixed(1)}Mb
-                      </Badge>
-                    </div>
-                    <Badge 
-                      variant={selectedBlock?.query_strand === '+' ? 'default' : 'destructive'}
-                      className="w-full justify-center"
+              {/* Bottom Info Bar */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 20 }}
+                transition={{ duration: 0.2, delay: 0.05 }}
+                className={cn(
+                  "absolute bottom-0 left-0 right-0 z-20 p-1.5 bg-white/40 dark:bg-gray-950/40 backdrop-blur-md border-t border-white/50 dark:border-gray-800/50",
+                  isFullscreen && "fixed"
+                )}
+              >
+                <div className="flex items-center justify-center gap-4 text-xs">
+                  <div className="flex items-center gap-2">
+                    <span className="text-gray-600 dark:text-gray-400">
+                      Ref Range: {(selectedBlock?.ref_start! / 1_000_000).toFixed(1)} - {(selectedBlock?.ref_end! / 1_000_000).toFixed(1)}Mb
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-gray-600 dark:text-gray-400">
+                      Query Range: {(selectedBlock?.query_start! / 1_000_000).toFixed(1)} - {(selectedBlock?.query_end! / 1_000_000).toFixed(1)}Mb
+                    </span>
+                    <Badge
+                      variant="secondary"
+                      className={cn(
+                        "flex items-center gap-1",
+                        selectedBlock?.query_strand === '+' 
+                          ? "bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300" 
+                          : "bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-300"
+                      )}
                     >
-                      {selectedBlock?.query_strand === '+' ? 'Forward Strand' : 'Reverse Strand'}
+                      {selectedBlock?.query_strand === '+' ? (
+                        <>Forward (+)</>
+                      ) : (
+                        <>Reverse (-)</>
+                      )}
                     </Badge>
                   </div>
-                </CardContent>
-              </Card>
-            </motion.div>
+                </div>
+              </motion.div>
+            </>
           )}
         </AnimatePresence>
 
@@ -1660,7 +1617,7 @@ export function DetailedSyntenyView({
         {/* SVG Container - Updated to take full width in fullscreen */}
         <div className={cn(
           "w-full h-full",
-          isFullscreen ? "relative w-screen h-screen" : "relative aspect-square"
+          isFullscreen ? "relative w-full h-full" : "relative aspect-square"
         )}>
           <svg
             ref={svgRef}
@@ -1675,6 +1632,7 @@ export function DetailedSyntenyView({
             hoveredBlock={hoveredBlock}
             hoveredChromosome={hoveredChromosome}
             selectedBlock={selectedBlock}
+            refChromosome={refChromosome}
             showTooltips={showTooltips}
           />
         </div>

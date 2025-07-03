@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/lib/supabaseClient";
 import { User } from "@supabase/supabase-js";
 import { v4 as uuidv4 } from 'uuid';
-import { Upload, AlertCircle, CheckCircle2, FileText, TableProperties } from "lucide-react";
+import { Upload, AlertCircle, CheckCircle2, FileText, TableProperties, Download } from "lucide-react";
 import { toast } from "sonner";
 import * as d3 from 'd3';
 import {
@@ -18,6 +18,8 @@ import {
 import { HelpCircle } from "lucide-react";
 import { motion } from "motion/react";
 import { FeatureTableConverter } from "@/components/chromoviz/feature-table-converter";
+import { ExampleFilesDrawer } from "@/components/chromoviz/example-files-drawer";
+import { Badge } from "@/components/ui/badge";
 import {
   Drawer,
   DrawerContent,
@@ -430,8 +432,18 @@ export function CSVUploader({ onDataLoad, type, required = true }: FileUploaderP
         </FileInput>
         {/* Display file format information directly below the input using Accordion */}
         {/* Wrapper to prevent click on accordion from triggering file dialog */}
-        <div onClick={(e) => { e.stopPropagation(); e.preventDefault(); }}>
-          <DirectFileFormatInfo config={config} type={type} />
+        <div onClick={(e) => { e.stopPropagation(); e.preventDefault(); }} className="flex items-center gap-2 w-full">
+          <div className="flex-grow">
+            <DirectFileFormatInfo config={config} type={type} />
+          </div>
+          <ExampleFilesDrawer onLoadExample={() => {
+              toast.info("Load Example feature is not implemented in this context yet.")
+          }}>
+            <Badge variant="secondary" className="cursor-pointer h-9 flex items-center">
+              <Download className="h-3 w-3 mr-1" />
+              Example
+            </Badge>
+          </ExampleFilesDrawer>
         </div>
       </motion.div>
       

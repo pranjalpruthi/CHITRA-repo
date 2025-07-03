@@ -45,43 +45,6 @@ function formatGenomicPosition(position: number): string {
   return `${position} bp`;
 }
 
-// Update getGeneTooltip to return a string or object based on need
-function getGeneTooltip(data: ChromosomeData | GeneAnnotation): GeneTooltipData {
-  if ('chr_id' in data) {
-    // Handle chromosome data
-    return {
-      symbol: data.chr_id,
-      strand: '+',
-      class: 'chromosome',
-      position: `${(data.chr_size_bp / 1_000_000).toFixed(2)} Mb`,
-      isCluster: false,
-      geneCount: undefined,
-      name: data.species_name,
-      locus_tag: undefined,
-      GeneID: data.chr_id,
-      genomic_accession: '',
-      start: 0,
-      end: 0
-    };
-  }
-  
-  // Handle gene data
-  return {
-    symbol: data.symbol || data.locus_tag || 'Unknown',
-    strand: data.strand,
-    class: data.class,
-    position: `${formatGenomicPosition(data.start)}-${formatGenomicPosition(data.end)}`,
-    isCluster: (data as any).isCluster,
-    geneCount: (data as any).geneCount,
-    name: data.name || 'No description available',
-    locus_tag: data.locus_tag,
-    GeneID: data.GeneID || 'Unknown ID',
-    genomic_accession: data.genomic_accession,
-    start: data.start,
-    end: data.end
-  };
-}
-
 // Add this helper function to determine if a point is within a synteny block
 function isPointInBlock(point: { x: number; y: number }, block: {
   x: number;
@@ -226,21 +189,6 @@ export function renderChromosome({
 
   if (body && 'on' in body) {
     (body as d3.Selection<any, unknown, null, undefined>)
-      .on("click", (e) => {
-        const tooltipData = getGeneTooltip(chr);
-        const formattedContent = `
-          ${tooltipData.symbol || 'Unknown Gene'}
-          ${tooltipData.name ? `Description: ${tooltipData.name}` : ''}
-          ${tooltipData.locus_tag ? `Locus: ${tooltipData.locus_tag}` : ''}
-          Position: ${tooltipData.position}
-          Strand: ${tooltipData.strand}
-          Class: ${tooltipData.class}
-          ${tooltipData.genomic_accession ? `Accession: ${tooltipData.genomic_accession}` : ''}
-          ID: ${tooltipData.GeneID}
-        `.trim().split('\n').filter(Boolean).join('\n');
-        
-        onHover(e, formattedContent);
-      })
       .on("mousemove", onMove)
       .on("mouseleave", onLeave);
   }

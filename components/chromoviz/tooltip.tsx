@@ -15,7 +15,7 @@ const glassEffect = cn(
   "hover:shadow-xl transition-shadow duration-300"
 );
 
-export function getChromosomeTooltip(chr: ChromosomeData): ReactElement {
+export function getChromosomeTooltip(chr: ChromosomeData, maxChrSizeMb: number): ReactElement {
   const mbSize = (chr.chr_size_bp / 1_000_000).toFixed(2);          
   const centromereInfo = chr.centromere_start && chr.centromere_end
     ? {
@@ -141,9 +141,9 @@ export function getChromosomeTooltip(chr: ChromosomeData): ReactElement {
               "bg-orange-100 text-orange-900 dark:bg-orange-950/50 dark:text-orange-100 dark:border-orange-800/30"
             )}
           >
-            {Number(mbSize) > 100 ? 'Large Chromosome' : 
-             Number(mbSize) > 50 ? 'Medium Chromosome' : 
-             'Small Chromosome'}
+            {Number(mbSize) > 100 ? 'Large (>100Mb)' : 
+             Number(mbSize) > 50 ? 'Medium (50-100Mb)' : 
+             'Small (<50Mb)'}
           </Badge>
         </div>
 
@@ -152,17 +152,20 @@ export function getChromosomeTooltip(chr: ChromosomeData): ReactElement {
           <div 
             className="h-full bg-gradient-to-r from-blue-500 to-indigo-500 dark:from-blue-600 dark:to-indigo-600"
             style={{ 
-              width: `${(Number(mbSize) / Math.max(150, Number(mbSize))) * 100}%`,
+              width: `${(Number(mbSize) / Math.max(maxChrSizeMb, Number(mbSize))) * 100}%`,
               transition: 'width 0.3s ease-in-out'
             }}
           />
         </div>
+        <p className="text-xs text-muted-foreground text-center -mt-1">
+          Size relative to a {maxChrSizeMb.toFixed(0)}Mb chromosome
+        </p>
       </div>
     </div>
   );
 }
 
-export function getSyntenyTooltip(link: SyntenyData): ReactElement {
+export function getSyntenyTooltip(link: SyntenyData, maxSyntenySizeMb: number): ReactElement {
   const refMb = {
     start: (link.ref_start / 1_000_000).toFixed(2),
     end: (link.ref_end / 1_000_000).toFixed(2)
@@ -172,6 +175,7 @@ export function getSyntenyTooltip(link: SyntenyData): ReactElement {
     end: (link.query_end / 1_000_000).toFixed(2)
   };
   const size = ((link.ref_end - link.ref_start) / 1_000_000).toFixed(2);
+  const percentage = (Number(size) / Math.max(maxSyntenySizeMb, Number(size))) * 100;
   
   return (
     <div className="space-y-4 p-1">
@@ -190,9 +194,9 @@ export function getSyntenyTooltip(link: SyntenyData): ReactElement {
           )}
         >
           {link.query_strand === '+' ? (
-            <>Forward <ArrowRight className="h-3 w-3" /></>
+            <>Forward (+) <ArrowRight className="h-3 w-3" /></>
           ) : (
-            <><ArrowLeft className="h-3 w-3" /> Reverse</>
+            <><ArrowLeft className="h-3 w-3" /> Reverse (-)</>
           )}
         </Badge>
       </div>
@@ -201,7 +205,7 @@ export function getSyntenyTooltip(link: SyntenyData): ReactElement {
       <div className="space-y-2">
         <div className="flex items-center gap-2">
           <Badge variant="outline" className="bg-blue-50 text-blue-900 dark:bg-blue-950/50 dark:text-blue-100 dark:border-blue-800/30">
-            Reference
+            Reference Range
           </Badge>
           <span className="text-sm text-muted-foreground">{link.ref_species}</span>
         </div>
@@ -217,7 +221,7 @@ export function getSyntenyTooltip(link: SyntenyData): ReactElement {
       <div className="space-y-2">
         <div className="flex items-center gap-2">
           <Badge variant="outline" className="bg-purple-50 text-purple-900 dark:bg-purple-950/50 dark:text-purple-100 dark:border-purple-800/30">
-            Query
+            Query Range
           </Badge>
           <span className="text-sm text-muted-foreground">{link.query_name}</span>
         </div>
@@ -233,13 +237,13 @@ export function getSyntenyTooltip(link: SyntenyData): ReactElement {
       <div className="space-y-2 border-t border-gray-100 dark:border-gray-800 pt-3">
         <div className="flex items-center justify-between">
           <Badge variant="outline" className="bg-gray-50 dark:bg-gray-900/50 dark:text-gray-100 dark:border-gray-700">
-            Size
+          Synteny Block Size
           </Badge>
           <span className="text-sm font-medium dark:text-gray-200">{size} Mb</span>
         </div>
         <div className="flex items-center justify-between">
           <Badge variant="outline" className="bg-gray-50 dark:bg-gray-900/50 dark:text-gray-100 dark:border-gray-700">
-            Conservation
+             Size Category
           </Badge>
           <Badge 
             variant="secondary" 
@@ -261,44 +265,24 @@ export function getSyntenyTooltip(link: SyntenyData): ReactElement {
         <div 
           className="h-full bg-gradient-to-r from-blue-500 to-purple-500 dark:from-blue-600 dark:to-purple-600"
           style={{ 
-            width: `${(Number(size) / Math.max(15, Number(size))) * 100}%`,
+            width: `${percentage}%`,
             transition: 'width 0.3s ease-in-out'
           }}
         />
+      </div>
+      <div className="flex justify-between text-xs text-muted-foreground -mt-1">
+        <span>Size relative to a {maxSyntenySizeMb.toFixed(0)}Mb synteny block</span>
+        <span>{percentage.toFixed(0)}%</span>
       </div>
     </div>
   );
 }
 
-export function getGeneAnnotationTooltip(annotation: GeneAnnotation): string {
-  const positionMb = {
-    start: (annotation.start / 1_000_000).toFixed(2),
-    end: (annotation.end / 1_000_000).toFixed(2)
-  };
-  
-  const size = ((annotation.end - annotation.start) / 1_000).toFixed(1); // Size in kb
-  
-  return `
-    ${annotation.symbol || 'Unknown Gene'}
-    ─────────────────
-    Name: ${annotation.name || 'N/A'}
-    Type: ${annotation.class}
-    Location: ${positionMb.start}-${positionMb.end} Mb
-    Size: ${size} kb
-    Strand: ${annotation.strand === '+' ? 'Forward ➜' : 'Reverse ⟲'}
-    ─────────────────
-    Details:
-    • Accession: ${annotation.genomic_accession}
-    • Gene ID: ${annotation.GeneID}
-    ${annotation.locus_tag ? `• Locus: ${annotation.locus_tag}` : ''}
-  `.trim();
-}
-
 function calculateConservation(sizeMb: number): string {
-  if (sizeMb > 10) return 'Large conserved block';
-  if (sizeMb > 5) return 'Medium conserved block';
-  if (sizeMb > 1) return 'Small conserved block';
-  return 'Micro-synteny';
+  if (sizeMb > 10) return 'Large (>10Mb)';
+  if (sizeMb > 5) return 'Medium (5-10Mb)';
+  if (sizeMb > 1) return 'Small (1-5Mb)';
+  return 'Micro (<1Mb)';
 }
 
 export interface GeneTooltipData {
@@ -366,7 +350,11 @@ export function Tooltip({
             "w-[calc(100vw-2rem)] sm:w-auto",
             "min-w-[280px] max-w-[350px]",
             glassEffect,
-            "rounded-lg"
+            "rounded-lg",
+            "before:absolute before:inset-0 before:rounded-lg",
+            "before:bg-gradient-to-br before:from-blue-500/10 before:to-purple-500/10",
+            "before:dark:from-blue-500/5 before:dark:to-purple-500/5",
+            "transition-transform hover:scale-[1.02] active:scale-[0.98]"
           )}
         >
           {typeof info.content === 'string' ? (
@@ -405,6 +393,7 @@ interface HoverTooltipProps {
     gene?: GeneAnnotation;
   } | null,
   selectedBlock: SyntenyData;
+  refChromosome?: ChromosomeData | null;
   className?: string;
   showTooltips?: boolean;
 }
@@ -413,6 +402,7 @@ export function HoverTooltip({
   hoveredBlock, 
   hoveredChromosome, 
   selectedBlock,
+  refChromosome,
   className,
   showTooltips = true
 }: HoverTooltipProps) {
@@ -631,14 +621,14 @@ export function HoverTooltip({
         <motion.div 
           className="absolute h-full bg-gradient-to-r from-blue-500 to-purple-500 dark:from-blue-600 dark:to-purple-600"
           style={{ 
-            width: hoveredBlock 
-              ? `${((hoveredBlock.ref_end - hoveredBlock.ref_start) / hoveredBlock.ref_end) * 100}%`
+            width: hoveredBlock && refChromosome 
+              ? `${((hoveredBlock.ref_end - hoveredBlock.ref_start) / refChromosome.chr_size_bp) * 100}%`
               : `${getProgressWidth(hoveredChromosome?.position, hoveredChromosome?.size || 1)}%`
           }}
           initial={{ width: "0%" }}
           animate={{ 
-            width: hoveredBlock 
-              ? `${((hoveredBlock.ref_end - hoveredBlock.ref_start) / hoveredBlock.ref_end) * 100}%`
+            width: hoveredBlock && refChromosome
+              ? `${((hoveredBlock.ref_end - hoveredBlock.ref_start) / refChromosome.chr_size_bp) * 100}%`
               : `${getProgressWidth(hoveredChromosome?.position, hoveredChromosome?.size || 1)}%`
           }}
           transition={{ type: "spring", stiffness: 300, damping: 30 }}

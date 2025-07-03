@@ -15,7 +15,6 @@ import { renderChromosome } from "@/components/chromoviz/chromosome-view";
 import { renderSyntenyRibbon } from "@/components/chromoviz/synteny-ribbon";
 import { 
   getChromosomeTooltip, 
-  getGeneAnnotationTooltip, 
   getSyntenyTooltip,
   GeneTooltipData 
 } from "@/components/chromoviz/tooltip";
@@ -381,13 +380,13 @@ export function ChromosomeSynteny({
     }
   };
 
-  const handleMouseOver = (event: any, link: SyntenyData) => {
+  const handleMouseOver = (event: any, link: SyntenyData, maxSyntenySize: number) => {
     if (!showTooltips) return; // Early return if tooltips are disabled
     
     setTooltipInfo({
       x: event.clientX,
       y: event.clientY,
-      content: getSyntenyTooltip(link),
+      content: getSyntenyTooltip(link, maxSyntenySize),
       isOpen: true,
       type: 'synteny',
       data: {
@@ -596,12 +595,17 @@ export function ChromosomeSynteny({
         case 'ArrowRight':
           handlePan('right');
           break;
+        case 'Escape':
+          if (isFullscreen) {
+            onFullscreen();
+          }
+          break;
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [handlePan]);
+  }, [handlePan, isFullscreen, onFullscreen]);
 
   useEffect(() => {
     const handleResize = () => {
@@ -662,6 +666,8 @@ export function ChromosomeSynteny({
 
     // Calculate max chromosome size for scaling
     const maxChrSize = d3.max(referenceData, d => d.chr_size_bp) || 0;
+    const maxSyntenySize = d3.max(syntenyData, d => d.ref_end - d.ref_start) || 0;
+    const maxSyntenySizeMb = maxSyntenySize / 1_000_000;
     const xScale = d3.scaleLinear()
       .domain([0, maxChrSize])
       .range([0, innerWidth - 100]); // Leave space for labels
@@ -765,7 +771,7 @@ export function ChromosomeSynteny({
         speciesColorScale,
         referenceData,
         container: g,
-        onHover: handleMouseOver,
+        onHover: (event, link) => handleMouseOver(event, link, maxSyntenySizeMb),
         onMove: handleElementMove,
         onLeave: handleMouseOut,
         chromosomeSpacing,
@@ -796,7 +802,7 @@ export function ChromosomeSynteny({
           setTooltipInfo({
             x: event.clientX,
             y: event.clientY,
-            content: getChromosomeTooltip(chr),
+            content: getChromosomeTooltip(chr, chr.chr_size_bp / 1_000_000),
             isOpen: true,
             type: 'chromosome',
             data: chr
