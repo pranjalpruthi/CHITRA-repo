@@ -206,7 +206,7 @@ export function SyntenyTable({
                       }}
                     >
                       <FileSpreadsheet className="h-4 w-4 mr-2" />
-                      Export CSV
+                      Export Selection CSV
                     </Button>
                   )}
                 </div>

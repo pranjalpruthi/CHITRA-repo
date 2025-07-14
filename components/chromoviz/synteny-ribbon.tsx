@@ -26,6 +26,7 @@ interface SyntenyRibbonProps {
   mutationType?: MutationType;
   useCustomColors?: boolean;
   customSpeciesColors?: Map<string, string>;
+  mutationColors?: Record<string, string>;
 }
 
 const SYNTENY_COLORS = {
@@ -79,15 +80,6 @@ export const mutationFullNames: Record<string, string> = {
   INVDP: "Inverted Duplication"
 };
 
-// Add opacity variants for each mutation type
-const MUTATION_COLOR_VARIANTS = Object.entries(MUTATION_COLORS).reduce((acc, [key, color]) => ({
-  ...acc,
-  [key]: {
-    DEFAULT: `${color}66`, // Light version for fill
-    SOLID: color,          // Solid version for stroke
-  }
-}), {} as Record<MutationType, { DEFAULT: string; SOLID: string }>);
-
 export function renderSyntenyRibbon({
   link,
   sourceSpecies,
@@ -110,7 +102,16 @@ export function renderSyntenyRibbon({
   mutationType,
   useCustomColors = false,
   customSpeciesColors,
+  mutationColors = MUTATION_COLORS,
 }: SyntenyRibbonProps) {
+  const MUTATION_COLOR_VARIANTS = Object.entries(mutationColors).reduce((acc, [key, color]) => ({
+    ...acc,
+    [key]: {
+      DEFAULT: `${color}66`,
+      SOLID: color,
+    }
+  }), {} as Record<MutationType, { DEFAULT: string; SOLID: string }>);
+
   // Enhanced filtering logic
   const shouldRenderRibbon = () => {
     // If no chromosomes are selected, show all ribbons

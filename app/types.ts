@@ -30,16 +30,18 @@ export interface ChromosomeData {
   annotations?: GeneAnnotation[]; 
 }
 
+import { GeneClass } from "@/config/chromoviz.config";
+
 export interface GeneAnnotation {
   chromosome: string;
   genomic_accession: string;
   start: number;
   end: number;
   strand: '+' | '-';
-  class: 'transcribed_pseudogene' | 'protein_coding' | 'pseudogene' | 'ncRNA' | 'tRNA' | 'rRNA' | string;
-  locus_tag?: string;
-  symbol?: string;
-  name?: string;
+  class: GeneClass;
+  locus_tag?: string | null;
+  symbol?: string | null;
+  name?: string | null;
   GeneID: string;
 }
 

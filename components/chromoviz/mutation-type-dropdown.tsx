@@ -5,15 +5,19 @@ import { motion } from "motion/react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Circle, ArrowRight } from "lucide-react";
-import { 
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-  DropdownMenuLabel
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { SyntenyData } from "@/app/types";
-import { MutationType, MUTATION_COLORS } from "@/components/chromoviz/synteny-ribbon";
+import { MutationType, MUTATION_COLORS, mutationFullNames } from "@/components/chromoviz/synteny-ribbon";
 import { cn } from "@/lib/utils";
 
 const MarqueeText = ({ text }: { text: string }) => {
@@ -61,15 +65,32 @@ const MarqueeText = ({ text }: { text: string }) => {
 interface MutationTypeDropdownProps {
   selectedSynteny: SyntenyData[];
   selectedMutationTypes: Map<string, MutationType>;
-  onMutationTypeSelect: (syntenyId: string, mutationType?: MutationType) => void; // Allow undefined for 'None'
-  customSpeciesColors?: Map<string, string>; // This prop is passed but not used directly here. Consider if it's needed.
+  onMutationTypeSelect: (syntenyId: string, mutationType?: MutationType) => void;
+  customSpeciesColors?: Map<string, string>;
+  mutationColors: Record<string, string>;
+  mutationFullNames: Record<string, string>;
+  onAddCustomMutationType: (name: string, color: string) => void;
 }
 
 export const MutationTypeDropdown = React.memo(({
   selectedSynteny,
   selectedMutationTypes,
   onMutationTypeSelect,
+  mutationColors,
+  mutationFullNames,
+  onAddCustomMutationType,
 }: MutationTypeDropdownProps) => {
+  const [isAddTypeDialogOpen, setIsAddTypeDialogOpen] = useState(false);
+  const [newTypeName, setNewTypeName] = useState("");
+  const [newTypeColor, setNewTypeColor] = useState("#ff0000");
+
+  const handleAddCustom = () => {
+    onAddCustomMutationType(newTypeName, newTypeColor);
+    setNewTypeName("");
+    setNewTypeColor("#ff0000");
+    setIsAddTypeDialogOpen(false);
+  };
+
   const handleMutationTypeSelect = useCallback((syntenyId: string, type?: MutationType) => {
     requestAnimationFrame(() => {
       onMutationTypeSelect(syntenyId, type);
@@ -165,41 +186,46 @@ export const MutationTypeDropdown = React.memo(({
                         size="sm"
                         className="h-6 px-2 gap-1.5"
                       >
-                        <div 
-                          className="h-2.5 w-2.5 rounded-full" 
-                          style={{ 
-                            backgroundColor: currentType ? MUTATION_COLORS[currentType] : 'currentColor',
+                        <div
+                          className="h-2.5 w-2.5 rounded-full"
+                          style={{
+                            backgroundColor: currentType ? mutationColors[currentType] : 'currentColor',
                             opacity: currentType ? 1 : 0.5
-                          }} 
+                          }}
                         />
-                        <span className="text-xs min-w-[50px]">{currentType || 'None'}</span>
+                        <span className="text-xs min-w-[50px]">{currentType ? mutationFullNames[currentType] || currentType : 'None'}</span>
                       </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent 
-                      side="right" 
+                    <DropdownMenuContent
+                      side="right"
                       align="start"
                       className="max-h-[200px] overflow-y-auto"
                     >
-                      <DropdownMenuItem 
+                      <DropdownMenuItem
                         onClick={() => handleMutationTypeSelect(syntenyId, undefined)}
                         className="gap-2"
                       >
                         <div className="h-2.5 w-2.5 rounded-full opacity-50 border" />
                         None
                       </DropdownMenuItem>
-                      {Object.entries(MUTATION_COLORS).map(([type, color]) => (
+                      <DropdownMenuSeparator />
+                      {Object.entries(mutationColors).map(([type, color]) => (
                         <DropdownMenuItem
                           key={type}
                           onClick={() => handleMutationTypeSelect(syntenyId, type as MutationType)}
                           className="gap-2"
                         >
-                          <div 
-                            className="h-2.5 w-2.5 rounded-full" 
-                            style={{ backgroundColor: color }} 
+                          <div
+                            className="h-2.5 w-2.5 rounded-full"
+                            style={{ backgroundColor: color }}
                           />
-                          {type}
+                          {mutationFullNames[type] || type}
                         </DropdownMenuItem>
                       ))}
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem onClick={() => setIsAddTypeDialogOpen(true)}>
+                        Add Custom Type...
+                      </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </div>
@@ -208,6 +234,42 @@ export const MutationTypeDropdown = React.memo(({
           })}
         </div>
       </DropdownMenuContent>
+      <Dialog open={isAddTypeDialogOpen} onOpenChange={setIsAddTypeDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Add Custom Mutation Type</DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="name" className="text-right">
+                Name
+              </Label>
+              <Input
+                id="name"
+                value={newTypeName}
+                onChange={(e) => setNewTypeName(e.target.value)}
+                className="col-span-3"
+                placeholder="e.g. Deletion"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="color" className="text-right">
+                Color
+              </Label>
+              <Input
+                id="color"
+                type="color"
+                value={newTypeColor}
+                onChange={(e) => setNewTypeColor(e.target.value)}
+                className="col-span-3 p-1"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button onClick={handleAddCustom}>Save</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </DropdownMenu>
   );
 });

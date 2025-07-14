@@ -1,8 +1,7 @@
 'use client'
 
 import { useVirtualizer } from '@tanstack/react-virtual'
-import { useRef, useState, useEffect } from 'react'
-import { motion, AnimatePresence, Transition } from 'motion/react'
+import { useRef, useState } from 'react'
 import { useMediaQuery } from '@/hooks/use-media-query'
 import {
   createColumnHelper,
@@ -48,12 +47,11 @@ interface DataViewerDrawerProps {
   isVertical?: boolean
 }
 
-// Create a virtualized table component
-function VirtualTable<T>({ 
-  data, 
-  columns, 
-  filterColumn 
-}: { 
+function VirtualTable<T>({
+  data,
+  columns,
+  filterColumn,
+}: {
   data: T[]
   columns: any[]
   filterColumn?: string
@@ -61,8 +59,8 @@ function VirtualTable<T>({
   const [sorting, setSorting] = useState<SortingState>([])
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
   const [globalFilter, setGlobalFilter] = useState('')
-  const isMobile = useMediaQuery("(max-width: 768px)");
-  
+  const isMobile = useMediaQuery("(max-width: 768px)")
+
   const table = useReactTable({
     data,
     columns,
@@ -82,37 +80,20 @@ function VirtualTable<T>({
   const { rows } = table.getRowModel()
   const parentRef = useRef<HTMLDivElement>(null)
 
-  // Use a simpler map for mobile to ensure reliability
-  const mobileContent = (
-    <div className="space-y-3">
-      {rows.map(row => (
-        <div key={row.id} className="p-3 border rounded-md">
-          {row.getVisibleCells().map((cell: any) => (
-            <div key={cell.id} className="flex justify-between text-xs py-0.5">
-              <span className="font-bold text-muted-foreground pr-2">
-                {flexRender(cell.column.columnDef.header, cell.getContext())}:
-              </span>
-              <span className="text-right truncate">
-                {flexRender(cell.column.columnDef.cell, cell.getContext())}
-              </span>
-            </div>
-          ))}
-        </div>
-      ))}
-    </div>
-  );
-
   const rowVirtualizer = useVirtualizer({
     count: rows.length,
     getScrollElement: () => parentRef.current,
-    estimateSize: () => 40, // Standard row height for desktop
+    estimateSize: () => (isMobile ? 120 : 40), // Taller rows for mobile
     overscan: 10,
   })
 
   const virtualRows = rowVirtualizer.getVirtualItems()
   const totalSize = rowVirtualizer.getTotalSize()
   const paddingTop = virtualRows.length > 0 ? virtualRows?.[0]?.start || 0 : 0
-  const paddingBottom = virtualRows.length > 0 ? totalSize - (virtualRows?.[virtualRows.length - 1]?.end || 0) : 0
+  const paddingBottom =
+    virtualRows.length > 0
+      ? totalSize - (virtualRows?.[virtualRows.length - 1]?.end || 0)
+      : 0
 
   return (
     <div className="space-y-2.5">
@@ -126,7 +107,9 @@ function VirtualTable<T>({
         {filterColumn && (
           <Input
             placeholder={`Filter by ${filterColumn}...`}
-            value={(table.getColumn(filterColumn)?.getFilterValue() as string) ?? ""}
+            value={
+              (table.getColumn(filterColumn)?.getFilterValue() as string) ?? ""
+            }
             onChange={(event) =>
               table.getColumn(filterColumn)?.setFilterValue(event.target.value)
             }
@@ -134,73 +117,121 @@ function VirtualTable<T>({
           />
         )}
       </div>
-      
+
       <div ref={parentRef} className="h-[60vh] overflow-auto border rounded-md">
-        {isMobile ? (
-          mobileContent
-        ) : (
-          <table className="min-w-full border-collapse">
-            <thead className="sticky top-0 bg-background border-b z-10">
-              {table.getHeaderGroups().map((headerGroup: any) => (
-                <tr key={headerGroup.id}>
-                  {headerGroup.headers.map((header: any) => (
-                    <th 
-                      key={header.id}
-                      className="h-10 px-2 text-left align-middle font-medium text-muted-foreground bg-background text-xs"
-                      style={{ width: header.getSize() }}
-                    >
-                      {header.isPlaceholder ? null : (
-                        <Button
-                          variant="ghost"
-                          onClick={header.column.getToggleSortingHandler()}
-                          className={cn(
-                            "h-8 flex items-center gap-1.5 px-1",
-                            header.column.getCanSort() ? "cursor-pointer select-none" : ""
-                          )}
-                        >
-                          {flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
-                          {header.column.getCanSort() && (
-                            <ArrowUpDown className="h-3.5 w-3.5" />
-                          )}
-                        </Button>
-                      )}
-                    </th>
-                  ))}
-                </tr>
-              ))}
-            </thead>
-            <tbody>
-              {paddingTop > 0 && (
-                <tr>
-                  <td style={{ height: `${paddingTop}px` }} />
-                </tr>
-              )}
-              {virtualRows.map((virtualRow: any) => {
-                const row = rows[virtualRow.index]
-                return (
-                  <tr key={row.id} className="border-b hover:bg-muted/50">
-                    {row.getVisibleCells().map((cell: any) => (
-                      <td key={cell.id} className="p-2 text-xs">
-                        {flexRender(
-                          cell.column.columnDef.cell,
-                          cell.getContext()
+        <div style={{ height: `${totalSize}px`, position: "relative" }}>
+          {!isMobile && (
+            <table className="min-w-full border-collapse sticky top-0 bg-background z-10">
+              <thead>
+                {table.getHeaderGroups().map((headerGroup: any) => (
+                  <tr key={headerGroup.id}>
+                    {headerGroup.headers.map((header: any) => (
+                      <th
+                        key={header.id}
+                        className="h-10 px-2 text-left align-middle font-medium text-muted-foreground bg-background text-xs"
+                        style={{ width: header.getSize() }}
+                      >
+                        {header.isPlaceholder ? null : (
+                          <Button
+                            variant="ghost"
+                            onClick={header.column.getToggleSortingHandler()}
+                            className={cn(
+                              "h-8 flex items-center gap-1.5 px-1",
+                              header.column.getCanSort()
+                                ? "cursor-pointer select-none"
+                                : ""
+                            )}
+                          >
+                            {flexRender(
+                              header.column.columnDef.header,
+                              header.getContext()
+                            )}
+                            {header.column.getCanSort() && (
+                              <ArrowUpDown className="h-3.5 w-3.5" />
+                            )}
+                          </Button>
                         )}
-                      </td>
+                      </th>
                     ))}
                   </tr>
-                )
-              })}
-              {paddingBottom > 0 && (
-                <tr>
-                  <td style={{ height: `${paddingBottom}px` }} />
-                </tr>
-              )}
-            </tbody>
-          </table>
-        )}
+                ))}
+              </thead>
+            </table>
+          )}
+
+          <div
+            style={{
+              height: `${totalSize}px`,
+              position: 'relative',
+            }}
+          >
+            {paddingTop > 0 && (
+              <div style={{ height: `${paddingTop}px` }} />
+            )}
+            {virtualRows.map((virtualRow: any) => {
+              const row = rows[virtualRow.index]
+              return (
+                <div
+                  key={row.id}
+                  style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    width: '100%',
+                    transform: `translateY(${virtualRow.start}px)`,
+                  }}
+                >
+                  {isMobile ? (
+                    <div className="p-3 border-b">
+                      {row.getVisibleCells().map((cell: any) => (
+                        <div
+                          key={cell.id}
+                          className="flex justify-between text-xs py-0.5"
+                        >
+                          <span className="font-bold text-muted-foreground pr-2">
+                            {flexRender(
+                              cell.column.columnDef.header,
+                              cell.getContext()
+                            )}
+                            :
+                          </span>
+                          <span className="text-right truncate">
+                            {flexRender(
+                              cell.column.columnDef.cell,
+                              cell.getContext()
+                            )}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                     <table className="min-w-full border-collapse">
+                      <tbody>
+                        <tr className="border-b hover:bg-muted/50">
+                          {row.getVisibleCells().map((cell: any) => (
+                            <td
+                              key={cell.id}
+                              className="p-2 text-xs"
+                              style={{ width: cell.column.getSize() }}
+                            >
+                              {flexRender(
+                                cell.column.columnDef.cell,
+                                cell.getContext()
+                              )}
+                            </td>
+                          ))}
+                        </tr>
+                      </tbody>
+                    </table>
+                  )}
+                </div>
+              )
+            })}
+            {paddingBottom > 0 && (
+              <div style={{ height: `${paddingBottom}px` }} />
+            )}
+          </div>
+        </div>
       </div>
       <div className="text-xs text-muted-foreground pt-1">
         Showing {rows.length} rows

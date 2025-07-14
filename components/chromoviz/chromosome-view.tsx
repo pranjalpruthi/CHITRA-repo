@@ -1,9 +1,11 @@
 "use client";
 
 import * as d3 from "d3";
-import { ChromosomeBreakpoint, ChromosomeData, GeneAnnotation, SyntenyData } from "@/app/types";
-import { GeneTooltipData } from "./tooltip";
+import React from "react";
+import { ChromosomeBreakpoint, ChromosomeData, SyntenyData } from "@/app/types";
+import { GeneTooltipData, getBreakpointTooltip } from "./tooltip";
 import { 
+  GeneAnnotation,
   CHROMOSOME_CONFIG,
   GENE_ANNOTATION_CONFIG,
   OPTIMIZATION_CONFIG,
@@ -16,16 +18,25 @@ interface ChromosomeViewProps {
   y: number;
   xScale: d3.ScaleLinear<number, number>;
   speciesColor: string;
-  onHover: (event: any, content: string | { type: string; data: GeneTooltipData }) => void;
+  onHover: (event: any, content: string | { type: string; data: GeneTooltipData | React.ReactElement }) => void;
   onMove: (event: any) => void;
   onLeave: () => void;
   container: d3.Selection<any, unknown, null, undefined>;
   annotations?: GeneAnnotation[];
   showAnnotations?: boolean;
+  onGeneHover: (event: any, gene: GeneAnnotation) => void;
+  onGeneLeave: () => void;
   config?: {
     chromosomeHeight: number;
     chromosomeSpacing: number;
     minVisibleSize: number;
+    annotationHeight: number;
+    annotationSpacing: number;
+    maxTracks: number;
+    geneColors: {
+      forward: string;
+      reverse: string;
+    };
   };
   breakpoints?: ChromosomeBreakpoint[];
   isReferenceChromosome?: boolean;
@@ -69,31 +80,6 @@ interface SyntenyBlockMetadata {
   size: number; // for z-index calculation
 }
 
-interface BreakpointMarkerConfig {
-  trackSpacing: number;
-  connectorStrokeWidth: number;
-  trackHeight: number;
-  triangleSize: number;
-  dashArray: string;
-  colors: {
-    connector: string;
-    track: string;
-    triangle: string;
-  };
-}
-
-const BREAKPOINT_CONFIG: BreakpointMarkerConfig = {
-  trackSpacing: 4,
-  connectorStrokeWidth: 1,
-  trackHeight: 12,
-  triangleSize: 4,
-  dashArray: "3,3",
-  colors: {
-    connector: "#ef4444",
-    track: "#fee2e2",
-    triangle: "#991b1b"
-  }
-};
 
 export function renderChromosome({
   chromosome: chr,
@@ -105,12 +91,23 @@ export function renderChromosome({
   onMove,
   onLeave,
   container,
+  annotations,
+  onGeneHover,
+  onGeneLeave,
   config = {
     chromosomeHeight: CHROMOSOME_CONFIG.HEIGHT,
     chromosomeSpacing: CHROMOSOME_CONFIG.SPACING,
     minVisibleSize: OPTIMIZATION_CONFIG.MIN_VISIBLE_SIZE,
+    annotationHeight: GENE_ANNOTATION_CONFIG.HEIGHT,
+    annotationSpacing: GENE_ANNOTATION_CONFIG.SPACING,
+    maxTracks: GENE_ANNOTATION_CONFIG.MAX_TRACKS,
+    geneColors: {
+      forward: GENE_ANNOTATION_CONFIG.COLORS.FORWARD,
+      reverse: GENE_ANNOTATION_CONFIG.COLORS.REVERSE,
+    },
   },
   breakpoints = [],
+  showAnnotations = false,
   isReferenceChromosome = false,
   useStandardPalette = false, // Added prop with default
 }: ChromosomeViewProps) {
@@ -223,166 +220,132 @@ export function renderChromosome({
     .attr("fill", "currentColor")
     .text(chr.chr_id);
 
-  // Enhanced breakpoint visualization
+  // Render gene annotations if available and enabled
+  if (showAnnotations && annotations && annotations.length > 0) {
+    const relevantAnnotations = annotations.filter(
+      (ann: GeneAnnotation) => ann.chromosome === chr.chr_id
+    );
+
+    // Simple track-laying algorithm
+    const tracks: { end: number }[][] = Array.from(
+      { length: config.maxTracks },
+      () => []
+    );
+
+    relevantAnnotations.forEach((gene: GeneAnnotation) => {
+      let placed = false;
+      for (let i = 0; i < config.maxTracks; i++) {
+        const lastGeneInTrack = tracks[i][tracks[i].length - 1];
+        if (!lastGeneInTrack || gene.start > lastGeneInTrack.end) {
+          tracks[i].push({ end: gene.end });
+
+          const geneX = xOffset + xScale(gene.start);
+          const geneWidth = Math.max(1, xScale(gene.end) - xScale(gene.start));
+          const geneY =
+            y +
+            config.chromosomeHeight +
+            5 +
+            i * (config.annotationHeight + config.annotationSpacing);
+
+          const geneColor =
+            gene.strand === "+"
+              ? config.geneColors.forward
+              : config.geneColors.reverse;
+
+          const geneGroup = container.append("g").attr("class", "gene-annotation");
+
+          geneGroup
+            .append("rect")
+            .attr("x", geneX)
+            .attr("y", geneY)
+            .attr("width", geneWidth)
+            .attr("height", config.annotationHeight)
+            .attr("fill", geneColor)
+            .attr("rx", 1)
+            .style("cursor", "pointer")
+            .on("mouseover", (event) => onGeneHover(event, gene))
+            .on("mousemove", (event) => onGeneHover(event, gene))
+            .on("mouseleave", onGeneLeave);
+
+          // Add arrow for strand direction if gene is large enough
+          if (geneWidth > 5) {
+            const arrowSize = Math.min(config.annotationHeight / 2, geneWidth / 3);
+            const arrowY = geneY + config.annotationHeight / 2;
+            const arrowPath = d3.path();
+
+            if (gene.strand === "+") {
+              const arrowX = geneX + geneWidth - arrowSize;
+              arrowPath.moveTo(arrowX, arrowY - arrowSize);
+              arrowPath.lineTo(arrowX + arrowSize, arrowY);
+              arrowPath.lineTo(arrowX, arrowY + arrowSize);
+            } else {
+              const arrowX = geneX + arrowSize;
+              arrowPath.moveTo(arrowX, arrowY - arrowSize);
+              arrowPath.lineTo(arrowX - arrowSize, arrowY);
+              arrowPath.lineTo(arrowX, arrowY + arrowSize);
+            }
+            arrowPath.closePath();
+
+            geneGroup
+              .append("path")
+              .attr("d", arrowPath.toString())
+              .attr("fill", "white")
+              .attr("opacity", 0.7);
+          }
+
+          placed = true;
+          break;
+        }
+      }
+    });
+  }
+
+  // Enhanced breakpoint visualization: Mirrored chromosome approach
   if (isReferenceChromosome && breakpoints.length > 0) {
     const relevantBreakpoints = breakpoints.filter(bp => bp.ref_chr === chr.chr_id);
     
     if (relevantBreakpoints.length > 0) {
-      const trackY = y + config.chromosomeHeight + BREAKPOINT_CONFIG.trackSpacing;
+      const mirroredChrY = y + config.chromosomeHeight + 10; // 10px spacing below original
 
-      // Create a group for all breakpoint-related elements
-      const breakpointGroup = container.append("g")
-        .attr("class", "breakpoint-visualization")
-        .attr("transform", `translate(${xOffset}, ${trackY})`);
+      // Draw a mirrored, "ghost" chromosome below the main one
+      container.append("rect")
+        .attr("x", xOffset)
+        .attr("y", mirroredChrY)
+        .attr("width", chrWidth)
+        .attr("height", config.chromosomeHeight)
+        .attr("rx", config.chromosomeHeight / 2)
+        .attr("ry", config.chromosomeHeight / 2)
+        .attr("fill", "hsl(var(--muted-foreground))")
+        .attr("opacity", 0.2);
 
-      // Add main track
-      const track = breakpointGroup.append("g")
-        .attr("class", "breakpoint-track");
+      // Draw breakpoints as colored segments on the mirrored chromosome
+      const breakpointMarkers = container.append("g").attr("class", "breakpoint-markers");
+      
+      relevantBreakpoints.forEach(bp => {
+        const bpStart = xOffset + xScale(bp.ref_start);
+        const bpEnd = xOffset + xScale(bp.ref_end);
+        // Ensure a minimum width for visibility of small breakpoints
+        const bpWidth = Math.max(1, bpEnd - bpStart);
 
-      // Add subtle background track
-      track.append("rect")
-        .attr("x", 0)
-        .attr("y", 0)
-        .attr("width", xScale(chr.chr_size_bp))
-        .attr("height", BREAKPOINT_CONFIG.trackHeight)
-        .attr("fill", BREAKPOINT_CONFIG.colors.track)
-        .attr("opacity", 0.3)
-        .attr("rx", 1);
-
-      // Group breakpoints that are close to each other
-      const groupedBreakpoints = groupCloseBreakpoints(relevantBreakpoints, xScale);
-
-      // Render breakpoint markers
-      groupedBreakpoints.forEach((group, groupIndex) => {
-        const breakpointMarkers = track.append("g")
-          .attr("class", "breakpoint-group");
-
-        group.forEach((bp, index) => {
-          // Create start marker
-          createBreakpointMarker(
-            breakpointMarkers,
-            bp.ref_start,
-            bp.ref_end,
-            xScale,
-            BREAKPOINT_CONFIG,
-            (event) => {
-              const tooltipContent = formatBreakpointTooltip(bp);
-              onHover(event, tooltipContent);
-            },
-            onMove,
-            onLeave
-          );
-
-          // Add connecting line between start and end
-          if (bp.ref_end - bp.ref_start > 1000) { // Only show connector if gap is significant
-            breakpointMarkers.append("path")
-              .attr("d", createConnectorPath(
-                xScale(bp.ref_start),
-                xScale(bp.ref_end),
-                BREAKPOINT_CONFIG.trackHeight
-              ))
-              .attr("stroke", BREAKPOINT_CONFIG.colors.connector)
-              .attr("stroke-width", BREAKPOINT_CONFIG.connectorStrokeWidth)
-              .attr("stroke-dasharray", BREAKPOINT_CONFIG.dashArray)
-              .attr("fill", "none")
-              .attr("opacity", 0.6);
-          }
-        });
+        breakpointMarkers.append("rect")
+          .attr("x", bpStart)
+          .attr("y", mirroredChrY)
+          .attr("width", bpWidth)
+          .attr("height", config.chromosomeHeight)
+          .attr("fill", "#ef4444") // Directly use the color for breakpoints
+          .attr("stroke", "hsl(var(--background))") // Add a border to separate breakpoints
+          .attr("stroke-width", 0.5)
+          .attr("opacity", 0.8)
+          .style("cursor", "pointer")
+          .on("mouseover", (event) => {
+            const tooltipContent = getBreakpointTooltip(bp);
+            onHover(event, { type: 'breakpoint', data: tooltipContent });
+          })
+          .on("mousemove", onMove)
+          .on("mouseleave", onLeave);
       });
     }
   }
 
   return container;
-}
-
-// Helper functions
-function groupCloseBreakpoints(breakpoints: ChromosomeBreakpoint[], xScale: d3.ScaleLinear<number, number>) {
-  const minDistance = 50; // minimum pixels between breakpoints
-  const groups: ChromosomeBreakpoint[][] = [];
-  let currentGroup: ChromosomeBreakpoint[] = [];
-
-  breakpoints.sort((a, b) => a.ref_start - b.ref_start).forEach(bp => {
-    if (currentGroup.length === 0) {
-      currentGroup.push(bp);
-    } else {
-      const lastBp = currentGroup[currentGroup.length - 1];
-      if (Math.abs(xScale(bp.ref_start) - xScale(lastBp.ref_end)) < minDistance) {
-        currentGroup.push(bp);
-      } else {
-        groups.push([...currentGroup]);
-        currentGroup = [bp];
-      }
-    }
-  });
-
-  if (currentGroup.length > 0) {
-    groups.push(currentGroup);
-  }
-
-  return groups;
-}
-
-function createBreakpointMarker(
-  container: d3.Selection<SVGGElement, unknown, null, undefined>,
-  start: number,
-  end: number,
-  xScale: d3.ScaleLinear<number, number>,
-  config: BreakpointMarkerConfig,
-  onHover: (event: any) => void,
-  onMove: (event: any) => void,
-  onLeave: () => void
-) {
-  const markerGroup = container.append("g")
-    .attr("class", "breakpoint-marker");
-
-  // Add start triangle indicator with enhanced size
-  markerGroup.append("path")
-    .attr("d", `M ${xScale(start)} ${-config.triangleSize}
-                L ${xScale(start) - config.triangleSize} ${0}
-                L ${xScale(start) + config.triangleSize} ${0} Z`)
-    .attr("fill", config.colors.triangle)
-    .attr("opacity", 0.9);
-
-  // Add end triangle indicator if start and end are different
-  if (start !== end) {
-    markerGroup.append("path")
-      .attr("d", `M ${xScale(end)} ${-config.triangleSize}
-                  L ${xScale(end) - config.triangleSize} ${0}
-                  L ${xScale(end) + config.triangleSize} ${0} Z`)
-      .attr("fill", config.colors.triangle)
-      .attr("opacity", 0.9);
-  }
-
-  // Add interactive area with larger hit area
-  markerGroup.append("rect")
-    .attr("x", xScale(start) - 6)
-    .attr("y", -config.triangleSize)
-    .attr("width", Math.max(12, xScale(end) - xScale(start) + 12))
-    .attr("height", config.trackHeight + config.triangleSize)
-    .attr("fill", "transparent")
-    .attr("cursor", "pointer")
-    .on("mouseover", onHover)
-    .on("mousemove", onMove)
-    .on("mouseleave", onLeave);
-
-  return markerGroup;
-}
-
-function createConnectorPath(x1: number, x2: number, height: number): string {
-  const midY = height / 2;
-  return `M ${x1} ${0} 
-          L ${x1} ${height}
-          M ${x1} ${midY}
-          L ${x2} ${midY}
-          M ${x2} ${0}
-          L ${x2} ${height}`;
-}
-
-function formatBreakpointTooltip(bp: ChromosomeBreakpoint): string {
-  const size = bp.ref_end - bp.ref_start;
-  const sizeStr = formatGenomicPosition(size);
-  return `Breakpoint: ${bp.breakpoint}
-Location: ${bp.ref_chr}:${formatGenomicPosition(bp.ref_start)}-${formatGenomicPosition(bp.ref_end)}
-Size: ${sizeStr}
-Type: ${size > 1000000 ? 'Large-scale' : size > 10000 ? 'Medium-scale' : 'Small-scale'} breakpoint`;
 }

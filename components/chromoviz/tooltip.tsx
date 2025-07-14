@@ -3,8 +3,8 @@
 import { motion, AnimatePresence, Variants } from "motion/react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { ArrowRight, ArrowLeft } from "lucide-react";
-import { ChromosomeData, SyntenyData, GeneAnnotation } from "@/app/types";
+import { ArrowRight, ArrowLeft, AlertTriangle } from "lucide-react";
+import { ChromosomeData, SyntenyData, GeneAnnotation, ChromosomeBreakpoint } from "@/app/types";
 import React, { ReactElement } from "react";
 
 const glassEffect = cn(
@@ -161,6 +161,47 @@ export function getChromosomeTooltip(chr: ChromosomeData, maxChrSizeMb: number):
           Size relative to a {maxChrSizeMb.toFixed(0)}Mb chromosome
         </p>
       </div>
+    </div>
+  );
+}
+
+export function getBreakpointTooltip(breakpoint: ChromosomeBreakpoint): ReactElement {
+  const formatBp = (bp: number) => `${(bp / 1_000_000).toFixed(2)} Mb`;
+
+  return (
+    <div className="space-y-4 p-1 min-w-[320px]">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Badge
+            variant="outline"
+            className="bg-gradient-to-r from-red-50 to-orange-50 text-gray-800 dark:from-red-950/30 dark:to-orange-950/30 dark:text-gray-100 dark:border-red-800/30"
+          >
+            <AlertTriangle className="h-3 w-3 mr-1.5" />
+            Breakpoint
+          </Badge>
+          <span className="text-sm font-medium dark:text-gray-200">
+            {breakpoint.breakpoint}
+          </span>
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        <div className="flex items-center gap-2">
+          <Badge variant="outline" className="bg-gray-50 text-gray-800 dark:bg-gray-900/50 dark:text-gray-100 dark:border-gray-700">
+            Chromosome
+          </Badge>
+          <span className="text-sm text-muted-foreground dark:text-gray-300">
+            {breakpoint.ref_chr}
+          </span>
+        </div>
+        <div className="flex items-center justify-between px-2">
+          <span className="text-sm font-medium dark:text-gray-200">Position</span>
+          <Badge variant="secondary" className="bg-gray-100/50 dark:bg-gray-950/50 dark:text-gray-100 dark:border-gray-800/30">
+            {formatBp(breakpoint.ref_start)} - {formatBp(breakpoint.ref_end)}
+          </Badge>
+        </div>
+      </div>
+
     </div>
   );
 }
@@ -394,6 +435,7 @@ interface HoverTooltipProps {
   } | null,
   selectedBlock: SyntenyData;
   refChromosome?: ChromosomeData | null;
+  queryChromosome?: ChromosomeData | null;
   className?: string;
   showTooltips?: boolean;
 }
@@ -403,6 +445,7 @@ export function HoverTooltip({
   hoveredChromosome, 
   selectedBlock,
   refChromosome,
+  queryChromosome,
   className,
   showTooltips = true
 }: HoverTooltipProps) {
@@ -466,14 +509,8 @@ export function HoverTooltip({
     return `${positionMb.toFixed(2)} Mb`;
   };
 
-  const getProgressWidth = (position: number | undefined, size: number) => {
-    if (!position) return 0;
-    const normalizedPosition = Math.abs(position) / size;
-    return Math.min(Math.max(normalizedPosition * 100, 0), 100);
-  };
-
   return (
-    <div className="relative">
+    <>
       <AnimatePresence mode="sync">
         {hoveredBlock && (
           <motion.div
@@ -569,7 +606,7 @@ export function HoverTooltip({
                   variant="outline" 
                   className="bg-gradient-to-r from-indigo-50 to-blue-50 text-gray-800 dark:from-indigo-950/30 dark:to-blue-950/30 dark:text-gray-100 dark:border-blue-800/30 transition-all group-hover:from-indigo-100 group-hover:to-blue-100"
                 >
-                  {hoveredChromosome.isRef ? 'Reference Position' : 'Query Position'}
+                  {hoveredChromosome.isRef ? 'Reference Position' : `Query: ${queryChromosome?.species_name} ${queryChromosome?.chr_id}`}
                 </Badge>
                 <Badge 
                   variant="secondary"
@@ -584,57 +621,61 @@ export function HoverTooltip({
                 <motion.div
                   key="gene-content"
                   variants={contentVariants}
-                  className="flex items-center justify-between group p-2 rounded-md hover:bg-gray-50/50 dark:hover:bg-gray-900/30 transition-colors"
+                  className="p-2 rounded-md hover:bg-gray-50/50 dark:hover:bg-gray-900/30 transition-colors"
                 >
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center justify-between mb-2">
                     <Badge 
                       variant="outline" 
-                      className="bg-gray-50 text-gray-800 dark:bg-gray-900/50 dark:text-gray-100 dark:border-gray-700 transition-colors group-hover:bg-gray-100"
+                      className="bg-gray-50 text-gray-800 dark:bg-gray-900/50 dark:text-gray-100 dark:border-gray-700"
                     >
                       Gene
                     </Badge>
-                    <span className="text-sm font-medium dark:text-gray-200 group-hover:text-foreground transition-colors">
-                      {hoveredChromosome.gene.symbol || 'Unknown'}
-                    </span>
+                    <Badge 
+                      variant="secondary" 
+                      className="bg-gray-100/50 dark:bg-gray-900/50 dark:text-gray-100"
+                    >
+                      {hoveredChromosome.gene.class || 'NA'}
+                    </Badge>
                   </div>
-                  <Badge 
-                    variant="secondary" 
-                    className="bg-gray-100/50 dark:bg-gray-900/50 dark:text-gray-100 transition-colors group-hover:bg-gray-200/50"
-                  >
-                    {hoveredChromosome.gene.class || 'Unknown Type'}
-                  </Badge>
+                  <div className="space-y-1 text-xs text-muted-foreground">
+                    <div className="flex justify-between">
+                      <span className="font-medium text-foreground">Symbol:</span>
+                      <span>{hoveredChromosome.gene.symbol || 'NA'}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="font-medium text-foreground">Name:</span>
+                      <span className="truncate">{hoveredChromosome.gene.name || 'NA'}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="font-medium text-foreground">Position:</span>
+                      <span>
+                        {hoveredChromosome.gene.start?.toLocaleString()}-
+                        {hoveredChromosome.gene.end?.toLocaleString()}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="font-medium text-foreground">Strand:</span>
+                      <span>{hoveredChromosome.gene.strand || 'NA'}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="font-medium text-foreground">Gene ID:</span>
+                      <span>{hoveredChromosome.gene.GeneID || 'NA'}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="font-medium text-foreground">Locus Tag:</span>
+                      <span>{hoveredChromosome.gene.locus_tag || 'NA'}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="font-medium text-foreground">Accession:</span>
+                      <span>{hoveredChromosome.gene.genomic_accession || 'NA'}</span>
+                    </div>
+                  </div>
                 </motion.div>
               )}
             </div>
           </motion.div>
         )}
       </AnimatePresence>
-
-      {/* Progress Bar */}
-      <motion.div
-        key="progress-bar"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        className="relative w-full bg-gray-100 dark:bg-gray-800 h-2 rounded-full overflow-hidden"
-      >
-        <motion.div 
-          className="absolute h-full bg-gradient-to-r from-blue-500 to-purple-500 dark:from-blue-600 dark:to-purple-600"
-          style={{ 
-            width: hoveredBlock && refChromosome 
-              ? `${((hoveredBlock.ref_end - hoveredBlock.ref_start) / refChromosome.chr_size_bp) * 100}%`
-              : `${getProgressWidth(hoveredChromosome?.position, hoveredChromosome?.size || 1)}%`
-          }}
-          initial={{ width: "0%" }}
-          animate={{ 
-            width: hoveredBlock && refChromosome
-              ? `${((hoveredBlock.ref_end - hoveredBlock.ref_start) / refChromosome.chr_size_bp) * 100}%`
-              : `${getProgressWidth(hoveredChromosome?.position, hoveredChromosome?.size || 1)}%`
-          }}
-          transition={{ type: "spring", stiffness: 300, damping: 30 }}
-        />
-        <div className="absolute inset-0 bg-gradient-to-r from-white/10 to-transparent dark:from-white/5" />
-      </motion.div>
-    </div>
+    </>
   );
 }

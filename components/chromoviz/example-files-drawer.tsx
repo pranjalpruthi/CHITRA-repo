@@ -119,11 +119,16 @@ const getExampleFiles = (setId: string): ExampleFile[] => {
       description: "Gene annotations for reference genome with detailed feature information",
       downloadUrl: `${basePath}/ref_gene_annotations.csv`,
       format: [
-        { field: "gene_id", desc: "Gene identifier" },
-        { field: "chromosome_id", desc: "Chromosome identifier" },
+        { field: "chromosome", desc: "Chromosome identifier" },
+        { field: "genomic_accession", desc: "Genomic accession number" },
         { field: "start", desc: "Start position" },
         { field: "end", desc: "End position" },
-        { field: "strand", desc: "Strand orientation" }
+        { field: "strand", desc: "Strand orientation" },
+        { field: "class", desc: "Gene class" },
+        { field: "locus_tag", desc: "Locus tag" },
+        { field: "symbol", desc: "Gene symbol" },
+        { field: "name", desc: "Gene name" },
+        { field: "GeneID", desc: "Gene ID" }
       ],
       required: false,
       colorClass: 'from-rose-500/5 to-pink-500/10'

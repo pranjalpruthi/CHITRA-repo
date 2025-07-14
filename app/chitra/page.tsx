@@ -28,7 +28,7 @@ import { cn } from "@/lib/utils";
 import { LiquidButton } from "@/components/ui/liquid";
 import { FlipButton } from "@/components/ui/flip"; 
 import { Switch } from "@/components/ui/switch";
-import { DetailedSyntenyView } from "./detailed-synteny-view";
+import { ChordView } from "./chord-view";
 import { Label } from "@/components/ui/label"
 import { SyntenyTable } from "@/components/chromoviz/synteny-table"; // This is the floating button
 import { InlineSyntenyDisplay } from "@/components/chromoviz/inline-synteny-display"; 
@@ -73,6 +73,8 @@ function parseChromosomeSizeRow(d: d3.DSVRowString): ReferenceGenomeData['chromo
   };
 }
 
+import { GeneClass } from '@/config/chromoviz.config';
+
 function parseGeneAnnotationRow(d: d3.DSVRowString): GeneAnnotation {
   return {
     chromosome: d.chromosome,
@@ -80,7 +82,7 @@ function parseGeneAnnotationRow(d: d3.DSVRowString): GeneAnnotation {
     start: +d.start,
     end: +d.end,
     strand: d.strand as '+' | '-',
-    class: d.class,
+    class: d.class as GeneClass,
     locus_tag: d.locus_tag,
     symbol: d.symbol,
     name: d.name,
@@ -100,9 +102,14 @@ function parseBreakpointRow(d: d3.DSVRowString): ChromosomeBreakpoint {
 // Interface for the shared visualization state
 interface VisualizationState {
   version: string;
-  dataSetType: 'example' | 'custom_db';
+  dataSetType: 'example' | 'custom_db' | 'shared';
   exampleDataSetPath?: string;
   datasetId?: string; // For custom data
+
+  // Data
+  syntenyData?: SyntenyData[];
+  speciesData?: ChromosomeData[];
+  referenceData?: ReferenceGenomeData | null;
 
   // Selections & Filters
   selectedSpecies: string[];
@@ -279,52 +286,6 @@ const FilterSection = ({
   </div>
 );
 
-const CollapsibleDetailView = ({
-  isOpen,
-  onToggle,
-  children
-}: {
-  isOpen: boolean;
-  onToggle: () => void;
-  children: React.ReactNode;
-}) => {
-  return (
-    <div className={cn(
-      "col-span-12 lg:col-span-4 h-full relative transition-all duration-200",
-      !isOpen && "!col-span-1 !w-6"
-    )}>
-      {/* Content Container */}
-      <div className={cn(
-        "h-full transition-all duration-200",
-        !isOpen && "opacity-0 invisible"
-      )}>
-        {children}
-      </div>
-
-      {/* Toggle Button */}
-      <div className="absolute inset-y-0 -right-6 w-6">
-        <Button
-          variant="secondary"
-          size="sm"
-          onClick={onToggle}
-          className={cn(
-            "absolute top-1/2 -translate-y-1/2",
-            "h-24 w-6 rounded-r-lg rounded-l-none",
-            "border-l-0 bg-card hover:bg-accent",
-            "flex items-center justify-center p-0"
-          )}
-        >
-          <ChevronRight 
-            className={cn(
-              "h-4 w-4 transition-transform duration-200",
-              isOpen && "rotate-180"
-            )} 
-          />
-        </Button>
-      </div>
-    </div>
-  );
-};
 
 // Add this component
 const SpeciesColorPicker = ({ 
@@ -655,19 +616,12 @@ function ChromoVizContent() {
     }, 1000);
   };
 
-  // Update the filteredData function to include chromosome filtering and connected only filter
   const filteredData = React.useMemo(() => {
     // Ensure all critical data pieces are available before full computation
     if (!referenceData?.chromosomeSizes || 
         !syntenyData || syntenyData.length === 0 || 
         !speciesData || speciesData.length === 0 || 
         !referenceSpecies) {
-      console.log('FilteredData: Essential data not yet ready for full computation.', {
-        hasRefSizes: !!referenceData?.chromosomeSizes,
-        hasSynteny: !!syntenyData && syntenyData.length > 0,
-        hasSpecies: !!speciesData && speciesData.length > 0,
-        referenceSpeciesVal: referenceSpecies, // renamed to avoid conflict if referenceSpecies is a var name
-      });
       // Return a minimal, safe structure if data is incomplete
       const refChrsWhenIncomplete = referenceData?.chromosomeSizes
         ? referenceData.chromosomeSizes.map(chr => ({
@@ -682,77 +636,96 @@ function ChromoVizContent() {
         : [];
       return { 
         referenceData: refChrsWhenIncomplete, 
-        syntenyData: [] // Return empty synteny if critical data is missing for full processing
+        syntenyData: []
       };
     }
 
-    // Create reference chromosome data from ref_chromosome_sizes.csv
-    const referenceChromosomes = referenceData.chromosomeSizes
-      .filter(chr => 
-        selectedChromosomes.length === 0 || 
-        selectedChromosomes.includes(`ref:${chr.chromosome}`)
-      )
-      .map(chr => ({
-        species_name: referenceSpecies,
-        chr_id: chr.chromosome,
-        chr_type: 'chromosome',
-        chr_size_bp: +chr.size,
-        centromere_start: chr.centromere_start ? +chr.centromere_start : undefined,
-        centromere_end: chr.centromere_end ? +chr.centromere_end : undefined,
-        annotations: referenceData.geneAnnotations?.filter(
-          gene => gene.chromosome === chr.chromosome
-        ) || []
-      }));
-
-    if (selectedSpecies.length === 0 && selectedChromosomes.length === 0) {
-      return {
-        referenceData: [
-          ...speciesData.filter(d => d.species_name !== referenceSpecies),
-          ...referenceChromosomes
-        ],
-        syntenyData
-      };
-    }
-
-    // Filter for selected species and chromosomes
-    const filteredReference = [
-      ...speciesData.filter(d => 
-        (selectedSpecies.length === 0 || selectedSpecies.includes(d.species_name)) &&
-        (selectedChromosomes.length === 0 || selectedChromosomes.includes(`${d.species_name}:${d.chr_id}`)) &&
-        d.species_name !== referenceSpecies
-      ),
-      ...referenceChromosomes
-    ];
-
-    // Always put reference genome at bottom
-    filteredReference.sort((a, b) => {
-      if (a.species_name === referenceSpecies) return 1;
-      if (b.species_name === referenceSpecies) return -1;
-      return a.species_name.localeCompare(b.species_name);
-    });
-
-    // Filter synteny data based on both species and chromosomes
-    let filteredSynteny = syntenyData.filter(d =>
+    // 1. Filter synteny by selected species and chromosomes
+    const baseFilteredSynteny = syntenyData.filter(d =>
       (selectedSpecies.length === 0 || selectedSpecies.includes(d.query_name)) &&
       (selectedChromosomes.length === 0 || 
         (selectedChromosomes.includes(`ref:${d.ref_chr}`) || 
          selectedChromosomes.includes(`${d.query_name}:${d.query_chr}`)))
     );
 
-    // Apply connected only filter if enabled
-    if (showConnectedOnly) {
-      const selectedRefChrs = selectedChromosomes.filter(chr => chr.startsWith('ref:'));
-      if (selectedRefChrs.length > 0) {
-        const refChrsWithoutPrefix = selectedRefChrs.map(chr => chr.replace('ref:', ''));
-        filteredSynteny = filteredSynteny.filter(d => refChrsWithoutPrefix.includes(d.ref_chr));
-      }
+    // 2. Apply alignment filter
+    let alignmentFilteredSynteny = baseFilteredSynteny;
+    if (alignmentFilter !== 'all') {
+      alignmentFilteredSynteny = baseFilteredSynteny.filter(link => 
+        alignmentFilter === 'forward' ? link.query_strand === '+' : link.query_strand === '-'
+      );
     }
 
+    let finalReferenceData: ChromosomeData[];
+    const finalSyntenyData = alignmentFilteredSynteny;
+
+    // 3. Filter chromosomes based on connections if "showConnectedOnly" is true
+    if (showConnectedOnly) {
+      const connectedChrIds = new Set<string>();
+      finalSyntenyData.forEach(link => {
+        connectedChrIds.add(`ref:${link.ref_chr}`);
+        connectedChrIds.add(`${link.query_name}:${link.query_chr}`);
+      });
+
+      const referenceChromosomes = referenceData.chromosomeSizes
+        .filter(chr => connectedChrIds.has(`ref:${chr.chromosome}`))
+        .map(chr => ({
+          species_name: referenceSpecies,
+          chr_id: chr.chromosome,
+          chr_type: 'chromosome' as 'chromosome',
+          chr_size_bp: +chr.size,
+          centromere_start: chr.centromere_start ? +chr.centromere_start : undefined,
+          centromere_end: chr.centromere_end ? +chr.centromere_end : undefined,
+          annotations: referenceData.geneAnnotations?.filter(
+            gene => gene.chromosome === chr.chromosome
+          ) || []
+        }));
+
+      const filteredSpeciesData = speciesData.filter(d => 
+        connectedChrIds.has(`${d.species_name}:${d.chr_id}`)
+      );
+
+      finalReferenceData = [...filteredSpeciesData, ...referenceChromosomes];
+    } else {
+      // If not filtering by connection, show all selected chromosomes
+      const referenceChromosomes = referenceData.chromosomeSizes
+        .filter(chr => 
+          selectedChromosomes.length === 0 || 
+          selectedChromosomes.includes(`ref:${chr.chromosome}`)
+        )
+        .map(chr => ({
+          species_name: referenceSpecies,
+          chr_id: chr.chromosome,
+          chr_type: 'chromosome' as 'chromosome',
+          chr_size_bp: +chr.size,
+          centromere_start: chr.centromere_start ? +chr.centromere_start : undefined,
+          centromere_end: chr.centromere_end ? +chr.centromere_end : undefined,
+          annotations: referenceData.geneAnnotations?.filter(
+            gene => gene.chromosome === chr.chromosome
+          ) || []
+        }));
+
+      const filteredSpeciesData = speciesData.filter(d => 
+        (selectedSpecies.length === 0 || selectedSpecies.includes(d.species_name)) &&
+        (selectedChromosomes.length === 0 || selectedChromosomes.includes(`${d.species_name}:${d.chr_id}`)) &&
+        d.species_name !== referenceSpecies
+      );
+      
+      finalReferenceData = [...filteredSpeciesData, ...referenceChromosomes];
+    }
+
+    // Always put reference genome at bottom
+    finalReferenceData.sort((a, b) => {
+      if (a.species_name === referenceSpecies) return 1;
+      if (b.species_name === referenceSpecies) return -1;
+      return a.species_name.localeCompare(b.species_name);
+    });
+
     return { 
-      referenceData: filteredReference, 
-      syntenyData: filteredSynteny 
+      referenceData: finalReferenceData, 
+      syntenyData: finalSyntenyData 
     };
-  }, [speciesData, syntenyData, selectedSpecies, selectedChromosomes, referenceSpecies, referenceData]);
+  }, [speciesData, syntenyData, selectedSpecies, selectedChromosomes, referenceSpecies, referenceData, showConnectedOnly, alignmentFilter]);
 
   const handleZoomIn = () => {
     if (!svgRef.current || !zoomBehaviorRef.current) return;
@@ -945,7 +918,11 @@ function ChromoVizContent() {
               
               setProcessedShareId(shareId);
 
-              if (state.dataSetType === 'example' && state.exampleDataSetPath) {
+              if (state.dataSetType === 'shared') {
+                setSyntenyData(state.syntenyData || []);
+                setSpeciesData(state.speciesData || []);
+                setReferenceData(state.referenceData || null);
+              } else if (state.dataSetType === 'example' && state.exampleDataSetPath) {
                 await loadExampleData(state.exampleDataSetPath); 
                 localStorage.setItem('lastExamplePath', state.exampleDataSetPath);
               } else if (state.dataSetType === 'custom_db' && state.datasetId) {
@@ -1050,7 +1027,10 @@ function ChromoVizContent() {
 
       const stateToSave: VisualizationState = {
         version: "1.0",
-        dataSetType: isUsingExample ? 'example' : 'custom_db',
+        dataSetType: 'shared',
+        syntenyData: syntenyData,
+        speciesData: speciesData,
+        referenceData: referenceData,
         exampleDataSetPath: isUsingExample ? localStorage.getItem('lastExamplePath') || '/example/set1' : undefined,
         datasetId: !isUsingExample ? (currentDatasetId ?? undefined) : undefined,
         selectedSpecies,
@@ -1133,11 +1113,11 @@ function ChromoVizContent() {
           We only adjust padding based on fullscreen state here. */}
       <div className={cn(
         "relative w-full bg-background flex-1 flex flex-col",
-        isFullScreen ? "p-0" : "py-4 sm:py-6" // Removed fixed, z-50, backdrop-blur for isFullScreen
+        isFullScreen ? "fixed inset-0 z-50 p-0" : "py-4 sm:py-6"
       )}>
         <div className={cn(
-          "flex-1 flex flex-col w-full", // Removed px-4 sm:px-6 here, will be handled by inner content or fullscreen
-          isFullScreen ? "h-screen p-0" : "px-4 sm:px-6" // Apply padding only when not fullscreen
+          "flex-1 flex flex-col w-full",
+          isFullScreen ? "h-full p-0" : "px-4 sm:px-6"
         )}>
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -1175,22 +1155,22 @@ function ChromoVizContent() {
                   speciesData={speciesData}
                   onShare={handleShare} // Pass the handleShare function
                   user={user}
+                  isDetailViewOpen={isDetailViewOpen}
+                  onToggleDetailView={() => setIsDetailViewOpen(prev => !prev)}
                 />
 
                 {/* Responsive Layout for Visualization and Details */}
-                <div className="grid grid-cols-12 gap-6 flex-1 min-h-0"> {/* Increased gap */}
+                <div className={cn("grid grid-cols-12 gap-6 flex-1 min-h-0", isFullScreen && "pb-24")}> {/* Increased gap */}
                   {/* Main Visualization Area */}
                   <div className={cn(
-                    "transition-all duration-200",
-                    selectedSynteny.length > 0
-                      ? isDetailViewOpen
-                        ? "col-span-12 lg:col-span-8"
-                        : "col-span-12 lg:col-span-11"
+                    "transition-all duration-300 ease-in-out",
+                    isDetailViewOpen && selectedSynteny.length > 0
+                      ? "col-span-12 lg:col-span-8"
                       : "col-span-12"
                   )}>
                     <Card className={cn(
-                      "h-[80vh] flex flex-col", // Added fixed height
-                      isFullScreen && "pb-10 h-screen" // Ensure fullscreen still takes full screen height
+                      "h-[80vh] flex flex-col border-l-4 border-r-4", // Added fixed height
+                      isFullScreen && "h-full" // Ensure fullscreen still takes full screen height
                     )} ref={mainCardRef}>
                       {/* Modified Card Header with integrated Tips and Back Button */}
                       {referenceData && !showWelcomeCard && (
@@ -1444,12 +1424,9 @@ function ChromoVizContent() {
                   </div>
 
                   {/* Detailed View Sidebar */}
-                  {selectedSynteny.length > 0 && !showWelcomeCard && (
-                    <CollapsibleDetailView
-                      isOpen={isDetailViewOpen}
-                      onToggle={() => setIsDetailViewOpen(prev => !prev)}
-                    >
-                      <Card className="h-full flex flex-col">
+                  {isDetailViewOpen && selectedSynteny.length > 0 && !showWelcomeCard && (
+                    <div className="col-span-12 lg:col-span-4 h-full">
+                      <Card className="h-full flex flex-col w-full">
                         <CardHeader className="p-4 border-b shrink-0">
                           <CardTitle className="text-sm font-medium flex items-center gap-2">
                             <MousePointerClick className="h-4 w-4" />
@@ -1459,20 +1436,22 @@ function ChromoVizContent() {
                             </Badge>
                           </CardTitle>
                         </CardHeader>
-                        <CardContent className="p-0 h-[calc(100%-4rem)]">
-                          <DetailedSyntenyView
-                            selectedBlock={selectedSynteny[currentBlockIndex]}
-                            referenceData={filteredData.referenceData}
-                            onBlockClick={handleSyntenyToggle}
-                            selectedSynteny={selectedSynteny}
-                            onToggleSelection={handleSyntenyToggle}
-                            isFullscreen={isDetailedViewFullscreen}
-                            onFullscreen={setIsDetailedViewFullscreen}
-                            showTooltips={showTooltips}
-                          />
+                        <CardContent className="p-0 flex-1 overflow-hidden">
+                          <div className="h-full w-full">
+                            <ChordView
+                              selectedBlock={selectedSynteny[currentBlockIndex]}
+                              referenceData={filteredData.referenceData}
+                              onBlockClick={handleSyntenyToggle}
+                              selectedSynteny={selectedSynteny}
+                              onToggleSelection={handleSyntenyToggle}
+                              isFullscreen={isDetailedViewFullscreen}
+                              onFullscreen={setIsDetailedViewFullscreen}
+                              showTooltips={showTooltips}
+                            />
+                          </div>
                         </CardContent>
                       </Card>
-                    </CollapsibleDetailView>
+                    </div>
                   )}
                 </div>
 

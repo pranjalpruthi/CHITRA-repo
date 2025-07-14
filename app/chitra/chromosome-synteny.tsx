@@ -24,17 +24,16 @@ import {
   SYNTENY_COLORS,
   GENE_TYPE_COLORS,
   GENE_ANNOTATION_CONFIG,
-  type GeneAnnotation,
   type GeneClass,
   OPTIMIZATION_CONFIG
 } from "@/config/chromoviz.config";
+import { GeneAnnotation } from "@/app/types";
 // import { SettingsPanel } from "@/components/chromoviz/settings-panel"; // No longer needed
 import { ChromosomeScrollbar } from "@/components/chromoviz/chromosome-scrollbar";
 import { ControlsMenu } from "@/components/chromoviz/controls-menu";
 import { MutationTypeDropdown } from "@/components/chromoviz/mutation-type-dropdown";
-import { GeneTooltip } from "@/components/chromoviz/gene-tooltip";
 import { MutationTypeDataDrawer } from "@/components/chromoviz/mutation-type-data-drawer";
-import { MutationType, MUTATION_COLORS } from "@/components/chromoviz/synteny-ribbon";
+import { MutationType, MUTATION_COLORS, mutationFullNames } from "@/components/chromoviz/synteny-ribbon";
 
 // First, add these type definitions at the top
 type D3Selection = d3.Selection<SVGSVGElement, unknown, null, undefined>;
@@ -65,8 +64,8 @@ interface TooltipInfo {
   y: number;
   content: string | GeneTooltipData | ReactElement;
   isOpen: boolean;
-  type?: 'gene' | 'synteny' | 'chromosome';
-  data?: GeneTooltipData | ChromosomeData | SyntenyTooltipData;
+  type?: 'gene' | 'synteny' | 'chromosome' | 'breakpoint';
+  data?: GeneTooltipData | ChromosomeData | SyntenyTooltipData | ReactElement;
 }
 
 interface ChromosomeSyntenyProps {
@@ -174,6 +173,7 @@ export function ChromosomeSynteny({
   setShowConnectedOnly
 }: ChromosomeSyntenyProps) {
   const [zoom, setZoom] = useState(1);
+  const [customMutationTypes, setCustomMutationTypes] = useState<Record<string, string>>({});
   const [isMutationDrawerOpen, setIsMutationDrawerOpen] = useState(false);
   const [tooltipInfo, setTooltipInfo] = useState<TooltipInfo | null>(null);
   const [debouncedHoverInfo] = useDebounce(tooltipInfo, 50); // Debounce hover info updates
@@ -189,11 +189,6 @@ export function ChromosomeSynteny({
     width: typeof width === 'string' ? parseInt(width) : width,
     height: typeof height === 'string' ? parseInt(height) : height
   });
-  const [hoveredGene, setHoveredGene] = useState<{
-    gene: GeneAnnotation;
-    x: number;
-    y: number;
-  } | null>(null);
 
   // Add ref for tracking current transform
   const currentTransformRef = useRef<d3.ZoomTransform>(d3.zoomIdentity);
@@ -219,6 +214,22 @@ export function ChromosomeSynteny({
     },
   });
 
+  const handleAddCustomMutationType = useCallback((name: string, color: string) => {
+    if (name && color) {
+      setCustomMutationTypes(prev => ({ ...prev, [name.toUpperCase()]: color }));
+    }
+  }, []);
+
+  const allMutationColors = { ...MUTATION_COLORS, ...customMutationTypes };
+  const customFullNames = Object.keys(customMutationTypes).reduce((acc, key) => {
+    const words = key.toLowerCase().split(' ');
+    const formattedName = words.map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+    acc[key] = formattedName;
+    return acc;
+  }, {} as Record<string, string>);
+  const allMutationFullNames = { ...mutationFullNames, ...customFullNames };
+
+
   const handleConfigChange = useCallback((newConfig: Partial<typeof visualConfig>) => {
     setVisualConfig(prev => ({
       ...prev,
@@ -226,37 +237,8 @@ export function ChromosomeSynteny({
     }));
   }, []);
 
-  const filterSyntenyData = (data: SyntenyData[]) => {
-    // First filter by selected chromosomes
-    let filteredData = data;
-    
-    // Get the selected reference chromosomes (without the 'ref:' prefix)
-    const selectedRefChrs = selectedChromosomes
-      .filter(chr => chr.startsWith('ref:'))
-      .map(chr => chr.replace('ref:', ''));
-
-    // If there are selected reference chromosomes and showConnectedOnly is true, only show synteny for those
-    if (selectedRefChrs.length > 0 && showConnectedOnly) {
-      filteredData = filteredData.filter(link => 
-        selectedRefChrs.includes(link.ref_chr)
-      );
-    }
-
-    // Then apply strand filter
-    switch (alignmentFilter) {
-      case 'forward':
-        return filteredData.filter(link => link.query_strand === '+');
-      case 'reverse':
-        return filteredData.filter(link => link.query_strand === '-');
-      default:
-        return filteredData;
-    }
-  };
-
   // Filter synteny data before rendering
-  const filteredSyntenyData = React.useMemo(() => {
-    return filterSyntenyData(syntenyData);
-  }, [syntenyData, selectedChromosomes, alignmentFilter, showConnectedOnly]);
+  const filteredSyntenyData = syntenyData;
 
   const handleFullscreenChange = useCallback(() => {
     const isFullscreenNow = Boolean(document.fullscreenElement);
@@ -339,32 +321,34 @@ export function ChromosomeSynteny({
     });
   };
 
-  const handleElementHover = (event: any, content: string | { type: string; data: GeneTooltipData }) => {
+  const handleElementHover = useCallback((event: any, content: string | { type: string; data: GeneTooltipData | React.ReactElement }) => {
     if (typeof content === 'string') {
       setTooltipInfo({
         x: event.clientX,
         y: event.clientY,
         content,
-        isOpen: true
+        isOpen: true,
       });
-    } else if (content.type === 'gene') {
+    } else if (React.isValidElement(content.data)) {
       setTooltipInfo({
         x: event.clientX,
         y: event.clientY,
         content: content.data,
         isOpen: true,
-        type: 'gene',
-        data: content.data
+        type: 'breakpoint',
+        data: content.data,
       });
     } else {
       setTooltipInfo({
         x: event.clientX,
         y: event.clientY,
-        content: content.data,
-        isOpen: true
+        content: content.data as GeneTooltipData,
+        isOpen: true,
+        type: content.type as 'gene' | 'synteny' | 'chromosome',
+        data: content.data as GeneTooltipData,
       });
     }
-  };
+  }, []);
 
   const handleElementLeave = () => {
     setTooltipInfo(prev => prev ? { ...prev, isOpen: false } : null);
@@ -468,10 +452,26 @@ export function ChromosomeSynteny({
 
   // Add this function to handle gene hover events
   const handleGeneHover = (event: React.MouseEvent, gene: GeneAnnotation) => {
-    setHoveredGene({
-      gene,
+    if (!showTooltips) return;
+    setTooltipInfo({
       x: event.clientX,
-      y: event.clientY
+      y: event.clientY,
+      isOpen: true,
+      type: 'gene',
+      content: (
+        <div className="p-2 text-sm">
+          <div className="font-bold mb-1">{gene.symbol || 'NA'}</div>
+          <div className="text-xs text-muted-foreground space-y-0.5">
+            <div><span className="font-semibold">Name:</span> {gene.name || 'NA'}</div>
+            <div><span className="font-semibold">Position:</span> {gene.chromosome}:{gene.start.toLocaleString()}-{gene.end.toLocaleString()}</div>
+            <div><span className="font-semibold">Strand:</span> {gene.strand || 'NA'}</div>
+            <div><span className="font-semibold">Class:</span> {gene.class || 'NA'}</div>
+            <div><span className="font-semibold">Gene ID:</span> {gene.GeneID || 'NA'}</div>
+            <div><span className="font-semibold">Locus Tag:</span> {gene.locus_tag || 'NA'}</div>
+            <div><span className="font-semibold">Accession:</span> {gene.genomic_accession || 'NA'}</div>
+          </div>
+        </div>
+      )
     });
   };
 
@@ -711,6 +711,8 @@ export function ChromosomeSynteny({
           onHover: handleElementHover,
           onMove: handleElementMove,
           onLeave: handleElementLeave,
+          onGeneHover: handleGeneHover,
+          onGeneLeave: handleElementLeave,
           container: g,
           annotations: referenceGenomeData?.geneAnnotations,
           showAnnotations,
@@ -723,21 +725,8 @@ export function ChromosomeSynteny({
       });
     });
 
-    // Use filtered synteny data
-    const filteredData = filteredSyntenyData.filter(link => {
-      const refChr = `ref:${link.ref_chr}`;
-      const queryChr = `${link.query_name}:${link.query_chr}`;
-      
-      // If no chromosomes are selected, show all
-      if (selectedChromosomes.length === 0) return true;
-      
-      // Only show ribbons between selected chromosomes
-      return selectedChromosomes.includes(refChr) && 
-             selectedChromosomes.includes(queryChr);
-    });
-
     // Sort filtered data by block size (largest to smallest)
-    const sortedData = filteredData.sort((a, b) => {
+    const sortedData = filteredSyntenyData.sort((a, b) => {
       const sizeA = (a.ref_end - a.ref_start) * (a.query_end - a.query_start);
       const sizeB = (b.ref_end - b.ref_start) * (b.query_end - b.query_start);
       return sizeB - sizeA; // Render largest blocks first (they'll be at the bottom)
@@ -786,6 +775,7 @@ export function ChromosomeSynteny({
         selectedChromosomes,
         mutationType,
         useCustomColors: Boolean(mutationType),
+        mutationColors: allMutationColors,
       });
     });
 
@@ -848,10 +838,11 @@ export function ChromosomeSynteny({
       const refSpeciesIndex = uniqueSpecies.indexOf(referenceSpecies);
       const refY = refSpeciesIndex * speciesSpacing + speciesSpacing;
       
-      // Position the label just below the reference species (add a small offset)
-      const labelY = refY + CHROMOSOME_CONFIG.HEIGHT + 20; // 20px offset
+      // Position the label to be vertically aligned with the mirrored chromosome
+      const mirroredChrY = refY + CHROMOSOME_CONFIG.HEIGHT + 10; // Position of the mirrored chromosome
+      const labelY = mirroredChrY + (CHROMOSOME_CONFIG.HEIGHT / 2); // Center of the mirrored chromosome
       
-      // Add single "Breakpoint" label
+      // Add "Breakpoints" label
       g.append("text")
         .attr("x", -10)  // Same x position as species labels
         .attr("y", labelY)
@@ -861,15 +852,15 @@ export function ChromosomeSynteny({
         .attr("font-family", "var(--font-geist-mono)")
         .attr("class", "text-muted-foreground")
         .attr("fill", "currentColor")
-        .text("Breakpoint");
+        .text("Breakpoints");
     }
 
   }, [
-    referenceData, 
-    filteredSyntenyData, 
-    dimensions, 
-    alignmentFilter, 
-    selectedSynteny, 
+    referenceData,
+    syntenyData,
+    dimensions,
+    alignmentFilter,
+    selectedSynteny,
     onSyntenySelect,
     referenceGenomeData,
     showAnnotations,
@@ -1120,6 +1111,8 @@ export function ChromosomeSynteny({
             zoomLevel={zoom}
             onViewMutations={() => setIsMutationDrawerOpen(true)}
             fullscreenContainerRef={containerRef}
+            onAddCustomMutationType={handleAddCustomMutationType}
+            mutationColors={allMutationColors}
           />
         </div>
 
@@ -1128,6 +1121,8 @@ export function ChromosomeSynteny({
           onClose={() => setIsMutationDrawerOpen(false)}
           selectedSynteny={selectedSynteny}
           selectedMutationTypes={selectedMutationTypes}
+          mutationColors={allMutationColors}
+          mutationFullNames={allMutationFullNames}
         />
 
         {/* Main Content Area */}
@@ -1154,18 +1149,9 @@ export function ChromosomeSynteny({
               />
             </div>
 
-            {showTooltips && (
-              <>
-                <Tooltip info={debouncedHoverInfo} />
-                {hoveredGene && (
-                  <GeneTooltip
-                    gene={hoveredGene.gene}
-                    x={hoveredGene.x}
-                    y={hoveredGene.y}
-                  />
-                )}
-              </>
-            )}
+          {showTooltips && (
+            <Tooltip info={debouncedHoverInfo} />
+          )}
 
             <div className="absolute left-4 bottom-16 z-20 hidden md:block scale-90">
               <div className="inline-grid w-fit grid-cols-3 gap-1">

@@ -11,7 +11,7 @@ import 'konva/lib/shapes/Line';
 import Konva from 'konva';
 import * as d3 from 'd3';
 import { ChromosomeData, SyntenyData } from '../types';
-import { MutationType } from '@/components/chromoviz/synteny-ribbon';
+import { MutationType, MUTATION_COLORS, mutationFullNames as initialMutationFullNames } from '@/components/chromoviz/synteny-ribbon';
 import { MutationTypeDataDrawer } from '@/components/chromoviz/mutation-type-data-drawer';
 
 interface KonvaSyntenyProps {
@@ -41,6 +41,8 @@ export const KonvaSynteny: React.FC<KonvaSyntenyProps> = ({ referenceData: initi
   const [selectedSynteny, setSelectedSynteny] = useState<SyntenyData[]>([]);
   const [selectedMutationTypes, setSelectedMutationTypes] = useState<Map<string, MutationType>>(new Map());
   const [customSpeciesColors, setCustomSpeciesColors] = useState<Map<string, string>>(new Map());
+  const [mutationColors, setMutationColors] = useState<Record<string, string>>(MUTATION_COLORS);
+  const [mutationFullNames, setMutationFullNames] = useState<Record<string, string>>(initialMutationFullNames);
   const [showConnectedOnly, setShowConnectedOnly] = useState(false);
   const stageRef = useRef<Konva.Stage>(null);
   const [isMutationDrawerOpen, setIsMutationDrawerOpen] = useState(false);
@@ -149,9 +151,13 @@ export const KonvaSynteny: React.FC<KonvaSyntenyProps> = ({ referenceData: initi
     console.log(`Export as ${format.toUpperCase()} functionality not implemented yet.`);
   };
 
-  const handleMutationTypeSelect = (syntenyId: string, mutationType: MutationType) => {
+  const handleMutationTypeSelect = (syntenyId: string, mutationType?: MutationType) => {
     const updatedMutationTypes = new Map(selectedMutationTypes);
-    updatedMutationTypes.set(syntenyId, mutationType);
+    if (mutationType) {
+      updatedMutationTypes.set(syntenyId, mutationType);
+    } else {
+      updatedMutationTypes.delete(syntenyId);
+    }
     setSelectedMutationTypes(updatedMutationTypes);
   };
 
@@ -159,6 +165,12 @@ export const KonvaSynteny: React.FC<KonvaSyntenyProps> = ({ referenceData: initi
     const updatedColors = new Map(customSpeciesColors);
     updatedColors.set(species, color);
     setCustomSpeciesColors(updatedColors);
+  };
+
+  const handleAddCustomMutationType = (name: string, color: string) => {
+    const newKey = name.toUpperCase().replace(/\s/g, '_');
+    setMutationColors(prev => ({ ...prev, [newKey]: color }));
+    setMutationFullNames(prev => ({ ...prev, [newKey]: name }));
   };
 
   const filteredSyntenyData = syntenyData.filter(link => {
@@ -193,6 +205,8 @@ export const KonvaSynteny: React.FC<KonvaSyntenyProps> = ({ referenceData: initi
               setShowConnectedOnly={() => setShowConnectedOnly(!showConnectedOnly)}
               zoomLevel={stage.scale}
               onViewMutations={() => setIsMutationDrawerOpen(true)}
+              onAddCustomMutationType={handleAddCustomMutationType}
+              mutationColors={mutationColors}
             />
       </div>
       <MutationTypeDataDrawer
@@ -200,6 +214,8 @@ export const KonvaSynteny: React.FC<KonvaSyntenyProps> = ({ referenceData: initi
         onClose={() => setIsMutationDrawerOpen(false)}
         selectedSynteny={selectedSynteny}
         selectedMutationTypes={selectedMutationTypes}
+        mutationColors={mutationColors}
+        mutationFullNames={mutationFullNames}
       />
       <Stage
         ref={stageRef}

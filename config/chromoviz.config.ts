@@ -38,15 +38,15 @@ export type GeneClass = keyof typeof GENE_ANNOTATION_CONFIG.COLORS;
 
 export interface GeneAnnotation {
   chromosome: string;
-  genomicAccession: string;
+  genomic_accession: string;
   start: number;
   end: number;
   strand: '+' | '-';
   class: GeneClass;
-  locusTag?: string | null;
+  locus_tag?: string | null;
   symbol?: string | null;
   name?: string | null;
-  geneId: string;
+  GeneID: string;
 }
 
 export const SYNTENY_COLORS = {

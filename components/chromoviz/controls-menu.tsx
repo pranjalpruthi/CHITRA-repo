@@ -22,8 +22,10 @@ import {
   DropdownMenuSubTrigger,
   DropdownMenuPortal
 } from "@/components/ui/dropdown-menu";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 import { SyntenyData, ChromosomeData } from "@/app/types"; // Adjusted path
-import { MutationType, MUTATION_COLORS } from "@/components/chromoviz/synteny-ribbon"; // Assuming this is the correct path
+import { MutationType, MUTATION_COLORS, mutationFullNames } from "@/components/chromoviz/synteny-ribbon"; // Assuming this is the correct path
 import { cn } from "@/lib/utils";
 import { Label } from "@/components/ui/label";
 import { Palette, LucideIcon } from "lucide-react";
@@ -31,54 +33,59 @@ import { Badge } from "@/components/ui/badge";
 import { AlignmentFilterButton } from "@/components/chromoviz/alignment-filter-button";
 
 
-const MutationTypeSelector = ({ 
+const MutationTypeSelector = ({
   onSelect,
-  currentType 
-}: { 
-  onSelect: (type: MutationType) => void;
+  currentType,
+  mutationColors,
+  mutationFullNames,
+  onAddCustom,
+}: {
+  onSelect: (type?: MutationType) => void;
   currentType?: MutationType;
+  mutationColors: Record<string, string>;
+  mutationFullNames: Record<string, string>;
+  onAddCustom: () => void;
 }) => {
-  // Mapping of mutation type abbreviations to full names
-  const mutationFullNames: Record<string, string> = {
-    SYN: "Synteny",
-    DUP: "Duplication",
-    INV: "Inversion",
-    TRANS: "Translocation",
-    INVTR: "Inverted Translocation",
-    INVDP: "Inverted Duplication"
-  };
-
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button 
-          variant="outline" 
+        <Button
+          variant="outline"
           className={cn(
             "h-7 gap-2",
-            currentType && `border-${MUTATION_COLORS[currentType]}/50 text-${MUTATION_COLORS[currentType]}`
+            currentType && `border-${mutationColors[currentType]}/50 text-${mutationColors[currentType]}`
           )}
         >
-          <div 
-            className="h-3 w-3 rounded-full" 
-            style={{ backgroundColor: currentType ? MUTATION_COLORS[currentType] : 'currentColor' }} 
+          <div
+            className="h-3 w-3 rounded-full"
+            style={{ backgroundColor: currentType ? mutationColors[currentType] : 'currentColor' }}
           />
-          {currentType ? mutationFullNames[currentType] || currentType : 'Set Mutation Type'}
+          {currentType ? mutationFullNames[currentType] || currentType : 'Set Type'}
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent>
-        {Object.entries(MUTATION_COLORS).map(([type, color]) => (
+        <DropdownMenuItem onClick={() => onSelect(undefined)} className="gap-2">
+          <div className="h-3 w-3 rounded-full border" />
+          None
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        {Object.entries(mutationColors).map(([type, color]) => (
           <DropdownMenuItem
             key={type}
             onClick={() => onSelect(type as MutationType)}
             className="gap-2"
           >
-            <div 
-              className="h-3 w-3 rounded-full" 
-              style={{ backgroundColor: color }} 
+            <div
+              className="h-3 w-3 rounded-full"
+              style={{ backgroundColor: color }}
             />
             {mutationFullNames[type] || type}
           </DropdownMenuItem>
         ))}
+        <DropdownMenuSeparator />
+        <DropdownMenuItem onClick={onAddCustom}>
+          Add Custom Type...
+        </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );
@@ -98,9 +105,11 @@ interface ControlsMenuProps {
   handleExportImage: (format: 'png' | 'jpg') => void;
   selectedSynteny: SyntenyData[];
   selectedMutationTypes: Map<string, MutationType>;
-  onMutationTypeSelect: (syntenyId: string, mutationType: MutationType) => void;
+  onMutationTypeSelect: (syntenyId: string, mutationType?: MutationType) => void;
   customSpeciesColors: Map<string, string>;
   onSpeciesColorChange: (species: string, color: string) => void;
+  onAddCustomMutationType: (name: string, color: string) => void;
+  mutationColors: Record<string, string>;
   speciesData: ChromosomeData[]; // Assuming ChromosomeData contains species_name
   showConnectedOnly: boolean;
   setShowConnectedOnly: (show: boolean) => void;
@@ -132,10 +141,22 @@ export const ControlsMenu = ({
   zoomLevel,
   onViewMutations,
   fullscreenContainerRef,
+  onAddCustomMutationType,
+  mutationColors,
 }: ControlsMenuProps) => {
   const [showColorPanel, setShowColorPanel] = useState(false);
   const [showMutationPanel, setShowMutationPanel] = useState(false);
   const [showExportPanel, setShowExportPanel] = useState(false);
+  const [isAddTypeDialogOpen, setIsAddTypeDialogOpen] = useState(false);
+  const [newTypeName, setNewTypeName] = useState("");
+  const [newTypeColor, setNewTypeColor] = useState("#ff0000");
+
+  const handleAddCustom = () => {
+    onAddCustomMutationType(newTypeName, newTypeColor);
+    setNewTypeName("");
+    setNewTypeColor("#ff0000");
+    setIsAddTypeDialogOpen(false);
+  };
 
   const desktopControls = (
     <>
@@ -265,6 +286,9 @@ export const ControlsMenu = ({
                           <MutationTypeSelector
                             currentType={currentType}
                             onSelect={(type) => onMutationTypeSelect(syntenyId, type)}
+                            mutationColors={mutationColors}
+                            mutationFullNames={mutationFullNames}
+                            onAddCustom={() => setIsAddTypeDialogOpen(true)}
                           />
                         </div>
                       );
@@ -321,6 +345,7 @@ export const ControlsMenu = ({
   );
 
   return (
+    <>
     <div className="flex items-center justify-between w-full gap-2 p-1 bg-background/10 backdrop-blur-md border-b border-border/20 flex-wrap">
       {/* Left Side: Alignment Filters */}
       <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
@@ -488,6 +513,9 @@ export const ControlsMenu = ({
                             <MutationTypeSelector
                               currentType={currentType}
                               onSelect={(type) => onMutationTypeSelect(syntenyId, type)}
+                              mutationColors={mutationColors}
+                              mutationFullNames={mutationFullNames}
+                              onAddCustom={() => setIsAddTypeDialogOpen(true)}
                             />
                           </DropdownMenuItem>
                         );
@@ -529,5 +557,42 @@ export const ControlsMenu = ({
         </div>
       </div>
     </div>
+    <Dialog open={isAddTypeDialogOpen} onOpenChange={setIsAddTypeDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Add Custom Mutation Type</DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="name" className="text-right">
+                Name
+              </Label>
+              <Input
+                id="name"
+                value={newTypeName}
+                onChange={(e) => setNewTypeName(e.target.value)}
+                className="col-span-3"
+                placeholder="e.g. Deletion"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="color" className="text-right">
+                Color
+              </Label>
+              <Input
+                id="color"
+                type="color"
+                value={newTypeColor}
+                onChange={(e) => setNewTypeColor(e.target.value)}
+                className="col-span-3 p-1"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button onClick={handleAddCustom}>Save</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 };

@@ -26,6 +26,8 @@ interface MutationTypeDataDrawerProps {
   onClose: () => void;
   selectedSynteny: SyntenyData[];
   selectedMutationTypes: Map<string, MutationType>;
+  mutationColors: Record<string, string>;
+  mutationFullNames: Record<string, string>;
 }
 
 interface TaggedSyntenyData extends SyntenyData {
@@ -37,6 +39,8 @@ export const MutationTypeDataDrawer = ({
   onClose,
   selectedSynteny,
   selectedMutationTypes,
+  mutationColors,
+  mutationFullNames,
 }: MutationTypeDataDrawerProps) => {
 
   const getTaggedData = (): TaggedSyntenyData[] => {
@@ -88,8 +92,8 @@ export const MutationTypeDataDrawer = ({
       cell: ({ row }) => {
         const mutationType = row.original.mutationType;
         if (!mutationType) return null;
-        const color = MUTATION_COLORS[mutationType];
-        const fullName = mutationFullNames[mutationType];
+        const color = mutationColors[mutationType];
+        const fullName = mutationFullNames[mutationType] || mutationType;
         return (
           <Badge style={{ backgroundColor: color, color: 'white' }} className="px-2 py-1 rounded-full">
             {fullName}
@@ -115,7 +119,7 @@ export const MutationTypeDataDrawer = ({
       item.ref_chr, item.ref_start, item.ref_end,
       item.query_chr, item.query_start, item.query_end, item.query_strand,
       item.query_name,
-      item.mutationType ? mutationFullNames[item.mutationType] : "N/A"
+      item.mutationType ? mutationFullNames[item.mutationType] || item.mutationType : "N/A"
     ]);
 
     let csvContent = "data:text/csv;charset=utf-8,"

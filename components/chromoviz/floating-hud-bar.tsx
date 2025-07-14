@@ -66,6 +66,8 @@ interface FloatingHUDBarProps {
   onResetToWelcome: () => void;
   speciesData?: ChromosomeData[];
   onShare?: () => Promise<string | null>;
+  isDetailViewOpen: boolean;
+  onToggleDetailView: () => void;
 }
 
 export function FloatingHUDBar({
@@ -87,6 +89,8 @@ export function FloatingHUDBar({
   onResetToWelcome,
   speciesData,
   onShare, // Added onShare
+  isDetailViewOpen,
+  onToggleDetailView,
 }: FloatingHUDBarProps) {
   const x = useMotionValue(0);
   const y = useMotionValue(0);
@@ -376,6 +380,29 @@ export function FloatingHUDBar({
                   <Maximize2 className="h-3.5 w-3.5" />
                   {!isVertical && <span className="hidden sm:inline ml-1.5">Full Screen</span>}
                 </>
+              )}
+            </Button>
+
+            {/* Chord View Toggle Button */}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onToggleDetailView}
+              className={cn(
+                "transition-colors group",
+                isVertical
+                  ? "h-8 w-8 p-0"
+                  : "h-8 px-2 text-xs font-medium",
+                isDetailViewOpen
+                  ? "bg-green-500/20 text-green-600 dark:text-green-400 hover:bg-green-500/30 [&_svg]:stroke-green-500"
+                  : "bg-gray-500/20 text-gray-600 dark:text-gray-400 hover:bg-gray-500/30 [&_svg]:stroke-gray-500"
+              )}
+            >
+              <LayoutGrid className="h-3.5 w-3.5" />
+              {!isVertical && (
+                <span className="hidden sm:inline ml-1.5">
+                  {isDetailViewOpen ? "Hide Chord View" : "Show Chord View"}
+                </span>
               )}
             </Button>
 
