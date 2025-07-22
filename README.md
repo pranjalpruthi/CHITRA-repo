@@ -1,19 +1,34 @@
-# CHITRA: Interactive Chromosomal Rearrangement Visualization
-
-[![License](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
-[![Website](https://img.shields.io/website-up-down-green-red/https/chitra.bioinformaticsonline.com.svg?label=Website)](https://chitra.bioinformaticsonline.com/)
-
-CHITRA is a web-based tool for interactive visualization of synteny blocks, chromosomal rearrangements, and breakpoints.
-
-Ready to dive in?
-
 <div align="center">
-  <h2>
-    <a href="https://chitra.bioinformaticsonline.com">✨ Try it out</a>
+  
+  <h1>CHITRA: Interactive Chromosomal Rearrangement Visualization</h1>
+  <img src="https://raw.githubusercontent.com/alo7lika/PyVerse/refs/heads/main/Images/212284100-561aa473-3905-4a80-b561-0d28506553ee.gif" width="900">
+
+  <p>
+    <strong>A web-based tool for interactive visualization of synteny blocks, chromosomal rearrangements, and breakpoints</strong>
+  </p>
+
+  <p>
+    <a href="https://opensource.org/licenses/MIT">
+      <img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="MIT License">
+    </a>
+    <a href="https://chitra.bioinformaticsonline.com/">
+      <img src="https://img.shields.io/website-up-down-green-red/https/chitra.bioinformaticsonline.com.svg?label=Website" alt="Website Status">
+    </a>
+  </p>
+
+  <h3>
+    <a href="https://chitra.bioinformaticsonline.com">✨ Try CHITRA</a>
     &nbsp;•&nbsp;
-    <a href="https://chitra.bioinformaticsonline.com/docs">📖 Learn more</a>
-  </h2>
+    <a href="https://chitra.bioinformaticsonline.com/docs">📖 Documentation</a>
+  </h3>
+
+  <img src="public/assets/Chitra-meta.png" alt="CHITRA - Interactive Chromosomal Rearrangement Visualization Platform" width="650">
+
+
 </div>
+
+---
+  
 
 ## Features
 
@@ -22,11 +37,7 @@ Ready to dive in?
 *   Breakpoint mapping.
 *   Gene annotation integration.
 
-
-
-<img src="https://raw.githubusercontent.com/alo7lika/PyVerse/refs/heads/main/Images/212284100-561aa473-3905-4a80-b561-0d28506553ee.gif" width="900">
-
-
+---
 
 Example data files, which can serve as a useful starting point or template for your own datasets, are located in the `/public/example` directory of this repository.
 
@@ -114,12 +125,6 @@ This file contains information about chromosome breakpoints.
 | `breakpoint` | Breakpoint identifier |
 
 
-&lt;p align="center">
-  &lt;img src="public/assets/workflow.png" alt="CHITRA Workflow" width="600">
-  &lt;br>
-  &lt;em>Figure 1. CHITRA workflow.&lt;/em>
-&lt;/p>
-
 
 ## Implementation
 
@@ -137,9 +142,12 @@ Built with ❤️, React, ShadCN UI, Tailwind CSS, Motion, D3.js, and jsSVG.
 
 Deploy CHITRA instantly with these platforms:
 
-[![Deploy on Render](https://img.shields.io/badge/Deploy%20on-Render-46E3B7?style=for-the-badge&logo=render&logoColor=white)](https://render.com/deploy?repo=https://github.com/pranjalpruthi/CHITRA)
+
 [![Deploy on Vercel](https://img.shields.io/badge/Deploy%20on-Vercel-000000?style=for-the-badge&logo=vercel&logoColor=white)](https://vercel.com/new/clone?repository-url=https://github.com/pranjalpruthi/CHITRA)
 [![Deploy on Netlify](https://img.shields.io/badge/Deploy%20on-Netlify-00C7B7?style=for-the-badge&logo=netlify&logoColor=white)](https://app.netlify.com/start/deploy?repository=https://github.com/pranjalpruthi/CHITRA)
+[![Deploy on Render](https://img.shields.io/badge/Deploy%20on-Render-46E3B7?style=for-the-badge&logo=render&logoColor=white)](https://render.com/deploy?repo=https://github.com/pranjalpruthi/CHITRA)
+
+
 
 **Self-Hosted Options:**
 - **Coolify**: Import repository URL in your Coolify dashboard
