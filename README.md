@@ -23,6 +23,11 @@ Ready to dive in?
 *   Gene annotation integration.
 
 
+
+<img src="https://raw.githubusercontent.com/alo7lika/PyVerse/refs/heads/main/Images/212284100-561aa473-3905-4a80-b561-0d28506553ee.gif" width="900">
+
+
+
 Example data files, which can serve as a useful starting point or template for your own datasets, are located in the `/public/example` directory of this repository.
 
 You can browse all example sets directly on GitHub:
@@ -132,7 +137,6 @@ Built with ❤️, React, ShadCN UI, Tailwind CSS, Motion, D3.js, and jsSVG.
 
 Deploy CHITRA instantly with these platforms:
 
-[![Deploy on Railway](https://img.shields.io/badge/Deploy%20on-Railway-0B0D0E?style=for-the-badge&logo=railway&logoColor=white)](https://railway.app/template/chitra?referralCode=chitra)
 [![Deploy on Render](https://img.shields.io/badge/Deploy%20on-Render-46E3B7?style=for-the-badge&logo=render&logoColor=white)](https://render.com/deploy?repo=https://github.com/pranjalpruthi/CHITRA)
 [![Deploy on Vercel](https://img.shields.io/badge/Deploy%20on-Vercel-000000?style=for-the-badge&logo=vercel&logoColor=white)](https://vercel.com/new/clone?repository-url=https://github.com/pranjalpruthi/CHITRA)
 [![Deploy on Netlify](https://img.shields.io/badge/Deploy%20on-Netlify-00C7B7?style=for-the-badge&logo=netlify&logoColor=white)](https://app.netlify.com/start/deploy?repository=https://github.com/pranjalpruthi/CHITRA)
