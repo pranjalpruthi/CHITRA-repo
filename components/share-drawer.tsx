@@ -1,210 +1,180 @@
-"use client"
+'use client'
 
-import { Button } from "@/components/ui/button"
-import {
-  Drawer,
-  DrawerContent,
-  DrawerHeader,
-  DrawerTitle,
-  DrawerDescription,
-  DrawerTrigger,
-} from "@/components/ui/drawer"
-import { Share2, Twitter, Facebook, Copy, Send, Link as LinkIcon, Mail, Info } from "lucide-react"
-import { toast } from "sonner"
-import { Separator } from "@/components/ui/separator"
-import React from 'react';
-import { motion } from 'motion/react'
+import React, { useState, useEffect } from 'react';
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger } from '@/components/ui/drawer';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
+import { supabase } from '@/lib/supabaseClient';
+import { User } from '@supabase/supabase-js';
+import { toast } from 'sonner';
+import { Share2, Copy, Trash2, Link as LinkIcon, Eye, EyeOff } from 'lucide-react';
 
-export function ShareDrawer({ mobile = false }) {
-  const [isOpen, setIsOpen] = React.useState(false)
+interface SharedLink {
+  id: string;
+  title: string;
+  is_public: boolean;
+  created_at: string;
+}
 
-  const handleShare = async (platform: string) => {
-    const url = window.location.href
-    const title = "Check out Chitra - Chromosome Interactive Tool for Rearrangement Analysis"
-    const text = "Chitra: A powerful tool for chromosome rearrangement analysis and visualization"
-    const citation = `Chitra - Chromosome Interactive Tool for Rearrangement Analysis
-Version: 1.0.0
-URL: ${url}
-Authors: [Author Names]
-Repository: https://github.com/[repo]
-License: Apache 2.0
+interface ShareDrawerProps {
+  user: User | null;
+  onShare: (title: string, isPublic: boolean) => Promise<string | null>;
+}
 
-Please cite this tool as:
-[Authors]. (2024). Chitra: Interactive Tool for Chromosome Analysis. [DOI]`
+export function ShareDrawer({ user, onShare }: ShareDrawerProps) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [title, setTitle] = useState('');
+  const [isPublic, setIsPublic] = useState(true);
+  const [sharedLinks, setSharedLinks] = useState<SharedLink[]>([]);
 
-    switch (platform) {
-      case 'twitter':
-        window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`, '_blank')
-        break
-      case 'facebook':
-        window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`, '_blank')
-        break
-      case 'email':
-        window.open(`mailto:?subject=${encodeURIComponent(title)}&body=${encodeURIComponent(text + '\n\n' + url)}`, '_blank')
-        break
-      case 'whatsapp':
-        window.open(`https://wa.me/?text=${encodeURIComponent(title + '\n' + url)}`, '_blank')
-        break
-      case 'copy':
-        await navigator.clipboard.writeText(citation)
-        toast.success('Citation copied to clipboard!')
-        break
-      case 'link':
-        await navigator.clipboard.writeText(url)
-        toast.success('Link copied to clipboard!')
-        break
+  useEffect(() => {
+    if (isOpen && user) {
+      fetchSharedLinks();
     }
-  }
+  }, [isOpen, user]);
 
-  const trigger = mobile ? (
-    <button className="relative flex flex-col items-center gap-1 p-2 transition-all text-muted-foreground hover:text-primary" onClick={() => setIsOpen(true)}>
-      <div className="relative">
-        <Share2 className="h-5 w-5" />
-      </div>
-      <span className="text-xs font-medium">Share</span>
-    </button>
-  ) : (
-    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setIsOpen(true)}>
-      <Share2 className="h-4 w-4" />
-    </Button>
-  )
+  const fetchSharedLinks = async () => {
+    if (!user) return;
+    const { data, error } = await supabase
+      .from('shared_visualizations')
+      .select('id, title, is_public, created_at')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      toast.error('Failed to fetch shared links.');
+    } else {
+      setSharedLinks(data as SharedLink[]);
+    }
+  };
+
+  const handleShare = async () => {
+    if (!title) {
+      toast.error('Please enter a title for your shared link.');
+      return;
+    }
+    const shareUrl = await onShare(title, isPublic);
+    if (shareUrl) {
+      await fetchSharedLinks();
+      setTitle('');
+      setIsPublic(true);
+    }
+  };
+
+  const handleCopyLink = (id: string) => {
+    const url = `${window.location.origin}/chitra/shared/${id}`;
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(url).then(() => {
+        toast.success('Link copied to clipboard!');
+      }, () => {
+        toast.error('Failed to copy link. Please try again.');
+      });
+    } else {
+      // Fallback for insecure contexts or older browsers
+      const textArea = document.createElement('textarea');
+      textArea.value = url;
+      textArea.style.position = 'fixed';  // Prevent scrolling to bottom of page in MS Edge.
+      textArea.style.left = '-9999px';
+      document.body.appendChild(textArea);
+      textArea.focus();
+      textArea.select();
+      try {
+        document.execCommand('copy');
+        toast.success('Link copied to clipboard!');
+      } catch (err) {
+        toast.error('Failed to copy link.');
+      }
+      document.body.removeChild(textArea);
+    }
+  };
+
+  const handleDeleteLink = async (id: string) => {
+    const { error } = await supabase
+      .from('shared_visualizations')
+      .delete()
+      .eq('id', id);
+
+    if (error) {
+      toast.error('Failed to delete link.');
+    } else {
+      toast.success('Link deleted successfully.');
+      fetchSharedLinks();
+    }
+  };
+
+  const handleToggleVisibility = async (id: string, currentVisibility: boolean) => {
+    const { error } = await supabase
+      .from('shared_visualizations')
+      .update({ is_public: !currentVisibility })
+      .eq('id', id);
+
+    if (error) {
+      toast.error('Failed to update link visibility.');
+    } else {
+      toast.success('Link visibility updated.');
+      fetchSharedLinks();
+    }
+  };
 
   return (
     <Drawer open={isOpen} onOpenChange={setIsOpen}>
       <DrawerTrigger asChild>
-        {trigger}
+        <Button variant="ghost" size="icon">
+          <Share2 className="h-5 w-5" />
+        </Button>
       </DrawerTrigger>
-      <DrawerContent className="fixed bottom-0 left-0 right-0 rounded-t-[10px] bg-background/40 backdrop-blur-xl supports-[backdrop-filter]:bg-background/40">
-        <motion.div
-          className="mx-auto w-full max-w-none md:max-w-none px-4 pb-4"
-          initial={{ opacity: 0, y: 50 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-        >
-          {/* Handle - only show on mobile */}
-          <div className="sticky top-0 flex w-full items-center justify-center bg-transparent pt-4 md:hidden">
-            <div className="h-1.5 w-12 rounded-full bg-muted" />
+      <DrawerContent>
+        <DrawerHeader>
+          <DrawerTitle>Share Your Visualization</DrawerTitle>
+        </DrawerHeader>
+        <div className="p-4 space-y-6">
+          <div className="space-y-4">
+            <h3 className="text-lg font-medium">Create New Share Link</h3>
+            <div className="space-y-2">
+              <Label htmlFor="title">Title</Label>
+              <Input
+                id="title"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder="e.g., Human vs. Mouse Synteny"
+              />
+            </div>
+            <div className="flex items-center space-x-2">
+              <Switch id="is-public" checked={isPublic} onCheckedChange={setIsPublic} />
+              <Label htmlFor="is-public">Publicly accessible</Label>
+            </div>
+            <Button onClick={handleShare}>Share</Button>
           </div>
-
-          <div className="h-[60vh] md:h-[50vh] overflow-y-auto overscroll-contain">
-            <DrawerHeader className="mt-2">
-              <DrawerTitle className="text-xl font-medium">Share Our Tool</DrawerTitle>
-              <DrawerDescription className="text-sm text-muted-foreground">
-                Share this tool with your colleagues or on social media
-              </DrawerDescription>
-            </DrawerHeader>
-
-            <div className="px-6 space-y-8">
-              {/* Share Options */}
-              <div className="space-y-6">
-                <div className="grid grid-cols-4 gap-6">
-                  <Button
-                    variant="ghost"
-                    className="flex flex-col items-center gap-3 h-auto py-2 hover:bg-accent/50"
-                    onClick={() => handleShare('twitter')}
-                  >
-                    <motion.div
-                      className="w-16 h-16 rounded-2xl bg-[#1DA1F2] flex items-center justify-center shadow-lg shadow-[#1DA1F2]/40"
-                      whileHover={{ scale: 1.1 }}
-                    >
-                      <Twitter className="h-8 w-8 text-white" />
-                    </motion.div>
-                    <span className="text-xs font-medium">Twitter</span>
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    className="flex flex-col items-center gap-3 h-auto py-2 hover:bg-accent/50"
-                    onClick={() => handleShare('facebook')}
-                  >
-                    <motion.div
-                      className="w-16 h-16 rounded-2xl bg-[#4267B2] flex items-center justify-center shadow-lg shadow-[#4267B2]/40"
-                      whileHover={{ scale: 1.1 }}
-                    >
-                      <Facebook className="h-8 w-8 text-white" />
-                    </motion.div>
-                    <span className="text-xs font-medium">Facebook</span>
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    className="flex flex-col items-center gap-3 h-auto py-2 hover:bg-accent/50"
-                    onClick={() => handleShare('email')}
-                  >
-                    <motion.div
-                      className="w-16 h-16 rounded-2xl bg-[#EA4335] flex items-center justify-center shadow-lg shadow-[#EA4335]/40"
-                      whileHover={{ scale: 1.1 }}
-                    >
-                      <Mail className="h-8 w-8 text-white" />
-                    </motion.div>
-                    <span className="text-xs font-medium">Email</span>
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    className="flex flex-col items-center gap-3 h-auto py-2 hover:bg-accent/50"
-                    onClick={() => handleShare('whatsapp')}
-                  >
-                    <motion.div
-                      className="w-16 h-16 rounded-2xl bg-[#25D366] flex items-center justify-center shadow-lg shadow-[#25D366]/40"
-                      whileHover={{ scale: 1.1 }}
-                    >
-                      <Send className="h-8 w-8 text-white" />
-                    </motion.div>
-                    <span className="text-xs font-medium">WhatsApp</span>
-                  </Button>
-                </div>
-              </div>
-
-              <Separator />
-
-              {/* Copy Options */}
-              <div className="space-y-3">
-                <Button
-                  variant="ghost"
-                  className="w-full justify-start gap-4 h-14 hover:bg-accent/50"
-                  onClick={() => handleShare('link')}
-                >
-                  <motion.div
-                    className="w-10 h-10 rounded-xl bg-purple-500 flex items-center justify-center shadow-lg shadow-purple-500/40"
-                    whileHover={{ scale: 1.1 }}
-                  >
-                    <LinkIcon className="h-5 w-5 text-white" />
-                  </motion.div>
-                  <span className="font-medium">Copy Link</span>
-                </Button>
-                <Button
-                  variant="ghost"
-                  className="w-full justify-start gap-4 h-14 hover:bg-accent/50"
-                  onClick={() => handleShare('copy')}
-                >
-                  <motion.div
-                    className="w-10 h-10 rounded-xl bg-blue-500 flex items-center justify-center shadow-lg shadow-blue-500/40"
-                    whileHover={{ scale: 1.1 }}
-                  >
-                    <Copy className="h-5 w-5 text-white" />
-                  </motion.div>
-                  <span className="font-medium">Copy Citation</span>
-                </Button>
-              </div>
-
-              <Separator />
-
-              {/* Tool Info */}
-              <div className="space-y-3">
-                <div className="flex items-center gap-3 text-sm">
-                  <div className="w-10 h-10 rounded-xl bg-gray-500/10 flex items-center justify-center">
-                    <Info className="h-5 w-5" />
-                  </div>
-                  <div className="space-y-1">
-                    <p className="font-medium">About Our Tool</p>
-                    <p className="text-xs text-muted-foreground">
-                      Version 1.0.0 • Apache 2.0 License • 2024
+          <div className="space-y-4">
+            <h3 className="text-lg font-medium">Your Shared Links</h3>
+            <div className="space-y-2 max-h-60 overflow-y-auto">
+              {sharedLinks.map((link) => (
+                <div key={link.id} className="flex items-center justify-between p-2 border rounded-lg">
+                  <div>
+                    <p className="font-semibold">{link.title}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {new Date(link.created_at).toLocaleString()}
                     </p>
                   </div>
+                  <div className="flex items-center gap-2">
+                    <Button variant="ghost" size="icon" onClick={() => handleCopyLink(link.id)}>
+                      <Copy className="h-4 w-4" />
+                    </Button>
+                    <Button variant="ghost" size="icon" onClick={() => handleToggleVisibility(link.id, link.is_public)}>
+                      {link.is_public ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
+                    </Button>
+                    <Button variant="ghost" size="icon" onClick={() => handleDeleteLink(link.id)}>
+                      <Trash2 className="h-4 w-4 text-red-500" />
+                    </Button>
+                  </div>
                 </div>
-              </div>
+              ))}
             </div>
           </div>
-        </motion.div>
+        </div>
       </DrawerContent>
     </Drawer>
-  )
+  );
 }

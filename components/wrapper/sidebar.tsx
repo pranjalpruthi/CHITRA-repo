@@ -9,7 +9,6 @@ import { useState } from "react"
 import clsx from "clsx"
 import { AboutSheet } from "@/components/chromoviz/about"
 import { GuideSheet } from "@/components/chromoviz/guide"
-import { ShareDrawer } from "@/components/share-drawer"
 import { Separator } from "@/components/ui/separator"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 import { ShinyRotatingBorderButton } from "@/components/ui/shiny-rotating-border-button"
@@ -228,7 +227,6 @@ export function Sidebar() {
               <span className="text-xs font-medium">Guide</span>
             </button>
 
-            <ShareDrawer mobile />
           </div>
         </nav>
         <GuideSheet open={isGuideSheetOpen} onOpenChange={setIsGuideSheetOpen} />

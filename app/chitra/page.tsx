@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { ChromosomeSynteny } from './chromosome-synteny';
+import { ChromosomeSynteny } from './linear-view';
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -30,7 +30,6 @@ import { FlipButton } from "@/components/ui/flip";
 import { Switch } from "@/components/ui/switch";
 import { ChordView } from "./chord-view";
 import { Label } from "@/components/ui/label"
-import { SyntenyTable } from "@/components/chromoviz/synteny-table"; // This is the floating button
 import { InlineSyntenyDisplay } from "@/components/chromoviz/inline-synteny-display"; 
 import { RawDataTablesDisplay } from "@/components/chromoviz/data-viewer-drawer"; // Changed import
 import PageWrapper from '@/components/wrapper/page-wrapper';
@@ -40,6 +39,12 @@ import { FileUploaderGroup } from "@/components/chromoviz/file-uploader";
 import { TipsCarousel } from "@/components/chromoviz/tips-carousel";
 import { useRouter, useSearchParams } from 'next/navigation';
 import { MutationType } from "@/components/chromoviz/synteny-ribbon";
+import { ConfigProps } from "@/components/chromoviz/settings-panel";
+import {
+  CHROMOSOME_CONFIG,
+  GENE_ANNOTATION_CONFIG,
+  OPTIMIZATION_CONFIG,
+} from "@/config/chromoviz.config";
 import BreathingText from "@/components/ui/breathing-text";
 import { supabase } from '@/lib/supabaseClient'; 
 import { toast } from "sonner";
@@ -128,9 +133,56 @@ interface VisualizationState {
   isDetailViewOpen?: boolean; // Optional, as it might not always be relevant
   currentSelectedBlockIndex?: number; // Optional
   // Add other relevant UI states if necessary
+  chordViewConfig?: Partial<SyntenyViewConfig>;
   
   // User Info
   user_id?: string;
+}
+
+// Add this interface for ChordView config
+interface SyntenyViewConfig {
+  visual: {
+    ribbonOpacity: number;
+    blockOpacity: number;
+    trackWidth: number;
+    gapAngle: number;
+    colors: {
+      reference: string;
+      query: string;
+      forwardStrand: string;
+      reverseStrand: string;
+    };
+  };
+  annotations: {
+    show: boolean;
+    height: number;
+    spacing: number;
+    colors: any; // Simplified for state, as colors are complex
+  };
+  scale: {
+    showTicks: boolean;
+    tickCount: number;
+    tickLength: number;
+    showLabels: boolean;
+    fontSize: number;
+  };
+  interaction: {
+    enableZoom: boolean;
+    zoomExtent: [number, number];
+    showTooltips: boolean;
+  };
+  markers: {
+    tickLength: number;
+    textOffset: number;
+    fontSize: number;
+    strokeWidth: number;
+    markerRadius: number;
+    dashPattern: [number, number];
+    colors: {
+      reference: string;
+      query: string;
+    };
+  };
 }
 
 // Add a loading skeleton component
@@ -332,7 +384,7 @@ function ChromoVizContent() {
   const [currentBlockIndex, setCurrentBlockIndex] = useState<number>(0);
   const router = useRouter();
   const [isAtRoot, setIsAtRoot] = useState(true);
-  const [isDetailViewOpen, setIsDetailViewOpen] = useState(true);
+  const [isDetailViewOpen, setIsDetailViewOpen] = useState(false);
   const [selectedMutationTypes, setSelectedMutationTypes] = useState<Map<string, MutationType>>(new Map());
   const [customSpeciesColors, setCustomSpeciesColors] = useState<Map<string, string>>(new Map());
   const [showKonvaDemo, setShowKonvaDemo] = useState(false); // State for Konva demo
@@ -341,6 +393,35 @@ function ChromoVizContent() {
   const [user, setUser] = useState<User | null>(null);
   const [currentDatasetId, setCurrentDatasetId] = useState<string | null>(null);
   const [initialTransform, setInitialTransform] = useState<any>(null);
+  const [chordViewConfig, setChordViewConfig] = useState<Partial<SyntenyViewConfig>>({});
+  const [config, setConfig] = useState<ConfigProps>({
+    chromosomeHeight: CHROMOSOME_CONFIG.HEIGHT,
+    chromosomeSpacing: CHROMOSOME_CONFIG.SPACING,
+    annotationHeight: GENE_ANNOTATION_CONFIG.HEIGHT,
+    maxVisibleGenes: OPTIMIZATION_CONFIG.MAX_VISIBLE_GENES,
+    customSpeciesColors: new Map(),
+  });
+
+  const handleConfigChange = useCallback((newConfig: Partial<ConfigProps>) => {
+    setConfig(prev => ({ ...prev, ...newConfig }));
+  }, []);
+
+  const handleResetLayout = useCallback(() => {
+    setConfig(prev => ({
+      ...prev,
+      chromosomeHeight: CHROMOSOME_CONFIG.HEIGHT,
+      chromosomeSpacing: CHROMOSOME_CONFIG.SPACING,
+      annotationHeight: GENE_ANNOTATION_CONFIG.HEIGHT,
+    }));
+    toast.success("Layout settings have been reset to default.");
+  }, []);
+
+  useEffect(() => {
+    setConfig(prevConfig => ({
+      ...prevConfig,
+      customSpeciesColors: customSpeciesColors
+    }));
+  }, [customSpeciesColors]);
   
   useEffect(() => {
     const checkUser = async () => {
@@ -878,6 +959,12 @@ function ChromoVizContent() {
     });
   }, []);
 
+  const handleResetSpeciesColors = useCallback(() => {
+    setCustomSpeciesColors(new Map());
+    localStorage.removeItem('speciesColors');
+    toast.success("Species colors have been reset to their default values.");
+  }, []);
+
   // Save colors to localStorage when they change
   useEffect(() => {
     if (customSpeciesColors.size > 0) {
@@ -975,6 +1062,10 @@ function ChromoVizContent() {
                   .scale(state.mainViewTransform.k);
                 setInitialTransform(transform);
             }
+
+            if (state.chordViewConfig) {
+              setChordViewConfig(state.chordViewConfig);
+            }
             
             setShowAnnotations(state.showAnnotations !== undefined ? state.showAnnotations : true);
             setShowTooltips(state.showTooltips !== undefined ? state.showTooltips : true);
@@ -1006,7 +1097,7 @@ function ChromoVizContent() {
     }
   }, [initialTransform, syntenyData]);
 
-  const handleShare = async (): Promise<string | null> => {
+  const handleShare = async (title: string, isPublic: boolean): Promise<string | null> => {
     if (!user) {
       toast.error("Please sign in to share your visualization.", {
         action: {
@@ -1048,31 +1139,18 @@ function ChromoVizContent() {
         showTooltips,
         isDetailViewOpen,
         currentSelectedBlockIndex: currentBlockIndex,
+        chordViewConfig: chordViewConfig,
         user_id: user.id,
       };
 
-      const { error: dbError } = await supabase
+      const { data, error } = await supabase
         .from('shared_visualizations')
-        .insert([{ visualization_state: stateToSave, user_id: user.id }]);
-
-      if (dbError) {
-        throw dbError;
-      }
-
-      const { data, error: selectError } = await supabase
-        .from('shared_visualizations')
-        .select('id')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false })
-        .limit(1)
+        .insert([{ visualization_state: stateToSave, user_id: user.id, title, is_public: isPublic }])
+        .select()
         .single();
-      
-      if (selectError) {
-        throw selectError;
-      }
 
-      if (dbError) {
-        throw dbError;
+      if (error) {
+        throw error;
       }
 
       if (data?.id) {
@@ -1153,10 +1231,27 @@ function ChromoVizContent() {
                   onToggleTooltips={() => setShowTooltips(!showTooltips)}
                   onResetToWelcome={handleResetToWelcome}
                   speciesData={speciesData}
-                  onShare={handleShare} // Pass the handleShare function
+                  onShare={handleShare}
                   user={user}
                   isDetailViewOpen={isDetailViewOpen}
                   onToggleDetailView={() => setIsDetailViewOpen(prev => !prev)}
+                  selectedSynteny={selectedSynteny}
+                  onToggleSelection={handleSyntenyToggle}
+                  onSelectBlock={(block) => {
+                    const index = selectedSynteny.findIndex(b => 
+                      b.ref_chr === block.ref_chr && 
+                      b.query_chr === block.query_chr && 
+                      b.ref_start === block.ref_start
+                    );
+                    if (index !== -1) {
+                      setCurrentBlockIndex(index);
+                    }
+                  }}
+                  currentBlockIndex={currentBlockIndex}
+                  onExport={(data) => downloadCSV(
+                    data,
+                    `synteny-blocks-${new Date().toISOString().split('T')[0]}.csv`
+                  )}
                 />
 
                 {/* Responsive Layout for Visualization and Details */}
@@ -1253,8 +1348,12 @@ function ChromoVizContent() {
                             onMutationTypeSelect={handleMutationTypeSelect}
                             customSpeciesColors={customSpeciesColors}
                             onSpeciesColorChange={handleSpeciesColorChange}
+                            onResetSpeciesColors={handleResetSpeciesColors}
                             showConnectedOnly={showConnectedOnly}
                             setShowConnectedOnly={setShowConnectedOnly}
+                            config={config}
+                            onConfigChange={handleConfigChange}
+                            onResetLayout={handleResetLayout}
                           />
                         </div>
                       ) : (
@@ -1447,6 +1546,8 @@ function ChromoVizContent() {
                               isFullscreen={isDetailedViewFullscreen}
                               onFullscreen={setIsDetailedViewFullscreen}
                               showTooltips={showTooltips}
+                              config={chordViewConfig}
+                              onConfigChange={setChordViewConfig}
                             />
                           </div>
                         </CardContent>
@@ -1454,29 +1555,6 @@ function ChromoVizContent() {
                     </div>
                   )}
                 </div>
-
-                {/* Floating Synteny Table Button */}
-                {!showWelcomeCard && (syntenyData.length > 0 || speciesData.length > 0 || referenceData) && (
-                  <SyntenyTable
-                    selectedSynteny={selectedSynteny}
-                    onToggleSelection={handleSyntenyToggle}
-                    onSelectBlock={(block) => {
-                      const index = selectedSynteny.findIndex(b => 
-                        b.ref_chr === block.ref_chr && 
-                        b.query_chr === block.query_chr && 
-                        b.ref_start === block.ref_start
-                      );
-                      if (index !== -1) {
-                        setCurrentBlockIndex(index);
-                      }
-                    }}
-                    currentBlockIndex={currentBlockIndex}
-                    onExport={(data) => downloadCSV(
-                      data,
-                      `synteny-blocks-${new Date().toISOString().split('T')[0]}.csv`
-                    )}
-                  />
-                )}
 
                 {/* Inline Tables Section - Below Visualization and Details */}
                 {!isFullScreen && !showWelcomeCard && (syntenyData.length > 0 || speciesData.length > 0 || referenceData) && (

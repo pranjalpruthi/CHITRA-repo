@@ -13,17 +13,9 @@ import { ShinyRotatingBorderButton } from "@/components/ui/shiny-rotating-border
 import { AboutSheet } from "@/components/chromoviz/about"
 import { GuideSheet } from "@/components/chromoviz/guide"
 import { Button } from "@/components/ui/button"
-import { ShareDrawer } from "@/components/share-drawer"
-import { useToast } from "@/components/ui/use-toast"
 import { toast } from "sonner"
 import { supabase } from "@/lib/supabaseClient"
 import { User } from "@supabase/supabase-js"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
 
 const CITATION = `Pruthi, P., Narayan, J., Agarwal, P., Shukla, N., & Bhatia, A. (2024). CHITRA: Chromosome Interactive Tool for Rearrangement Analysis. CSIR-IGIB.`
 
@@ -307,9 +299,8 @@ export default function NavBar() {
             </div>
             <div className="flex items-center gap-1 sm:gap-2">
               {config?.auth?.enabled && (
-                <UserActions user={user} onSignOut={handleSignOut} />
+                <UserActions user={user} onSignOut={handleSignOut} onShare={async () => null}/>
               )}
-              <ShareDrawer />
               <ModeToggle />
             </div>
           </motion.div>

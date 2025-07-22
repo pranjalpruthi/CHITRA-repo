@@ -3,11 +3,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence, Transition } from 'motion/react';
 import { User as UserIcon, LogOut, Share2, X, ArrowRight, Copy, Trash2, Link as LinkIcon } from 'lucide-react';
-import { CopyButton } from '@/components/animate-ui/buttons/copy';
+import { ShareDrawer } from '@/components/share-drawer';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
-import { Skeleton } from '@/components/ui/skeleton';
 import { supabase } from '@/lib/supabaseClient';
 import { User } from '@supabase/supabase-js';
 import { toast } from 'sonner';
@@ -15,7 +14,6 @@ import { useRouter } from 'next/navigation';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ScrollArea } from '@/components/ui/scroll-area';
 import useClickOutside from '@/hooks/useClickOutside';
 import { cn } from '@/lib/utils';
 import { LogIn } from 'lucide-react';
@@ -31,7 +29,7 @@ const transition: Transition = {
   duration: 0.3,
 };
 
-export function UserActions({ user, onSignOut, onShare, isVertical }: { user: User | null; onSignOut: () => void; onShare?: () => Promise<string | null>; isVertical?: boolean }) {
+export function UserActions({ user, onSignOut, onShare, isVertical }: { user: User | null; onSignOut: () => void; onShare: (title: string, isPublic: boolean) => Promise<string | null>; isVertical?: boolean }) {
   const [activeTab, setActiveTab] = useState<string | null>(null);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -123,7 +121,6 @@ export function UserActions({ user, onSignOut, onShare, isVertical }: { user: Us
             <div className="bg-white/80 dark:bg-black/40 backdrop-blur-md border-[1.5px] border-indigo-200/50 dark:border-white/20 rounded-2xl shadow-lg overflow-hidden">
               <div className="p-2">
                 {activeTab === 'profile' && <ProfilePanel user={user} />}
-                {activeTab === 'shares' && <SharesPanel user={user} onShare={onShare} />}
                 {activeTab === 'signin' && (
                   <SignInPanel
                     email={email}
@@ -160,18 +157,7 @@ export function UserActions({ user, onSignOut, onShare, isVertical }: { user: Us
               </Avatar>
             </button>
             {isVertical && <Separator orientation="horizontal" className="w-6 my-1 bg-white/20" />}
-            <button
-              onClick={() => handleTabClick('shares')}
-              className={cn(
-                "p-2 rounded-lg transition-colors",
-                "bg-teal-500/20 text-teal-600 dark:text-teal-400 hover:bg-teal-500/30 [&_svg]:stroke-teal-500",
-                activeTab === 'shares' ? 'bg-teal-500/40' : '',
-                !isVertical && "flex items-center gap-1.5 px-3"
-              )}
-            >
-              <Share2 className="h-4 w-4" />
-              {!isVertical && <span className="text-xs font-medium">Share</span>}
-            </button>
+            <ShareDrawer user={user} onShare={onShare} />
             {!isVertical && <Separator orientation="vertical" className="h-6 mx-1 bg-white/20" />}
             <button onClick={onSignOut} className="p-2 rounded-lg transition-colors bg-red-500/20 text-red-600 dark:text-red-400 hover:bg-red-500/30 [&_svg]:stroke-red-500">
               <LogOut className="h-4 w-4" />
@@ -350,110 +336,5 @@ function ProfilePanel({ user }: { user: User | null }) {
       </div>
       <Button type="submit" size="sm" className="w-full">Save Changes</Button>
     </form>
-  );
-}
-
-function SharesPanel({ user, onShare }: { user: User | null, onShare?: () => Promise<string | null> }) {
-  const [sharedLinks, setSharedLinks] = useState<SharedLink[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    if (!user) return;
-    const fetchShares = async () => {
-      setLoading(true);
-      const { data, error } = await supabase
-        .from('shared_visualizations')
-        .select('id, created_at')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false });
-
-      if (error) {
-        toast.error('Failed to fetch shared links.');
-      } else {
-        setSharedLinks(data as SharedLink[]);
-      }
-      setLoading(false);
-    };
-    fetchShares();
-  }, [user]);
-
-  const handleDeleteShare = async (shareId: string) => {
-    const { error } = await supabase
-      .from('shared_visualizations')
-      .delete()
-      .eq('id', shareId);
-
-    if (error) {
-      toast.error('Failed to delete share link.');
-    } else {
-      setSharedLinks(sharedLinks.filter(link => link.id !== shareId));
-      toast.success('Share link deleted.');
-    }
-  };
-
-  const copyShareLink = (url: string, isNew: boolean = false) => {
-    const shareUrl = isNew ? url : `${window.location.origin}/chitra?shareId=${url}`;
-    navigator.clipboard.writeText(shareUrl);
-    toast.success("Share link copied to clipboard!");
-  };
-
-  if (loading) {
-    return <div className="p-2 space-y-2 w-48">
-      <Skeleton className="h-10 w-full" />
-      <Skeleton className="h-10 w-full" />
-    </div>
-  }
-
-  return (
-    <div className="p-2 space-y-2 w-48">
-      <div className="flex justify-between items-center px-1">
-        <h4 className="font-medium text-sm">My Shares</h4>
-        {onShare && (
-          <Button
-            size="sm"
-            variant="ghost"
-            onClick={async () => {
-              const url = await onShare();
-              if (url) {
-                copyShareLink(url, true);
-              }
-            }}
-            className="h-7"
-          >
-            <Share2 className="h-3.5 w-3.5 mr-1" />
-            Share
-          </Button>
-        )}
-      </div>
-      <ScrollArea className="h-48 w-full">
-        {sharedLinks.length > 0 ? (
-          <ul className="space-y-2 p-1">
-            {sharedLinks.map((link) => (
-              <li key={link.id} className="flex items-center justify-between p-2 bg-muted/30 rounded-md">
-                <div className="flex items-center gap-2 overflow-hidden">
-                  <LinkIcon className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                  <p className="text-xs font-mono text-primary truncate">{`...${link.id.slice(-12)}`}</p>
-                </div>
-                <div className="flex items-center gap-1">
-                  <CopyButton
-                    content={`${window.location.origin}/chitra?shareId=${link.id}`}
-                    variant="ghost"
-                    size="sm"
-                    className="h-7 w-7"
-                  />
-                  <Button variant="ghost" size="icon" className="h-7 w-7 text-red-500 hover:text-red-500" onClick={() => handleDeleteShare(link.id)}>
-                    <Trash2 className="h-3.5 w-3.5" />
-                  </Button>
-                </div>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <div className="text-center py-6 text-xs text-muted-foreground">
-            No shared links yet.
-          </div>
-        )}
-      </ScrollArea>
-    </div>
   );
 }

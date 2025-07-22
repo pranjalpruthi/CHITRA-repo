@@ -137,7 +137,7 @@ export const MutationTypeDataDrawer = ({
 
   return (
     <Drawer open={isOpen} onOpenChange={(open) => !open && onClose()} direction="left">
-      <DrawerContent className="w-full max-w-5xl mx-auto h-[100vh] flex flex-col">
+      <DrawerContent className="w-full md:max-w-5xl mx-auto h-[100vh] flex flex-col">
         <DrawerHeader>
           <DrawerTitle>Tagged Mutation Data</DrawerTitle>
           <DrawerDescription>

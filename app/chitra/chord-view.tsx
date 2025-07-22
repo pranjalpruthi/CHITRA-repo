@@ -138,7 +138,7 @@ const defaultConfig: SyntenyViewConfig = {
   },
   interaction: {
     enableZoom: true,
-    zoomExtent: [0.5, 5],
+    zoomExtent: [0.1, 20], // Allow much more zooming for gene annotations
     showTooltips: true,
   },
   markers: {

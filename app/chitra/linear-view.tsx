@@ -16,24 +16,23 @@ import { renderSyntenyRibbon } from "@/components/chromoviz/synteny-ribbon";
 import { 
   getChromosomeTooltip, 
   getSyntenyTooltip,
-  GeneTooltipData 
+  GeneTooltipData,
+  SelectionToast
 } from "@/components/chromoviz/tooltip";
 import React, { ReactElement } from "react";
 import { 
   CHROMOSOME_CONFIG,
   SYNTENY_COLORS,
-  GENE_TYPE_COLORS,
   GENE_ANNOTATION_CONFIG,
-  type GeneClass,
-  OPTIMIZATION_CONFIG
+  type GeneClass
 } from "@/config/chromoviz.config";
 import { GeneAnnotation } from "@/app/types";
 // import { SettingsPanel } from "@/components/chromoviz/settings-panel"; // No longer needed
 import { ChromosomeScrollbar } from "@/components/chromoviz/chromosome-scrollbar";
 import { ControlsMenu } from "@/components/chromoviz/controls-menu";
-import { MutationTypeDropdown } from "@/components/chromoviz/mutation-type-dropdown";
 import { MutationTypeDataDrawer } from "@/components/chromoviz/mutation-type-data-drawer";
 import { MutationType, MUTATION_COLORS, mutationFullNames } from "@/components/chromoviz/synteny-ribbon";
+import { ConfigProps } from "@/components/chromoviz/settings-panel";
 
 // First, add these type definitions at the top
 type D3Selection = d3.Selection<SVGSVGElement, unknown, null, undefined>;
@@ -95,43 +94,12 @@ interface ChromosomeSyntenyProps {
   onMutationTypeSelect: (syntenyId: string, mutationType?: MutationType) => void; // Allow undefined
   customSpeciesColors: Map<string, string>;
   onSpeciesColorChange: (species: string, color: string) => void;
+  onResetSpeciesColors: () => void;
   showConnectedOnly: boolean;
   setShowConnectedOnly: (show: boolean) => void;
-}
-
-// Add this interface for gene annotations
-interface GeneAnnotationProps {
-  gene: GeneAnnotation;
-  xScale: d3.ScaleLinear<number, number>;
-  y: number;
-  height: number;
-  onMouseEnter: (event: React.MouseEvent, gene: GeneAnnotation) => void;
-  onMouseLeave: () => void;
-}
-
-// GeneTooltip component has been moved to components/chromoviz/gene-tooltip.tsx
-
-// Add this interface for visualization settings
-interface VisualConfig {
-  chromosomeHeight: number;
-  chromosomeSpacing: number;
-  annotationHeight: number;
-  annotationSpacing: number;
-  maxTracks: number;
-  minVisibleSize: number;
-  maxVisibleGenes: number;
-  clusteringThreshold: number;
-  showAnnotations: boolean;
-  geneColors: {
-    forward: string;
-    reverse: string;
-  };
-}
-
-// Add to the renderChromosome function parameters
-interface RenderChromosomeParams {
-  // ... existing params ...
-  breakpoints?: ChromosomeBreakpoint[];
+  config: ConfigProps;
+  onConfigChange: (newConfig: Partial<ConfigProps>) => void;
+  onResetLayout: () => void;
 }
 
 const ZOOM_LEVELS = {
@@ -169,8 +137,12 @@ export function ChromosomeSynteny({
   onMutationTypeSelect,
   customSpeciesColors,
   onSpeciesColorChange,
+  onResetSpeciesColors,
   showConnectedOnly,
-  setShowConnectedOnly
+  setShowConnectedOnly,
+  config,
+  onConfigChange,
+  onResetLayout
 }: ChromosomeSyntenyProps) {
   const [zoom, setZoom] = useState(1);
   const [customMutationTypes, setCustomMutationTypes] = useState<Record<string, string>>({});
@@ -189,6 +161,8 @@ export function ChromosomeSynteny({
     width: typeof width === 'string' ? parseInt(width) : width,
     height: typeof height === 'string' ? parseInt(height) : height
   });
+  const [toastMessage, setToastMessage] = useState("");
+  const [showToast, setShowToast] = useState(false);
 
   // Add ref for tracking current transform
   const currentTransformRef = useRef<d3.ZoomTransform>(d3.zoomIdentity);
@@ -196,23 +170,6 @@ export function ChromosomeSynteny({
   // Add these refs for handling continuous pan
   const panIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const isPanningRef = useRef(false);
-
-  // Add state for visualization config
-  const [visualConfig, setVisualConfig] = useState({
-    chromosomeHeight: CHROMOSOME_CONFIG.HEIGHT,
-    chromosomeSpacing: CHROMOSOME_CONFIG.SPACING,
-    annotationHeight: GENE_ANNOTATION_CONFIG.HEIGHT,
-    annotationSpacing: GENE_ANNOTATION_CONFIG.SPACING,
-    maxTracks: GENE_ANNOTATION_CONFIG.MAX_TRACKS,
-    minVisibleSize: OPTIMIZATION_CONFIG.MIN_VISIBLE_SIZE,
-    maxVisibleGenes: OPTIMIZATION_CONFIG.MAX_VISIBLE_GENES,
-    clusteringThreshold: OPTIMIZATION_CONFIG.CLUSTERING_THRESHOLD,
-    showAnnotations: true,
-    geneColors: {
-      forward: GENE_ANNOTATION_CONFIG.COLORS.FORWARD,
-      reverse: GENE_ANNOTATION_CONFIG.COLORS.REVERSE,
-    },
-  });
 
   const handleAddCustomMutationType = useCallback((name: string, color: string) => {
     if (name && color) {
@@ -230,12 +187,6 @@ export function ChromosomeSynteny({
   const allMutationFullNames = { ...mutationFullNames, ...customFullNames };
 
 
-  const handleConfigChange = useCallback((newConfig: Partial<typeof visualConfig>) => {
-    setVisualConfig(prev => ({
-      ...prev,
-      ...newConfig
-    }));
-  }, []);
 
   // Filter synteny data before rendering
   const filteredSyntenyData = syntenyData;
@@ -431,23 +382,10 @@ export function ChromosomeSynteny({
 
   // Modified selection handler
   const handleSyntenySelection = (link: SyntenyData, isSelected: boolean) => {
-    // Store current transform before selection change
-    if (svgRef.current && zoomBehaviorRef.current) {
-      currentTransformRef.current = d3.zoomTransform(svgRef.current);
-    }
-
-    // Call the prop function instead of trying to set state directly
     onSyntenySelect(link, isSelected);
-
-    // Restore transform after selection update
-    requestAnimationFrame(() => {
-      if (svgRef.current && zoomBehaviorRef.current) {
-        d3.select(svgRef.current)
-          .transition()
-          .duration(0)
-          .call(zoomBehaviorRef.current.transform, currentTransformRef.current);
-      }
-    });
+    setToastMessage(isSelected ? "Selected" : "Deselected");
+    setShowToast(true);
+    setTimeout(() => setShowToast(false), 2000);
   };
 
   // Add this function to handle gene hover events
@@ -633,13 +571,18 @@ export function ChromosomeSynteny({
     return () => window.removeEventListener('resize', handleResize);
   }, [svgRef, containerRef]);
 
+  // Setup effect - runs only once
   useEffect(() => {
     if (!svgRef.current || !containerRef.current) return;
-    
-    const svg = d3.select(svgRef.current);
-    svg.selectAll('*').remove();
 
-    const margin = { 
+    const svg = d3.select(svgRef.current);
+    svg.selectAll('*').remove(); // Clear SVG on initial setup
+
+    // Resolve font at render time to avoid serif fallback
+    const computedStyle = getComputedStyle(document.documentElement);
+    const resolvedFont = computedStyle.getPropertyValue('--font-geist-mono').trim() || 'ui-monospace, "SF Mono", Monaco, "Cascadia Code", "Roboto Mono", Consolas, "Courier New", monospace';
+
+    const margin = {
       top: 20,
       right: 40,
       bottom: 120,
@@ -652,14 +595,24 @@ export function ChromosomeSynteny({
       .append("g")
       .attr("transform", `translate(${margin.left},${margin.top})`);
 
+    // Determine connected chromosomes if the filter is active
+    const connectedChrIds = new Set<string>();
+    syntenyData.forEach(link => {
+      // Assuming query_name is the species name for the query chromosome
+      connectedChrIds.add(`${link.ref_species}:${link.ref_chr}`);
+      connectedChrIds.add(`${link.query_name}:${link.query_chr}`);
+    });
+
+    const displayedReferenceData = showConnectedOnly
+      ? referenceData.filter(chr => connectedChrIds.has(`${chr.species_name}:${chr.chr_id}`))
+      : referenceData;
+
     // Group data by species
-    const speciesGroups = d3.group(referenceData, d => d.species_name);
+    const speciesGroups = d3.group(displayedReferenceData, d => d.species_name);
     const uniqueSpecies = Array.from(speciesGroups.keys());
 
     // Calculate layout parameters
     const speciesSpacing = innerHeight / (uniqueSpecies.length + 1);
-    const chromosomeHeight = 20;
-    const chromosomeSpacing = 10;
 
     // Create color scale for ribbons
     const colorScale = d3.scaleOrdinal(d3.schemeCategory10);
@@ -685,17 +638,17 @@ export function ChromosomeSynteny({
     // Draw chromosomes for each species
     uniqueSpecies.forEach((species, speciesIndex) => {
       const speciesColor = speciesColorScale(species);
-      const speciesData = referenceData.filter(d => d.species_name === species);
+      const speciesData = speciesGroups.get(species) || [];
       const y = speciesIndex * speciesSpacing + speciesSpacing;
 
       // Species label
       g.append("text")
         .attr("x", -10)
-        .attr("y", y + CHROMOSOME_CONFIG.HEIGHT/2)
+        .attr("y", y + config.chromosomeHeight/2)
         .attr("text-anchor", "end")
         .attr("dominant-baseline", "middle")
         .attr("font-size", "14px")
-        .attr("font-family", "var(--font-geist-mono)")
+        .attr("font-family", resolvedFont)
         .attr("class", "text-foreground")
         .attr("fill", "currentColor")
         .text(species.replace("_", " "));
@@ -711,17 +664,23 @@ export function ChromosomeSynteny({
           onHover: handleElementHover,
           onMove: handleElementMove,
           onLeave: handleElementLeave,
-          onGeneHover: handleGeneHover,
-          onGeneLeave: handleElementLeave,
           container: g,
           annotations: referenceGenomeData?.geneAnnotations,
           showAnnotations,
           breakpoints: referenceGenomeData?.breakpoints,
-          config: visualConfig,
+          config: {
+            chromosomeHeight: config.chromosomeHeight,
+            chromosomeSpacing: config.chromosomeSpacing,
+            annotationHeight: config.annotationHeight,
+            geneColors: {
+              forward: GENE_ANNOTATION_CONFIG.COLORS.FORWARD,
+              reverse: GENE_ANNOTATION_CONFIG.COLORS.REVERSE,
+            },
+          },
           isReferenceChromosome: species === referenceSpecies,
         });
         
-        xOffset += xScale(chr.chr_size_bp) + CHROMOSOME_CONFIG.SPACING * 2;
+        xOffset += xScale(chr.chr_size_bp) + config.chromosomeSpacing * 2;
       });
     });
 
@@ -758,19 +717,19 @@ export function ChromosomeSynteny({
         targetY,
         xScale,
         speciesColorScale,
-        referenceData,
+        referenceData: displayedReferenceData,
         container: g,
         onHover: (event, link) => handleMouseOver(event, link, maxSyntenySizeMb),
         onMove: handleElementMove,
         onLeave: handleMouseOut,
-        chromosomeSpacing,
-        chromosomeHeight: CHROMOSOME_CONFIG.HEIGHT,
+        chromosomeSpacing: config.chromosomeSpacing,
+        chromosomeHeight: config.chromosomeHeight,
         isSelected: selectedSynteny.some(s => 
           s.ref_chr === link.ref_chr && 
           s.query_chr === link.query_chr && 
           s.ref_start === link.ref_start
         ),
-        onSelect: onSyntenySelect,
+        onSelect: handleSyntenySelection,
         zoomBehaviorRef,
         selectedChromosomes,
         mutationType,
@@ -831,7 +790,7 @@ export function ChromosomeSynteny({
           .attr("transform", `translate(${transform.x}, ${transform.y}) scale(${transform.k})`);
       });
 
-    // Add single Breakpoint label if breakpoints exist
+    // Add labels for breakpoints and gene annotations if they exist
     if (referenceGenomeData?.breakpoints && referenceGenomeData.breakpoints.length > 0) {
       // Get reference species position (first species in the list)
       const referenceSpecies = syntenyData.length > 0 ? syntenyData[0].ref_species : '';
@@ -839,20 +798,50 @@ export function ChromosomeSynteny({
       const refY = refSpeciesIndex * speciesSpacing + speciesSpacing;
       
       // Position the label to be vertically aligned with the mirrored chromosome
-      const mirroredChrY = refY + CHROMOSOME_CONFIG.HEIGHT + 10; // Position of the mirrored chromosome
-      const labelY = mirroredChrY + (CHROMOSOME_CONFIG.HEIGHT / 2); // Center of the mirrored chromosome
+      const mirroredChrY = refY + config.chromosomeHeight + 10; // Position of the mirrored chromosome
+      const labelY = mirroredChrY + (config.chromosomeHeight / 2); // Center of the mirrored chromosome
       
-      // Add "Breakpoints" label
+      // Add "Breakpoints" label with count
+      const totalBreakpoints = referenceGenomeData.breakpoints.length;
       g.append("text")
         .attr("x", -10)  // Same x position as species labels
         .attr("y", labelY)
         .attr("text-anchor", "end")
         .attr("dominant-baseline", "middle")
         .attr("font-size", "12px")
-        .attr("font-family", "var(--font-geist-mono)")
+        .attr("font-family", resolvedFont)
         .attr("class", "text-muted-foreground")
         .attr("fill", "currentColor")
-        .text("Breakpoints");
+        .text(`Breakpoints (${totalBreakpoints})`);
+    }
+
+    // Add Gene Annotations label if annotations exist and are enabled
+    if (showAnnotations && referenceGenomeData?.geneAnnotations && referenceGenomeData.geneAnnotations.length > 0) {
+      // Get reference species position (first species in the list)
+      const referenceSpecies = syntenyData.length > 0 ? syntenyData[0].ref_species : '';
+      const refSpeciesIndex = uniqueSpecies.indexOf(referenceSpecies);
+      const refY = refSpeciesIndex * speciesSpacing + speciesSpacing;
+      
+      // Calculate position for gene annotation label
+      let annotationLabelY = refY + config.chromosomeHeight + 10 + (config.chromosomeHeight / 2); // Default position
+      
+      // If breakpoints exist, position gene annotations label below the breakpoint track
+      if (referenceGenomeData?.breakpoints && referenceGenomeData.breakpoints.length > 0) {
+        annotationLabelY = refY + config.chromosomeHeight + 10 + config.chromosomeHeight + 15 + (config.chromosomeHeight / 2);
+      }
+      
+      // Add "Gene Annotations" label with count
+      const totalGeneAnnotations = referenceGenomeData.geneAnnotations.length;
+      g.append("text")
+        .attr("x", -10)  // Same x position as species labels
+        .attr("y", annotationLabelY)
+        .attr("text-anchor", "end")
+        .attr("dominant-baseline", "middle")
+        .attr("font-size", "12px")
+        .attr("font-family", resolvedFont)
+        .attr("class", "text-muted-foreground")
+        .attr("fill", "currentColor")
+        .text(`Gene Annotations (${totalGeneAnnotations})`);
     }
 
   }, [
@@ -860,18 +849,44 @@ export function ChromosomeSynteny({
     syntenyData,
     dimensions,
     alignmentFilter,
-    selectedSynteny,
-    onSyntenySelect,
+    // selectedSynteny, // Removed to prevent re-render on selection
+    // onSyntenySelect, // Removed
     referenceGenomeData,
     showAnnotations,
     selectedChromosomes,
-    visualConfig,
+    config,
     showTooltips,
     selectedMutationTypes,
     onMutationTypeSelect,
     customSpeciesColors,
     showConnectedOnly
   ]);
+
+  // Update effect for selection changes
+  useEffect(() => {
+    if (!svgRef.current) return;
+    const svg = d3.select(svgRef.current);
+
+    svg.selectAll<SVGGElement, SyntenyData>(".synteny-group").each(function(d) {
+      const group = d3.select(this);
+      const isSelected = selectedSynteny.some(s => 
+        s.ref_chr === d.ref_chr && 
+        s.query_chr === d.query_chr && 
+        s.ref_start === d.ref_start
+      );
+
+      group.classed("selected", isSelected);
+
+      group.select(".synteny-ribbon")
+        .classed("selected", isSelected)
+        .attr("opacity", isSelected ? SYNTENY_COLORS.OPACITY.ACTIVE : SYNTENY_COLORS.OPACITY.DEFAULT);
+
+      group.selectAll(".matching-block")
+        .classed("selected", isSelected)
+        .attr("opacity", isSelected ? 1 : 0.8)
+        .attr("stroke-width", isSelected ? 1 : 0.5);
+    });
+  }, [selectedSynteny, svgRef]);
 
   // Add window resize handler
   useEffect(() => {
@@ -968,6 +983,10 @@ export function ChromosomeSynteny({
       clone.setAttribute('height', `${totalHeight}`);
       clone.setAttribute('viewBox', `${bbox.x - padding.left} ${bbox.y - padding.top} ${totalWidth} ${totalHeight}`);
       
+      // Resolve CSS custom properties for fonts
+      const computedStyle = getComputedStyle(document.documentElement);
+      const geistMono = computedStyle.getPropertyValue('--font-geist-mono').trim() || 'ui-monospace, "SF Mono", Monaco, "Cascadia Code", "Roboto Mono", Consolas, "Courier New", monospace';
+      
       // Inline styles
       const styles = document.styleSheets;
       let stylesText = '';
@@ -982,20 +1001,27 @@ export function ChromosomeSynteny({
         }
       }
       
-      // Add styles with dark mode consideration
+      // Enhanced style resolution with proper font handling
       const styleElement = document.createElement('style');
       styleElement.textContent = `
         ${stylesText}
-        ${isDarkMode ? `
-          text, .text-foreground { 
-            fill: #ffffff !important;
-            color: #ffffff !important;
-          }
-          .text-muted-foreground {
-            fill: #a1a1aa !important;
-            color: #a1a1aa !important;
-          }
-        ` : ''}
+        text, .text-foreground { 
+          font-family: ${geistMono} !important;
+          fill: ${isDarkMode ? '#ffffff' : '#000000'} !important;
+          color: ${isDarkMode ? '#ffffff' : '#000000'} !important;
+        }
+        .text-muted-foreground {
+          font-family: ${geistMono} !important;
+          fill: ${isDarkMode ? '#a1a1aa' : '#94a3b8'} !important;
+          color: ${isDarkMode ? '#a1a1aa' : '#94a3b8'} !important;
+        }
+        .chromosome-label {
+          font-family: ${geistMono} !important;
+          fill: ${isDarkMode ? '#ffffff' : '#000000'} !important;
+        }
+        .chromosome-body { 
+          stroke: ${isDarkMode ? '#ffffff' : '#000000'} !important; 
+        }
       `;
       clone.insertBefore(styleElement, clone.firstChild);
 
@@ -1009,9 +1035,10 @@ export function ChromosomeSynteny({
       const ctx = canvas.getContext('2d');
       if (!ctx) throw new Error('Could not get canvas context');
       
-      const scale2x = 2;
-      canvas.width = totalWidth * scale2x;
-      canvas.height = totalHeight * scale2x;
+      // Scale for reasonable quality (2x for crisp export without massive file sizes)
+      const dpiScale = 2; // Good balance of quality and file size
+      canvas.width = totalWidth * dpiScale;
+      canvas.height = totalHeight * dpiScale;
       
       // Use the same isDarkMode value for background
       ctx.fillStyle = isDarkMode ? '#020817' : '#ffffff';
@@ -1022,7 +1049,7 @@ export function ChromosomeSynteny({
       
       await new Promise((resolve, reject) => {
         img.onload = () => {
-          ctx.scale(scale2x, scale2x);
+          ctx.scale(dpiScale, dpiScale);
           ctx.drawImage(img, 0, 0, totalWidth, totalHeight);
           
           // Add credits with same isDarkMode value
@@ -1105,6 +1132,7 @@ export function ChromosomeSynteny({
             onMutationTypeSelect={onMutationTypeSelect}
             customSpeciesColors={customSpeciesColors}
             onSpeciesColorChange={onSpeciesColorChange}
+            onResetSpeciesColors={onResetSpeciesColors}
             speciesData={referenceData}
             showConnectedOnly={showConnectedOnly}
             setShowConnectedOnly={setShowConnectedOnly}
@@ -1113,6 +1141,9 @@ export function ChromosomeSynteny({
             fullscreenContainerRef={containerRef}
             onAddCustomMutationType={handleAddCustomMutationType}
             mutationColors={allMutationColors}
+            config={config}
+            onConfigChange={onConfigChange}
+            onResetLayout={onResetLayout}
           />
         </div>
 
@@ -1240,6 +1271,7 @@ export function ChromosomeSynteny({
           height={dimensions.height}
         />
       </div>
+      <SelectionToast message={toastMessage} show={showToast} />
       {/* SettingsPanel removed as functionality is now in ControlsMenu */}
     </div>
   );

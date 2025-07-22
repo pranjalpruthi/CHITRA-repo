@@ -6,7 +6,12 @@
     "dev": "next dev --hostname 0.0.0.0",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "docker:build": "docker build -t chitra .",
+    "docker:run": "docker run -p 3000:3000 chitra",
+    "docker:compose": "docker-compose up -d",
+    "docker:compose:dev": "docker-compose -f docker-compose.yml -f docker-compose.dev.yml up",
+    "docker:down": "docker-compose down"
   },
   "dependencies": {
     "@ant-design/v5-patch-for-react-19": "^1.0.3",

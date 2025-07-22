@@ -4,11 +4,11 @@ import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   ZoomIn, ZoomOut, RefreshCw, Maximize2, Minimize2, Save,
-  ArrowLeftRight, ArrowRight, ArrowLeft, MoreVertical, Image, Eye, X
+  ArrowLeftRight, ArrowRight, ArrowLeft, MoreVertical, Image, Eye, X, Download, RotateCcw, Settings2
 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { motion, AnimatePresence } from "motion/react";
-import { Card, CardHeader, CardContent, CardTitle } from "@/components/ui/card";
+import { Card, CardHeader, CardContent, CardTitle, CardFooter } from "@/components/ui/card";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -31,6 +31,7 @@ import { Label } from "@/components/ui/label";
 import { Palette, LucideIcon } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { AlignmentFilterButton } from "@/components/chromoviz/alignment-filter-button";
+import { SettingsPanel, ConfigProps } from "@/components/chromoviz/settings-panel";
 
 
 const MutationTypeSelector = ({
@@ -108,8 +109,12 @@ interface ControlsMenuProps {
   onMutationTypeSelect: (syntenyId: string, mutationType?: MutationType) => void;
   customSpeciesColors: Map<string, string>;
   onSpeciesColorChange: (species: string, color: string) => void;
+  onResetSpeciesColors: () => void;
   onAddCustomMutationType: (name: string, color: string) => void;
   mutationColors: Record<string, string>;
+  config: ConfigProps;
+  onConfigChange: (newConfig: Partial<ConfigProps>) => void;
+  onResetLayout: () => void;
   speciesData: ChromosomeData[]; // Assuming ChromosomeData contains species_name
   showConnectedOnly: boolean;
   setShowConnectedOnly: (show: boolean) => void;
@@ -135,6 +140,7 @@ export const ControlsMenu = ({
   onMutationTypeSelect,
   customSpeciesColors,
   onSpeciesColorChange,
+  onResetSpeciesColors,
   speciesData,
   showConnectedOnly,
   setShowConnectedOnly,
@@ -143,13 +149,20 @@ export const ControlsMenu = ({
   fullscreenContainerRef,
   onAddCustomMutationType,
   mutationColors,
+  config,
+  onConfigChange,
+  onResetLayout,
 }: ControlsMenuProps) => {
-  const [showColorPanel, setShowColorPanel] = useState(false);
+  const [showSettingsPanel, setShowSettingsPanel] = useState(false);
   const [showMutationPanel, setShowMutationPanel] = useState(false);
   const [showExportPanel, setShowExportPanel] = useState(false);
   const [isAddTypeDialogOpen, setIsAddTypeDialogOpen] = useState(false);
   const [newTypeName, setNewTypeName] = useState("");
   const [newTypeColor, setNewTypeColor] = useState("#ff0000");
+
+  const handleToggle = (checked: boolean) => {
+    setShowConnectedOnly(checked);
+  };
 
   const handleAddCustom = () => {
     onAddCustomMutationType(newTypeName, newTypeColor);
@@ -160,64 +173,50 @@ export const ControlsMenu = ({
 
   const desktopControls = (
     <>
-      <div className="flex items-center gap-1.5">
-        <Switch
-          id="show-annotations"
-          checked={showAnnotations}
-          onCheckedChange={setShowAnnotations}
-          className="h-4 w-7"
-        />
-        <Label htmlFor="show-annotations" className="text-xs">Annotations</Label>
+      <div className="flex items-center gap-x-4 gap-y-2 flex-wrap">
+        <div className="flex items-center gap-1.5">
+          <Switch
+            id="show-annotations"
+            checked={showAnnotations}
+            onCheckedChange={setShowAnnotations}
+            className="h-4 w-7"
+          />
+          <Label htmlFor="show-annotations" className="text-xs whitespace-nowrap">Annotations</Label>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <Switch
+            id="show-connected-only"
+            checked={!showConnectedOnly}
+            onCheckedChange={() => setShowConnectedOnly(!showConnectedOnly)}
+            className="h-4 w-7"
+          />
+          <Label htmlFor="show-connected-only" className="text-xs whitespace-nowrap">Linked Only</Label>
+        </div>
       </div>
-      <Button
-        variant="ghost"
-        size="sm"
-        onClick={() => setShowConnectedOnly(!showConnectedOnly)}
-        className="h-7 px-2"
-        title="Show Connected Links Only"
-      >
-        <span className="h-2 w-2 rounded-full mr-1.5" style={{ backgroundColor: showConnectedOnly ? '#22c55e' : '#ef4444' }} />
-        <span>Links</span>
-      </Button>
 
       <div className="relative">
-        <Button variant="outline" size="sm" className="h-7 px-2" onClick={() => setShowColorPanel(p => !p)}>
-          <Palette className="h-4 w-4 mr-1" />
-          <span>Colors</span>
+        <Button variant="outline" size="sm" className="h-7 px-2" onClick={() => setShowSettingsPanel(p => !p)}>
+          <Settings2 className="h-4 w-4 mr-1" />
+          <span>Settings</span>
         </Button>
         <AnimatePresence>
-          {showColorPanel && (
+          {showSettingsPanel && (
             <motion.div
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
               className="absolute top-full right-0 mt-2 z-[99999]"
             >
-              <Card className="w-56 bg-background/80 backdrop-blur-md border-border/50">
-                <CardHeader className="p-2 border-b flex-row items-center justify-between">
-                  <CardTitle className="text-sm font-medium">Species Colors</CardTitle>
-                  <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => setShowColorPanel(false)}>
-                    <X className="h-4 w-4" />
-                  </Button>
-                </CardHeader>
-                <CardContent className="p-2 max-h-60 overflow-y-auto">
-                  {Array.from(new Set(speciesData.map(d => d.species_name))).map(species => (
-                    <div key={species} className="flex items-center justify-between gap-2 p-1 rounded hover:bg-accent">
-                      <Label htmlFor={`color-${species}`} className="text-sm font-normal flex-1 truncate" title={species}>
-                        {species.replace(/_/g, " ")}
-                      </Label>
-                      <input
-                        id={`color-${species}`}
-                        type="color"
-                        value={customSpeciesColors.get(species) || '#000000'}
-                        onChange={(e) => onSpeciesColorChange(species, e.target.value)}
-                        className="w-6 h-6 rounded cursor-pointer border-none bg-transparent"
-                        onClick={(e) => e.stopPropagation()}
-                      />
-                    </div>
-                  ))}
-                </CardContent>
-              </Card>
+              <SettingsPanel
+                isOpen={showSettingsPanel}
+                onClose={() => setShowSettingsPanel(false)}
+                config={config}
+                onConfigChange={onConfigChange}
+                speciesData={speciesData}
+                onResetSpeciesColors={onResetSpeciesColors}
+                onSpeciesColorChange={onSpeciesColorChange}
+                onResetLayout={onResetLayout}
+              />
             </motion.div>
           )}
         </AnimatePresence>
@@ -237,12 +236,20 @@ export const ControlsMenu = ({
                 exit={{ opacity: 0, y: -10 }}
                 className="absolute top-full right-0 mt-2 z-[99999]"
               >
-                <Card className="w-96 bg-background/80 backdrop-blur-md border-border/50">
+                <Card className="w-96 bg-background/95 backdrop-blur-md border-border/50">
                   <CardHeader className="p-2 border-b flex-row items-center justify-between">
                     <CardTitle className="text-sm font-medium">Mutation Types</CardTitle>
-                    <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => setShowMutationPanel(false)}>
-                      <X className="h-4 w-4" />
-                    </Button>
+                    <div className="flex items-center">
+                      {selectedMutationTypes.size > 0 && (
+                        <Button variant="ghost" size="sm" className="h-7 px-2" onClick={onViewMutations}>
+                          <Download className="h-4 w-4 mr-1" />
+                          <span className="text-xs">Export</span>
+                        </Button>
+                      )}
+                      <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => setShowMutationPanel(false)}>
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </CardHeader>
                   <CardContent className="p-2 max-h-[300px] overflow-y-auto">
                     {selectedSynteny.map(link => {
@@ -301,13 +308,6 @@ export const ControlsMenu = ({
         </div>
       )}
 
-      {selectedMutationTypes.size > 0 && (
-        <Button variant="outline" size="sm" className="h-7 px-2" onClick={onViewMutations}>
-          <Eye className="h-4 w-4 mr-1" />
-          <span>View All</span>
-        </Button>
-      )}
-
       <div className="relative">
         <Button variant="ghost" size="sm" className="h-7 px-2" onClick={() => setShowExportPanel(p => !p)}>
           <Image className="h-4 w-4 mr-1" />
@@ -321,7 +321,7 @@ export const ControlsMenu = ({
               exit={{ opacity: 0, y: -10 }}
               className="absolute top-full right-0 mt-2 z-[99999]"
             >
-              <Card className="w-40 bg-background/80 backdrop-blur-md border-border/50">
+              <Card className="w-40 bg-background/95 backdrop-blur-md border-border/50">
                 <CardContent className="p-1">
                   <Button variant="ghost" className="w-full justify-start h-8" onClick={() => { handleSaveAsSVG(); setShowExportPanel(false); }}>
                     Save as SVG
@@ -416,43 +416,19 @@ export const ControlsMenu = ({
                   className="h-4 w-7"
                 />
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setShowConnectedOnly(!showConnectedOnly)}>
-                <span className="h-2 w-2 rounded-full mr-2" style={{ backgroundColor: showConnectedOnly ? '#22c55e' : '#ef4444' }} />
-                <span>Show Connected Links Only</span>
+              <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="flex items-center justify-between">
+                <Label htmlFor="show-connected-only-mobile">Linked Only</Label>
+                <Switch
+                  id="show-connected-only-mobile"
+                  checked={!showConnectedOnly}
+                  onCheckedChange={() => setShowConnectedOnly(!showConnectedOnly)}
+                  className="h-4 w-7"
+                />
               </DropdownMenuItem>
-              <DropdownMenuSub>
-                <DropdownMenuSubTrigger>
-                  <Palette className="mr-2 h-4 w-4" />
-                  <span>Colors</span>
-                </DropdownMenuSubTrigger>
-                {/* This DropdownMenuPortal is for the SubContent of the Colors SubMenu */}
-                {/* <DropdownMenuPortal container={isFullscreen && fullscreenContainerRef?.current ? fullscreenContainerRef.current : undefined}> */}
-                  <DropdownMenuSubContent
-                    className={cn(
-                      "w-56 max-h-60 overflow-y-auto",
-                      isFullscreen && "z-[60]" // This z-index is now relative to the fullscreenContainerRef if portalled
-                    )}
-                  >
-                    <DropdownMenuLabel>Customize Species Colors</DropdownMenuLabel>
-                    <DropdownMenuSeparator />
-                    {Array.from(new Set(speciesData.map(d => d.species_name))).map(species => (
-                      <DropdownMenuItem key={species} onSelect={(e) => e.preventDefault()} className="flex items-center justify-between gap-2">
-                        <Label htmlFor={`color-${species}-mobile`} className="text-sm font-normal flex-1 truncate" title={species}>
-                          {species.replace(/_/g, " ")}
-                        </Label>
-                        <input
-                          id={`color-${species}-mobile`}
-                          type="color"
-                          value={customSpeciesColors.get(species) || '#000000'}
-                          onChange={(e) => onSpeciesColorChange(species, e.target.value)}
-                          className="w-6 h-6 rounded cursor-pointer border border-input"
-                          onClick={(e) => e.stopPropagation()}
-                        />
-                      </DropdownMenuItem>
-                    ))}
-                  </DropdownMenuSubContent>
-                {/* </DropdownMenuPortal> */}
-              </DropdownMenuSub>
+              <DropdownMenuItem onSelect={() => setShowSettingsPanel(true)}>
+                <Settings2 className="mr-2 h-4 w-4" />
+                <span>Settings</span>
+              </DropdownMenuItem>
               {selectedSynteny.length > 0 && (
                 <DropdownMenuSub>
                   <DropdownMenuSubTrigger>
@@ -468,6 +444,15 @@ export const ControlsMenu = ({
                       )}
                     >
                       <DropdownMenuLabel>Mutation Types</DropdownMenuLabel>
+                      {selectedMutationTypes.size > 0 && (
+                        <>
+                          <DropdownMenuItem onClick={onViewMutations}>
+                            <Download className="mr-2 h-4 w-4" />
+                            <span>Export Tagged Data</span>
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                        </>
+                      )}
                       {selectedSynteny.map(link => {
                         const syntenyId = `${link.ref_chr}-${link.query_chr}-${link.ref_start}-${link.query_start}`;
                         const currentType = selectedMutationTypes.get(syntenyId);
@@ -523,12 +508,6 @@ export const ControlsMenu = ({
                     </DropdownMenuSubContent>
                   {/* </DropdownMenuPortal> */}
                 </DropdownMenuSub>
-              )}
-              {selectedMutationTypes.size > 0 && (
-                <DropdownMenuItem onClick={onViewMutations}>
-                  <Eye className="mr-2 h-4 w-4" />
-                  <span>View All Mutations</span>
-                </DropdownMenuItem>
               )}
               <DropdownMenuSeparator />
               <DropdownMenuSub>

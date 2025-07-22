@@ -13,6 +13,7 @@ import * as d3 from 'd3';
 import { ChromosomeData, SyntenyData } from '../types';
 import { MutationType, MUTATION_COLORS, mutationFullNames as initialMutationFullNames } from '@/components/chromoviz/synteny-ribbon';
 import { MutationTypeDataDrawer } from '@/components/chromoviz/mutation-type-data-drawer';
+import { ConfigProps } from '@/components/chromoviz/settings-panel';
 
 interface KonvaSyntenyProps {
   referenceData: ChromosomeData[];
@@ -46,6 +47,15 @@ export const KonvaSynteny: React.FC<KonvaSyntenyProps> = ({ referenceData: initi
   const [showConnectedOnly, setShowConnectedOnly] = useState(false);
   const stageRef = useRef<Konva.Stage>(null);
   const [isMutationDrawerOpen, setIsMutationDrawerOpen] = useState(false);
+
+  // Add config state for ControlsMenu
+  const [config, setConfig] = useState<ConfigProps>({
+    chromosomeHeight: 20,
+    chromosomeSpacing: 10,
+    annotationHeight: 8,
+    maxVisibleGenes: 100,
+    customSpeciesColors: new Map(),
+  });
 
   useEffect(() => {
     const initialPositions: any = {};
@@ -173,6 +183,25 @@ export const KonvaSynteny: React.FC<KonvaSyntenyProps> = ({ referenceData: initi
     setMutationFullNames(prev => ({ ...prev, [newKey]: name }));
   };
 
+  const handleResetSpeciesColors = () => {
+    setCustomSpeciesColors(new Map());
+  };
+
+  const handleConfigChange = (newConfig: Partial<ConfigProps>) => {
+    setConfig(prev => ({ ...prev, ...newConfig }));
+  };
+
+  const handleResetLayout = () => {
+    handleReset();
+    setConfig({
+      chromosomeHeight: 20,
+      chromosomeSpacing: 10,
+      annotationHeight: 8,
+      maxVisibleGenes: 100,
+      customSpeciesColors: new Map(),
+    });
+  };
+
   const filteredSyntenyData = syntenyData.filter(link => {
     if (alignmentFilter === 'all') {
       return true;
@@ -183,31 +212,35 @@ export const KonvaSynteny: React.FC<KonvaSyntenyProps> = ({ referenceData: initi
   return (
     <div className="relative w-full h-full">
       <div className="absolute top-2 right-2 z-10 flex items-center gap-2">
-            <ControlsMenu
-              alignmentFilter={alignmentFilter}
-              setAlignmentFilter={setAlignmentFilter}
-              showAnnotations={showAnnotations}
-              setShowAnnotations={() => setShowAnnotations(!showAnnotations)}
-              onZoomIn={handleZoomIn}
-              onZoomOut={handleZoomOut}
-              onReset={handleReset}
-              onFullscreen={toggleFullscreen}
-              isFullscreen={isFullscreen}
-              handleSaveAsSVG={handleSaveAsSVG}
-              handleExportImage={handleExportImage}
-              selectedSynteny={selectedSynteny}
-              selectedMutationTypes={selectedMutationTypes}
-              onMutationTypeSelect={handleMutationTypeSelect}
-              customSpeciesColors={customSpeciesColors}
-              onSpeciesColorChange={handleSpeciesColorChange}
-              speciesData={referenceData}
-              showConnectedOnly={showConnectedOnly}
-              setShowConnectedOnly={() => setShowConnectedOnly(!showConnectedOnly)}
-              zoomLevel={stage.scale}
-              onViewMutations={() => setIsMutationDrawerOpen(true)}
-              onAddCustomMutationType={handleAddCustomMutationType}
-              mutationColors={mutationColors}
-            />
+        <ControlsMenu
+          alignmentFilter={alignmentFilter}
+          setAlignmentFilter={setAlignmentFilter}
+          showAnnotations={showAnnotations}
+          setShowAnnotations={setShowAnnotations}
+          onZoomIn={handleZoomIn}
+          onZoomOut={handleZoomOut}
+          onReset={handleReset}
+          onFullscreen={toggleFullscreen}
+          isFullscreen={isFullscreen}
+          handleSaveAsSVG={handleSaveAsSVG}
+          handleExportImage={handleExportImage}
+          selectedSynteny={selectedSynteny}
+          selectedMutationTypes={selectedMutationTypes}
+          onMutationTypeSelect={handleMutationTypeSelect}
+          customSpeciesColors={customSpeciesColors}
+          onSpeciesColorChange={handleSpeciesColorChange}
+          onResetSpeciesColors={handleResetSpeciesColors}
+          speciesData={referenceData}
+          showConnectedOnly={showConnectedOnly}
+          setShowConnectedOnly={setShowConnectedOnly}
+          zoomLevel={stage.scale}
+          onViewMutations={() => setIsMutationDrawerOpen(true)}
+          onAddCustomMutationType={handleAddCustomMutationType}
+          mutationColors={mutationColors}
+          config={config}
+          onConfigChange={handleConfigChange}
+          onResetLayout={handleResetLayout}
+        />
       </div>
       <MutationTypeDataDrawer
         isOpen={isMutationDrawerOpen}

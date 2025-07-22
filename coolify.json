@@ -1,0 +1,17 @@
+{
+  "name": "CHITRA",
+  "description": "Interactive Chromosomal Rearrangement Visualization",
+  "repository": "https://github.com/BioinformaticsOnLine/CHITRA",
+  "branch": "main",
+  "buildCommand": "pnpm install && pnpm build",
+  "startCommand": "pnpm start",
+  "port": 3000,
+  "environmentVariables": {
+    "NODE_ENV": "production",
+    "NEXT_TELEMETRY_DISABLED": "1"
+  },
+  "healthCheck": {
+    "path": "/",
+    "port": 3000
+  }
+}

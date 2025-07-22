@@ -1,10 +1,11 @@
-import million from 'million/compiler';
 import { createMDX } from 'fumadocs-mdx/next';
 
 const withMDX = createMDX();
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // Enable standalone output for Docker
+  output: 'standalone',
   webpack: (config) => {
     // Disable webpack caching
     config.cache = false;

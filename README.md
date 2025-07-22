@@ -127,6 +127,22 @@ Built with ❤️, React, ShadCN UI, Tailwind CSS, Motion, D3.js, and jsSVG.
 *   Docs: [https://chitra.bioinformaticsonline.com/docs](https://chitra.bioinformaticsonline.com/docs)
 *   Source: [https://github.com/pranjalpruthi/CHITRA](https://github.com/pranjalpruthi/CHITRA)
 
+## Quick Deploy 🚀
+
+### One-Click Deployment
+
+Deploy CHITRA instantly with these platforms:
+
+[![Deploy on Railway](https://img.shields.io/badge/Deploy%20on-Railway-0B0D0E?style=for-the-badge&logo=railway&logoColor=white)](https://railway.app/template/chitra?referralCode=chitra)
+[![Deploy on Render](https://img.shields.io/badge/Deploy%20on-Render-46E3B7?style=for-the-badge&logo=render&logoColor=white)](https://render.com/deploy?repo=https://github.com/pranjalpruthi/CHITRA)
+[![Deploy on Vercel](https://img.shields.io/badge/Deploy%20on-Vercel-000000?style=for-the-badge&logo=vercel&logoColor=white)](https://vercel.com/new/clone?repository-url=https://github.com/pranjalpruthi/CHITRA)
+[![Deploy on Netlify](https://img.shields.io/badge/Deploy%20on-Netlify-00C7B7?style=for-the-badge&logo=netlify&logoColor=white)](https://app.netlify.com/start/deploy?repository=https://github.com/pranjalpruthi/CHITRA)
+
+**Self-Hosted Options:**
+- **Coolify**: Import repository URL in your Coolify dashboard
+- **Dokploy**: Use the `coolify.json` configuration file
+- **Docker**: Use the provided `docker-compose.yml` file
+
 ## Get Started! (Locally) 🚀
 
 Follow these steps to set up and run CHITRA on your local machine.
@@ -135,8 +151,8 @@ Follow these steps to set up and run CHITRA on your local machine.
 
 *   **Node.js**: CHITRA is built with Next.js, which requires Node.js. We recommend using the latest LTS (Long Term Support) version.
     *   Download and install Node.js from [nodejs.org](https://nodejs.org/).
-*   **Bun**: This project uses Bun as the package manager and runtime.
-    *   Install Bun by following the instructions on [bun.sh](https://bun.sh/).
+*   **pnpm**: This project uses pnpm as the package manager for faster and more efficient dependency management.
+    *   Install pnpm by running `npm install -g pnpm` or follow the instructions on [pnpm.io](https://pnpm.io/).
 
 ### 2. Clone the Repository
 
@@ -154,27 +170,55 @@ cd CHITRA
 
 ### 4. Install Dependencies
 
-Install the project dependencies using Bun:
+Install the project dependencies using pnpm:
 ```bash
-bun install
+pnpm install
 ```
 
 ### 5. Run the Development Server
 
 Start the Next.js development server:
 ```bash
-bun dev
+pnpm dev
 ```
 This will typically start the application on `http://localhost:3000`. Open this URL in your web browser to see CHITRA running.
 
-### Running in Production
+### Docker Deployment 🐳
 
-CHITRA is a Next.js application. For production deployments, consider the following:
+The fastest way to deploy CHITRA is using Docker:
 
-*   **Self-hosting (Node.js server)**: You can build the application using `bun run build` and then start the production server using `bun run start`. This requires a Node.js environment on your server.
-*   **Docker**: You can containerize the Next.js application using Docker for deployment on various platforms. You'll need to create a `Dockerfile` tailored for Next.js.
-*   **Static Export**: If your CHITRA instance doesn't require server-side features after the initial data load (which is likely the case for the core visualization part if data is client-side), you might explore `next export` to generate static HTML/CSS/JS files. However, this might limit some Next.js features.
-*   **Vercel**: The easiest way to deploy Next.js applications is by using [Vercel](https://vercel.com/), the creators of Next.js. It offers seamless integration, automatic builds, and global CDN.
+```bash
+# Clone and navigate to the repository
+git clone https://github.com/pranjalpruthi/CHITRA.git
+cd CHITRA
+
+# Start with Docker Compose (recommended)
+pnpm docker:compose
+
+# Or build and run manually
+pnpm docker:build
+pnpm docker:run
+```
+
+CHITRA will be available at `http://localhost:3000`
+
+**Docker Compose Features:**
+- ✅ Production-ready setup
+- ✅ Automatic restarts
+- ✅ Health checks
+- ✅ Optional nginx reverse proxy
+- ✅ Volume mounting for example data
+
+**Stop the application:**
+```bash
+pnpm docker:down
+```
+
+### Other Production Options
+
+*   **Self-hosting (Node.js server)**: Build using `pnpm build` and start with `pnpm start`
+*   **Static Export**: Use `next export` for static HTML/CSS/JS files
+*   **Vercel**: Deploy directly to [Vercel](https://vercel.com/) for automatic scaling
 
 For detailed deployment guides, refer to the [official Next.js deployment documentation](https://nextjs.org/docs/deployment).
 

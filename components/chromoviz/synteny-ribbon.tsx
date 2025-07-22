@@ -199,6 +199,7 @@ export function renderSyntenyRibbon({
 
   // Create a group for the entire synteny visualization with initial selected state
   const blockGroup = g.append("g")
+    .datum(link) // Bind the data to the element
     .attr("class", `synteny-group ${isSelected ? 'selected' : ''}`)
     .attr("data-synteny-id", syntenyId)
     .attr("data-selected", isSelected ? "true" : "false")
@@ -295,8 +296,8 @@ export function renderSyntenyRibbon({
 
   // Draw ribbon
   const path = d3.path();
-  const sourceEdgeY = sourceY;
-  const targetEdgeY = targetY + chromosomeHeight;
+  const sourceEdgeY = sourceY < targetY ? sourceY + chromosomeHeight : sourceY;
+  const targetEdgeY = sourceY < targetY ? targetY : targetY + chromosomeHeight;
 
   path.moveTo(x1, sourceEdgeY);
   path.bezierCurveTo(
@@ -327,98 +328,31 @@ export function renderSyntenyRibbon({
   blockGroup.style("position", "relative")
     .style("mix-blend-mode", "normal"); // Changed from multiply for better visibility
 
-  // Use requestAnimationFrame for state updates
-  const setElementStates = (selected: boolean) => {
-    requestAnimationFrame(() => {
-      ribbon
-        .attr("opacity", selected ? SYNTENY_COLORS.OPACITY.SELECTED : SYNTENY_COLORS.OPACITY.DEFAULT)
-        .classed("selected", selected)
-        .attr("data-selected", selected ? "true" : "false");
-
-      [sourceBlock, targetBlock].forEach(block => {
-        block
-          .attr("opacity", selected ? 1 : 0.8)
-          .classed("selected", selected)
-          .attr("data-selected", selected ? "true" : "false")
-          .attr("stroke-width", selected ? 3 : 2);
-      });
+  blockGroup
+    .on("mouseover", (event: MouseEvent) => {
+      if (!blockGroup.classed("selected")) {
+        ribbon.attr("opacity", SYNTENY_COLORS.OPACITY.HOVER);
+        sourceBlock.attr("opacity", 1);
+        targetBlock.attr("opacity", 1);
+        blockGroup.raise();
+      }
+      onHover(event, link);
+    })
+    .on("mouseout", () => {
+      if (!blockGroup.classed("selected")) {
+        ribbon.attr("opacity", SYNTENY_COLORS.OPACITY.DEFAULT);
+        sourceBlock.attr("opacity", 0.8);
+        targetBlock.attr("opacity", 0.8);
+      }
+      onLeave();
+    })
+    .on("mousemove", (event: MouseEvent) => onMove(event))
+    .on("click", (event: MouseEvent) => {
+      event.preventDefault();
+      event.stopPropagation();
+      const currentlySelected = blockGroup.classed("selected");
+      onSelect(link, !currentlySelected);
     });
-  };
-
-  // Set initial states
-  setElementStates(isSelected);
-
-  const handleClick = (event: MouseEvent) => {
-    event.preventDefault();
-    event.stopPropagation();
-
-    const svg = d3.select(g.node().parentNode);
-    const zoomBehavior = zoomBehaviorRef.current;
-    
-    // Store current transform before any changes
-    const currentTransform = d3.zoomTransform(svg.node());
-    const currentPosition = {
-      x: currentTransform.x,
-      y: currentTransform.y,
-      k: currentTransform.k
-    };
-
-    const currentlySelected = blockGroup.attr("data-selected") === "true";
-    const newSelectedState = !currentlySelected;
-    
-    // Update all visual states
-    setElementStates(newSelectedState);
-
-    if (newSelectedState) {
-      blockGroup.raise();
-    }
-
-    // Apply the stored transform to preserve position
-    if (zoomBehavior) {
-      requestAnimationFrame(() => {
-        svg.call(zoomBehavior.transform, d3.zoomIdentity
-          .translate(currentPosition.x, currentPosition.y)
-          .scale(currentPosition.k)
-        );
-      });
-    }
-    
-    // Ensure the group transform is preserved
-    
-    onSelect(link, newSelectedState);
-  };
-
-  // Simplified hover handling
-  const handleGroupHover = () => {
-    if (blockGroup.attr("data-selected") !== "true") {
-      ribbon.attr("opacity", SYNTENY_COLORS.OPACITY.HOVER);
-      [sourceBlock, targetBlock].forEach(block => {
-        block.attr("opacity", 1);
-      });
-      blockGroup.raise();
-    }
-  };
-
-  // Simplified leave handling
-  const handleGroupLeave = () => {
-    const currentlySelected = blockGroup.attr("data-selected") === "true";
-    setElementStates(currentlySelected);
-    onLeave();
-  };
-
-  // Attach events directly without throttling
-  const attachEvents = (element: d3.Selection<any, unknown, null, undefined>) => {
-    element
-      .on("mouseover.synteny", (event: MouseEvent) => {
-        handleGroupHover();
-        onHover(event, link);
-      })
-      .on("mouseout.synteny", handleGroupLeave)
-      .on("mousemove.synteny", onMove)
-      .on("click.synteny", handleClick);
-  };
-
-  [ribbon, sourceBlock, targetBlock].forEach(attachEvents);
 
   // Update gradient colors if using mutation type colors
   if (useCustomColors && mutationType) {

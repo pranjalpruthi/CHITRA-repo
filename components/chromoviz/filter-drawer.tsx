@@ -121,10 +121,12 @@ interface FilterDrawerProps {
   }[]
   isLoading?: boolean
   children?: React.ReactNode
+  showConnectedOnly?: boolean
 }
 
 export const FilterDrawer = ({ 
   children,
+  showConnectedOnly,
   selectedSpecies,
   setSelectedSpecies,
   selectedChromosomes,
@@ -169,30 +171,23 @@ export const FilterDrawer = ({
   // Automatically update selected chromosomes when reference selection changes
   React.useEffect(() => {
     const selectedRefChrs = selectedChromosomes.filter(chr => chr.startsWith('ref:'));
-    
-    if (selectedRefChrs.length > 0) {
-      // Get all connected chromosomes for the selected reference chromosomes
-      const connectedChrs = getConnectedQueryChromosomes(selectedRefChrs);
-      
-      // If no query chromosomes are explicitly selected, don't auto-select any
-      const hasSelectedQueryChrs = selectedChromosomes.some(chr => 
-        !chr.startsWith('ref:')
-      );
 
-      if (hasSelectedQueryChrs) {
-        // If query chromosomes are selected, filter to keep only valid connections
-        const connectedValues = connectedChrs.map(chr => chr.value);
-        const currentQueryChrs = selectedChromosomes.filter(chr => 
-          !chr.startsWith('ref:') && connectedValues.includes(chr)
-        );
-        
-        setSelectedChromosomes([...selectedRefChrs, ...currentQueryChrs]);
-      } else {
-        // If no query chromosomes are selected, just keep the reference selection
-        setSelectedChromosomes(selectedRefChrs);
-      }
+    if (selectedRefChrs.length > 0 && showConnectedOnly) {
+      // If "Show Connected Only" is active, filter query chromosomes
+      const connectedChrs = getConnectedQueryChromosomes(selectedRefChrs);
+      const connectedValues = new Set(connectedChrs.map(chr => chr.value));
+      
+      const currentQueryChrs = selectedChromosomes.filter(chr => 
+        !chr.startsWith('ref:') && connectedValues.has(chr)
+      );
+      
+      setSelectedChromosomes([...selectedRefChrs, ...currentQueryChrs]);
+    } else if (selectedRefChrs.length === 0) {
+      // If no reference chromosomes are selected, do nothing to the query selection
     }
-  }, [selectedChromosomes.filter(chr => chr.startsWith('ref:')).join(','), syntenyData]);
+    // When showConnectedOnly is false, we don't touch the query selection,
+    // allowing the user to select any query chromosome.
+  }, [selectedChromosomes.filter(chr => chr.startsWith('ref:')).join(','), syntenyData, showConnectedOnly]);
 
   // Add this function to filter synteny data based on selections
   const getFilteredSyntenyData = (data: typeof syntenyData) => {
@@ -386,22 +381,22 @@ export const FilterDrawer = ({
                                 </Button>
                               )}
                             </div>
-                            <MultiSelect
-                              value={selectedChromosomes.filter(chr => 
-                                chr.startsWith(`${species}:`)
-                              )}
-                              options={chromosomes}
-                              onValueChange={(values) => {
-                                const otherChromosomes = selectedChromosomes.filter(chr => 
-                                  !chr.startsWith(`${species}:`)
-                                );
-                                setSelectedChromosomes([...otherChromosomes, ...values]);
-                              }}
-                              placeholder={`Select chromosomes...`}
-                              disabled={isLoading}
-                              maxCount={2}
-                              modalPopover={true}
-                            />
+                              <MultiSelect
+                                value={selectedChromosomes.filter(chr => 
+                                  chr.startsWith(`${species}:`)
+                                )}
+                                options={chromosomes}
+                                onValueChange={(values) => {
+                                  const otherChromosomes = selectedChromosomes.filter(chr => 
+                                    !chr.startsWith(`${species}:`)
+                                  );
+                                  setSelectedChromosomes([...otherChromosomes, ...values]);
+                                }}
+                                placeholder={`Select chromosomes...`}
+                                disabled={isLoading || showConnectedOnly}
+                                maxCount={2}
+                                modalPopover={true}
+                              />
                           </motion.div>
                         );
                       })}
@@ -437,4 +432,4 @@ export const FilterDrawer = ({
       </DrawerContent>
     </Drawer>
   )
-} 
+}

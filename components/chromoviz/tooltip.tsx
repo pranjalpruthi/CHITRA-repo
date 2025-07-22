@@ -165,43 +165,102 @@ export function getChromosomeTooltip(chr: ChromosomeData, maxChrSizeMb: number):
   );
 }
 
-export function getBreakpointTooltip(breakpoint: ChromosomeBreakpoint): ReactElement {
-  const formatBp = (bp: number) => `${(bp / 1_000_000).toFixed(2)} Mb`;
+export function SelectionToast({ message, show }: { message: string; show: boolean }) {
+  const toastVariants: Variants = {
+    hidden: { opacity: 0, y: -20, scale: 0.95 },
+    visible: { opacity: 1, y: 0, scale: 1 },
+    exit: { opacity: 0, y: -20, scale: 0.95 },
+  };
 
   return (
-    <div className="space-y-4 p-1 min-w-[320px]">
+    <AnimatePresence>
+      {show && (
+        <motion.div
+          variants={toastVariants}
+          initial="hidden"
+          animate="visible"
+          exit="exit"
+          className={cn(
+            "fixed top-4 left-4 z-[100]",
+            "px-6 py-3 rounded-lg text-base font-semibold text-white shadow-xl",
+            "border border-white/20",
+            message === "Selected"
+              ? "bg-gradient-to-r from-green-500 to-emerald-500"
+              : "bg-gradient-to-r from-red-500 to-rose-500"
+          )}
+        >
+          {message}
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+}
+
+export function getBreakpointTooltip(breakpoint: ChromosomeBreakpoint): ReactElement {
+  const formatBp = (bp: number) => `${(bp / 1_000_000).toFixed(2)} Mb`;
+  const sizeMb = ((breakpoint.ref_end - breakpoint.ref_start) / 1_000_000).toFixed(3);
+
+  return (
+    <div className="space-y-4 p-4 min-w-[320px] bg-white dark:bg-gray-900 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700">
+      {/* Header */}
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
           <Badge
             variant="outline"
-            className="bg-gradient-to-r from-red-50 to-orange-50 text-gray-800 dark:from-red-950/30 dark:to-orange-950/30 dark:text-gray-100 dark:border-red-800/30"
+            className="bg-gradient-to-r from-orange-50 to-red-50 text-orange-800 border-orange-200 px-3 py-1.5 font-semibold dark:from-orange-950/40 dark:to-red-950/40 dark:text-orange-100 dark:border-orange-800/50"
           >
-            <AlertTriangle className="h-3 w-3 mr-1.5" />
+            <AlertTriangle className="h-4 w-4 mr-2 text-orange-600 dark:text-orange-400" />
             Breakpoint
           </Badge>
-          <span className="text-sm font-medium dark:text-gray-200">
+          <span className="text-lg font-bold text-gray-900 dark:text-gray-100 capitalize">
             {breakpoint.breakpoint}
           </span>
         </div>
       </div>
 
-      <div className="space-y-2">
-        <div className="flex items-center gap-2">
-          <Badge variant="outline" className="bg-gray-50 text-gray-800 dark:bg-gray-900/50 dark:text-gray-100 dark:border-gray-700">
-            Chromosome
-          </Badge>
-          <span className="text-sm text-muted-foreground dark:text-gray-300">
-            {breakpoint.ref_chr}
-          </span>
+      {/* Content sections */}
+      <div className="space-y-3">
+        {/* Chromosome info */}
+        <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg border border-gray-100 dark:border-gray-700/50">
+          <div className="flex items-center gap-2">
+            <Badge 
+              variant="outline" 
+              className="bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 font-medium"
+            >
+              Chromosome
+            </Badge>
+            <span className="text-lg font-bold text-gray-900 dark:text-gray-100">
+              {breakpoint.ref_chr}
+            </span>
+          </div>
         </div>
-        <div className="flex items-center justify-between px-2">
-          <span className="text-sm font-medium dark:text-gray-200">Position</span>
-          <Badge variant="secondary" className="bg-gray-100/50 dark:bg-gray-950/50 dark:text-gray-100 dark:border-gray-800/30">
+
+        {/* Position info */}
+        <div className="flex items-center justify-between p-3 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 rounded-lg border border-blue-200 dark:border-blue-800/30">
+          <span className="text-sm font-semibold text-blue-900 dark:text-blue-100 uppercase tracking-wide">
+            Position
+          </span>
+          <Badge 
+            variant="secondary" 
+            className="bg-white dark:bg-gray-900 text-blue-800 dark:text-blue-200 border border-blue-300 dark:border-blue-700 px-3 py-1 font-mono text-sm"
+          >
             {formatBp(breakpoint.ref_start)} - {formatBp(breakpoint.ref_end)}
           </Badge>
         </div>
-      </div>
 
+        {/* Size information */}
+        <div className="flex items-center justify-between p-3 bg-gradient-to-r from-emerald-50 to-green-50 dark:from-emerald-950/30 dark:to-green-950/30 rounded-lg border border-emerald-200 dark:border-emerald-800/30">
+          <span className="text-sm font-semibold text-emerald-900 dark:text-emerald-100 uppercase tracking-wide">
+            Size
+          </span>
+          <Badge 
+            variant="secondary" 
+            className="bg-white dark:bg-gray-900 text-emerald-800 dark:text-emerald-200 border border-emerald-300 dark:border-emerald-700 px-3 py-1 font-mono text-sm"
+          >
+            {sizeMb} Mb
+          </Badge>
+        </div>
+      </div>
     </div>
   );
 }
@@ -465,10 +524,11 @@ export function HoverTooltip({
   const tooltipVariants: Variants = {
     hidden: { 
       opacity: 0, 
-      y: 10,
+      y: -10,
       scale: 0.95,
       transition: {
-        duration: 0.1
+        duration: 0.2,
+        ease: "easeOut"
       }
     },
     visible: { 
@@ -477,9 +537,9 @@ export function HoverTooltip({
       scale: 1,
       transition: {
         type: "spring",
-        stiffness: 500,
+        stiffness: 400,
         damping: 25,
-        mass: 0.6
+        mass: 0.5
       }
     }
   };
@@ -502,12 +562,21 @@ export function HoverTooltip({
     }
   };
 
-  // Calculate position and progress values
   const getPositionDisplay = (position: number | undefined, size: number) => {
     if (!position) return `${(size / 1_000_000).toFixed(2)} Mb total`;
     const positionMb = Math.abs(position) / 1_000_000;
     return `${positionMb.toFixed(2)} Mb`;
   };
+
+  const InfoItem = ({ label, value, icon, valueClassName }: { label: string, value: React.ReactNode, icon?: React.ReactNode, valueClassName?: string }) => (
+    <div className="flex items-center gap-2">
+      {icon}
+      <span className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">{label}</span>
+      <span className={cn("text-sm font-semibold text-gray-900 dark:text-white", valueClassName)}>{value}</span>
+    </div>
+  );
+
+  const Divider = () => <div className="w-px h-6 bg-gray-900/10 dark:bg-white/10" />;
 
   return (
     <>
@@ -520,59 +589,42 @@ export function HoverTooltip({
             animate="visible"
             exit="hidden"
             className={cn(
-              "fixed right-4 top-20 z-[90]",
-              "w-[calc(100vw-2rem)] sm:w-auto",
-              "min-w-[280px] max-w-[350px]",
+              "fixed top-24 left-1/2 -translate-x-1/2 z-[90]",
+              "w-auto",
               glassEffect,
-              "rounded-lg",
-              "before:absolute before:inset-0 before:rounded-lg",
-              "before:bg-gradient-to-br before:from-blue-500/10 before:to-purple-500/10",
-              "before:dark:from-blue-500/5 before:dark:to-purple-500/5",
-              "transition-transform hover:scale-[1.02] active:scale-[0.98]",
+              "rounded-full shadow-2xl shadow-black/20",
+              "border-gray-200/50 dark:border-white/10",
               className
             )}
           >
-            <div className="relative space-y-3 p-3">
-              {/* Syntenic Region Content */}
-              <div className="flex items-center justify-between">
-                <Badge 
-                  variant="outline" 
-                  className="bg-gradient-to-r from-blue-50 to-purple-50 text-gray-800 dark:from-blue-950/30 dark:to-purple-950/30 dark:text-gray-100 dark:border-blue-800/30 transition-colors hover:from-blue-100 hover:to-purple-100 dark:hover:from-blue-950/40 dark:hover:to-purple-950/40"
-                >
-                  Syntenic Region
-                </Badge>
-                <Badge 
-                  variant="secondary"
-                  className="bg-blue-100/50 text-blue-900 dark:bg-blue-950/50 dark:text-blue-100 dark:border-blue-800/30 transition-colors hover:bg-blue-200/50"
-                >
-                  {((hoveredBlock.ref_end - hoveredBlock.ref_start) / 1_000_000).toFixed(2)} Mb
-                </Badge>
+            <div className="flex items-center h-12 px-3 space-x-4">
+              <div className="flex items-center gap-2 pr-2">
+                <div className="w-2.5 h-2.5 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 shadow-lg" />
+                <span className="text-sm font-bold text-gray-800 dark:text-white tracking-wide">Synteny</span>
               </div>
-              <div className="space-y-2">
-                {/* Reference Content */}
-                <div className="flex items-center justify-between group">
-                  <div className="flex items-center gap-2">
-                    <Badge 
-                      variant="outline" 
-                      className="bg-blue-50 text-blue-900 dark:bg-blue-950/50 dark:text-blue-100 dark:border-blue-800/30 transition-all group-hover:bg-blue-100"
-                    >
-                      Reference
-                    </Badge>
-                    <span className="text-sm text-muted-foreground group-hover:text-foreground transition-colors">
-                      {hoveredBlock.ref_species} {hoveredBlock.ref_chr}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <ArrowRight className="w-4 h-4 text-blue-500/50 group-hover:text-blue-500 transition-colors" />
-                    <Badge 
-                      variant="secondary" 
-                      className="bg-blue-100/50 dark:bg-blue-950/50 dark:text-blue-100 dark:border-blue-800/30 transition-colors group-hover:bg-blue-200/50"
-                    >
-                      {(hoveredBlock.ref_start / 1_000_000).toFixed(2)}-{(hoveredBlock.ref_end / 1_000_000).toFixed(2)} Mb
-                    </Badge>
-                  </div>
-                </div>
-              </div>
+              <Divider />
+              <InfoItem 
+                label="Ref" 
+                value={`${hoveredBlock.ref_chr}: ${(hoveredBlock.ref_start / 1_000_000).toFixed(2)}-${(hoveredBlock.ref_end / 1_000_000).toFixed(2)}Mb`} 
+              />
+              <Divider />
+              <InfoItem 
+                label="Query" 
+                value={`${hoveredBlock.query_chr}: ${(hoveredBlock.query_start / 1_000_000).toFixed(2)}-${(hoveredBlock.query_end / 1_000_000).toFixed(2)}Mb`} 
+              />
+              <Divider />
+              <InfoItem 
+                label="Strand" 
+                value={hoveredBlock.query_strand} 
+                icon={hoveredBlock.query_strand === '+' 
+                  ? <ArrowRight className="w-4 h-4 text-green-500 dark:text-green-400" /> 
+                  : <ArrowLeft className="w-4 h-4 text-red-500 dark:text-red-400" />}
+              />
+              <Divider />
+              <InfoItem 
+                label="Size" 
+                value={`${((hoveredBlock.ref_end - hoveredBlock.ref_start) / 1_000_000).toFixed(2)}Mb`} 
+              />
             </div>
           </motion.div>
         )}

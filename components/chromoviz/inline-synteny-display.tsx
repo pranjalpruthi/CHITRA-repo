@@ -232,7 +232,7 @@ export function InlineSyntenyDisplay({
                             <div className="flex items-center gap-1.5">
                               <span className="uppercase tracking-wider opacity-70">Orient:</span>
                               <Badge variant="secondary" className={cn(
-                                "rounded-full px-1.5 py-0.5 font-medium tracking-tight text-[10px]",
+                                "rounded-full px-1.5 py-0.5 font-medium tracking-tight text-[10px] cursor-default hover:bg-current hover:text-current",
                                 link.query_strand === '+' 
                                   ? "bg-blue-500/10 text-blue-500" 
                                   : "bg-red-500/10 text-red-500"
