@@ -136,34 +136,48 @@ Built with ❤️, React, ShadCN UI, Tailwind CSS, Motion, D3.js, and jsSVG.
 *   Docs: [https://chitra.bioinformaticsonline.com/docs](https://chitra.bioinformaticsonline.com/docs)
 *   Source: [https://github.com/pranjalpruthi/CHITRA](https://github.com/pranjalpruthi/CHITRA)
 
+
 ## Quick Deploy 🚀
 
-### One-Click Deployment
+### In-Browser Development
+Instantly launch a complete development environment in your browser. This is ideal for exploring the code, testing changes, or contributing without any local setup.
 
-Deploy CHITRA instantly with these platforms:
+<p align="center">
+  <a href="https://stackblitz.com/github/pranjalpruthi/CHITRA?file=README.md">
+    <img src="https://img.shields.io/badge/Open%20in-StackBlitz-1374EF?style=for-the-badge&logo=stackblitz&logoColor=white" alt="Open in StackBlitz">
+  </a>
+  <a href="https://codesandbox.io/p/github/pranjalpruthi/CHITRA">
+    <img src="https://img.shields.io/badge/Open%20in-CodeSandbox-151515?style=for-the-badge&logo=codesandbox&logoColor=white" alt="Open in CodeSandbox">
+  </a>
+</p>
 
+### One-Click Cloud Deployment
+Deploy a live, public instance of CHITRA to the cloud with a single click.
 
-[![Deploy on Vercel](https://img.shields.io/badge/Deploy%20on-Vercel-000000?style=for-the-badge&logo=vercel&logoColor=white)](https://vercel.com/new/clone?repository-url=https://github.com/pranjalpruthi/CHITRA)
-[![Deploy on Netlify](https://img.shields.io/badge/Deploy%20on-Netlify-00C7B7?style=for-the-badge&logo=netlify&logoColor=white)](https://app.netlify.com/start/deploy?repository=https://github.com/pranjalpruthi/CHITRA)
-[![Deploy on Render](https://img.shields.io/badge/Deploy%20on-Render-46E3B7?style=for-the-badge&logo=render&logoColor=white)](https://render.com/deploy?repo=https://github.com/pranjalpruthi/CHITRA)
+<p align="center">
+  <a href="https://vercel.com/new/clone?repository-url=https://github.com/pranjalpruthi/CHITRA">
+    <img src="https://img.shields.io/badge/Deploy%20on-Vercel-000000?style=for-the-badge&logo=vercel&logoColor=white" alt="Deploy on Vercel">
+  </a>
+  <a href="https://app.netlify.com/start/deploy?repository=https://github.com/pranjalpruthi/CHITRA">
+    <img src="https://img.shields.io/badge/Deploy%20on-Netlify-00C7B7?style=for-the-badge&logo=netlify&logoColor=white" alt="Deploy on Netlify">
+  </a>
+  <a href="https://render.com/deploy?repo=https://github.com/pranjalpruthi/CHITRA">
+    <img src="https://img.shields.io/badge/Deploy%20on-Render-46E3B7?style=for-the-badge&logo=render&logoColor=white" alt="Deploy on Render">
+  </a>
+  <a href="https://app.coolify.io/deploy?template=https://raw.githubusercontent.com/BioinformaticsOnLine/CHITRA/main/coolify.json">
+    <img src="https://img.shields.io/badge/Deploy%20on-Coolify-25BDBE?style=for-the-badge&logo=data:image/svg+xml;base64,PHN2ZyBmaWxsPSIjZmZmIiB2aWV3Qm94PSIwIDAgMjQgMjQiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHBhdGggZD0iTTEwLjg4NiAyLjkzNGMuMjgzLS43NDEuOTktLjc0MSAxLjI3NyAwbDkuMzc4IDI0LjIyOGMuMjg2Ljc0Mi0uMTk0IDEuNTY2LS44ODEgMS41NjZINS41MzZBMS4wMDMgMS4wMDMgMCAwIDEtNC44NTIgMjYuNzYzbDkuMzczLTI0LjIyOHoiLz48L3N2Zz4=" alt="Deploy on Coolify">
+  </a>
+</p>
 
+---
 
+## Get Started (Locally & Self-Hosted) 🚀
 
-**Self-Hosted Options:**
-- **Coolify**: Import repository URL in your Coolify dashboard
-- **Dokploy**: Use the `coolify.json` configuration file
-- **Docker**: Use the provided `docker-compose.yml` file
-
-## Get Started! (Locally) 🚀
-
-Follow these steps to set up and run CHITRA on your local machine.
+Follow these steps to set up and run CHITRA on your local machine or a self-hosted server.
 
 ### 1. Prerequisites
-
-*   **Node.js**: CHITRA is built with Next.js, which requires Node.js. We recommend using the latest LTS (Long Term Support) version.
-    *   Download and install Node.js from [nodejs.org](https://nodejs.org/).
-*   **pnpm**: This project uses pnpm as the package manager for faster and more efficient dependency management.
-    *   Install pnpm by running `npm install -g pnpm` or follow the instructions on [pnpm.io](https://pnpm.io/).
+*   **Node.js**: We recommend the latest LTS version. Download from [nodejs.org](https://nodejs.org/).
+*   **pnpm**: This project uses pnpm for efficient dependency management. Install via `npm install -g pnpm`.
 
 ### 2. Clone the Repository
 
