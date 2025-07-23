@@ -7,25 +7,22 @@ import { Card, CardContent } from '@/components/ui/card';
 import { motion, AnimatePresence } from 'motion/react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { 
-  ZoomIn, 
-  ZoomOut, 
-  RefreshCw, 
-  Info, 
-  Minimize2, 
-  Maximize2, 
-  Settings, 
-  Save, 
-  Lock, 
-  Unlock, 
-  MoreVertical, 
-  Image, 
-  X, 
+import {
+  ZoomIn,
+  ZoomOut,
+  RefreshCw,
+  Info,
+  Minimize2,
+  Maximize2,
+  Settings,
+  Save,
+  Lock,
+  Unlock,
+  Image,
+  X,
   FileType,
-  ArrowRight,
-  ArrowLeft
 } from 'lucide-react';
-import { 
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -44,11 +41,11 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { 
-  Tabs, 
-  TabsContent, 
-  TabsList, 
-  TabsTrigger 
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger
 } from "@/components/ui/tabs";
 
 // Add configuration types
@@ -241,20 +238,20 @@ export function ChordView({
       const svgElement = svgRef.current;
       const clone = svgElement.cloneNode(true) as SVGSVGElement;
       const bbox = svgElement.getBBox();
-      
+
       // Add padding (50px on each side)
       const padding = 50;
       const totalWidth = bbox.width + (padding * 2);
       const totalHeight = bbox.height + (padding * 2) + 30; // Extra 30px for credits
-      
+
       // Check dark mode once at the beginning
       const isDarkMode = document.documentElement.classList.contains('dark');
-      
+
       // Update clone dimensions with padding
       clone.setAttribute('width', `${totalWidth}`);
       clone.setAttribute('height', `${totalHeight}`);
       clone.setAttribute('viewBox', `${bbox.x - padding} ${bbox.y - padding} ${totalWidth} ${totalHeight}`);
-      
+
       // Add styles with dark mode consideration
       const styleElement = document.createElement('style');
       styleElement.textContent = `
@@ -276,52 +273,52 @@ export function ChordView({
         '<?xml version="1.0" standalone="no"?>\r\n',
         svgData
       ], { type: 'image/svg+xml;charset=utf-8' });
-      
+
       const canvas = document.createElement('canvas');
       const ctx = canvas.getContext('2d');
       if (!ctx) throw new Error('Could not get canvas context');
-      
+
       const scale2x = 2;
       canvas.width = totalWidth * scale2x;
       canvas.height = totalHeight * scale2x;
-      
+
       // Use the same isDarkMode value for background
       ctx.fillStyle = isDarkMode ? '#020817' : '#ffffff';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
-      
+
       const url = URL.createObjectURL(svgBlob);
       const img = document.createElement('img') as HTMLImageElement;
-      
+
       await new Promise((resolve, reject) => {
         img.onload = () => {
           ctx.scale(scale2x, scale2x);
           ctx.drawImage(img, 0, 0, totalWidth, totalHeight);
-          
+
           // Add credits
           ctx.scale(0.5, 0.5);
           ctx.fillStyle = isDarkMode ? '#a1a1aa' : '#94a3b8';
           ctx.font = '24px system-ui, sans-serif';
           ctx.textAlign = 'right';
           ctx.fillText('© 2025 CHITRA', totalWidth * 2 - 20, totalHeight * 2 - 20);
-          
+
           const mimeType = format === 'png' ? 'image/png' : 'image/jpeg';
           const quality = format === 'png' ? 1 : 0.95;
-          
+
           canvas.toBlob((blob) => {
             if (!blob) {
               reject(new Error('Failed to create image blob'));
               return;
             }
-            
+
             const downloadLink = document.createElement('a');
             downloadLink.href = URL.createObjectURL(blob);
             downloadLink.download = `chromoviz-synteny-${new Date().toISOString().split('T')[0]}.${format}`;
-            
+
             const container = containerRef.current || document.body;
             container.appendChild(downloadLink);
             downloadLink.click();
             container.removeChild(downloadLink);
-            
+
             URL.revokeObjectURL(downloadLink.href);
             URL.revokeObjectURL(url);
             resolve(true);
@@ -341,20 +338,20 @@ export function ChordView({
     const svgElement = svgRef.current;
     const clone = svgElement.cloneNode(true) as SVGSVGElement;
     const bbox = svgElement.getBBox();
-    
+
     // Add padding (50px on each side)
     const padding = 50;
     const totalWidth = bbox.width + (padding * 2);
     const totalHeight = bbox.height + (padding * 2) + 30; // Extra 30px for credits
-    
+
     // Check dark mode
     const isDarkMode = document.documentElement.classList.contains('dark');
-    
+
     // Update clone dimensions with padding
     clone.setAttribute('width', `${totalWidth}`);
     clone.setAttribute('height', `${totalHeight}`);
     clone.setAttribute('viewBox', `${bbox.x - padding} ${bbox.y - padding} ${totalWidth} ${totalHeight}`);
-    
+
     // Add styles for dark mode
     const styleElement = document.createElement('style');
     styleElement.textContent = `
@@ -376,24 +373,24 @@ export function ChordView({
       '<?xml version="1.0" standalone="no"?>\r\n',
       svgData
     ], { type: 'image/svg+xml;charset=utf-8' });
-    
+
     const downloadLink = document.createElement('a');
     downloadLink.href = URL.createObjectURL(svgBlob);
     downloadLink.download = `chromoviz-synteny-${new Date().toISOString().split('T')[0]}.svg`;
-    
+
     const container = containerRef.current || document.body;
     container.appendChild(downloadLink);
     downloadLink.click();
     container.removeChild(downloadLink);
-    
+
     URL.revokeObjectURL(downloadLink.href);
   }, [svgRef]);
 
-  const refChromosome = selectedBlock ? referenceData.find(d => 
+  const refChromosome = selectedBlock ? referenceData.find(d =>
     d.species_name === selectedBlock.ref_species && d.chr_id === selectedBlock.ref_chr
   ) : null;
 
-  const queryChromosome = selectedBlock ? referenceData.find(d => 
+  const queryChromosome = selectedBlock ? referenceData.find(d =>
     d.species_name === selectedBlock.query_name && d.chr_id === selectedBlock.query_chr
   ) : null;
 
@@ -404,7 +401,7 @@ export function ChordView({
     const updateViewBox = () => {
       const container = containerRef.current;
       if (!container) return;
-      
+
       const rect = container.getBoundingClientRect();
       setViewBoxDimensions({
         width: rect.width,
@@ -466,20 +463,20 @@ export function ChordView({
 
     const width = viewBoxDimensions.width;
     const height = viewBoxDimensions.height;
-    const margin = { 
+    const margin = {
       top: height * 0.07,    // 7% of height
       right: width * 0.07,   // 7% of width
       bottom: height * 0.07, // 7% of height
       left: width * 0.07     // 7% of width
     };
-    
+
     // Create main group
     const g = svg.append('g');
 
     // If fixed, manually apply the transform that the zoom handler would have.
     if (isGraphFixed) {
-        const { width, height } = viewBoxDimensions;
-        g.attr('transform', `translate(${width / 2}, ${height / 2})`);
+      const { width, height } = viewBoxDimensions;
+      g.attr('transform', `translate(${width / 2}, ${height / 2})`);
     }
 
     // Create layers
@@ -529,24 +526,24 @@ export function ChordView({
 
     chromosomeLayer.append('path')
       .attr('d', refArc({} as any) as string)
-        .attr('fill', config.visual.colors.reference)
-        .attr('stroke', '#d1d5db')
-        .attr('cursor', 'pointer')
-        .on('mousemove', (event) => {
-          const [x, y] = d3.pointer(event);
-          let angle = Math.atan2(y, x) + Math.PI / 2;
-          if (angle < 0) angle += 2 * Math.PI;
-          const position = refScale.invert(angle);
-          setHoveredChromosome({
-            size: refChromosome.chr_size_bp,
-            isRef: true,
-            position: Math.round(position)
-          });
-        })
-        .on('mouseleave', () => {
-          setHoveredChromosome(null);
-          setHoveredBlock(null);
+      .attr('fill', config.visual.colors.reference)
+      .attr('stroke', '#d1d5db')
+      .attr('cursor', 'pointer')
+      .on('mousemove', (event) => {
+        const [x, y] = d3.pointer(event);
+        let angle = Math.atan2(y, x) + Math.PI / 2;
+        if (angle < 0) angle += 2 * Math.PI;
+        const position = refScale.invert(angle);
+        setHoveredChromosome({
+          size: refChromosome.chr_size_bp,
+          isRef: true,
+          position: Math.round(position)
         });
+      })
+      .on('mouseleave', () => {
+        setHoveredChromosome(null);
+        setHoveredBlock(null);
+      });
 
 
     chromosomeLayer.append('path')
@@ -579,7 +576,7 @@ export function ChordView({
       refChromosome.annotations.forEach((gene) => {
         const startAngle = refScale(gene.start);
         const endAngle = refScale(gene.end);
-        
+
         // Create an arc for each gene annotation
         const annotationArc = d3.arc()
           .innerRadius(innerRadius + trackWidth)
@@ -614,7 +611,7 @@ export function ChordView({
       queryChromosome.annotations.forEach((gene) => {
         const startAngle = queryScale(gene.start);
         const endAngle = queryScale(gene.end);
-        
+
         // Create an arc for each gene annotation
         const annotationArc = d3.arc()
           .innerRadius(innerRadius + trackWidth)
@@ -709,7 +706,7 @@ export function ChordView({
 
     // Draw synteny blocks
     const blockColor = selectedBlock.query_strand === '+' ? config.visual.colors.forwardStrand : config.visual.colors.reverseStrand;
-    
+
     // Reference block
     syntenyLayer.append('path')
       .attr('d', refArc
@@ -754,9 +751,9 @@ export function ChordView({
       const baseRadius = innerRadius + trackWidth;
       const tickCount = config.scale.tickCount;
       const chromosomeSize = isRef ? refChromosome.chr_size_bp : queryChromosome.chr_size_bp;
-      
+
       const ticks = d3.range(0, chromosomeSize, chromosomeSize / tickCount);
-      
+
       ticks.forEach(tick => {
         const angle = scale(tick);
         const x1 = baseRadius * Math.cos(angle - Math.PI / 2);
@@ -765,7 +762,7 @@ export function ChordView({
         const y2 = (baseRadius + config.scale.tickLength) * Math.sin(angle - Math.PI / 2);
         const textX = (baseRadius + config.scale.tickLength + 15) * Math.cos(angle - Math.PI / 2);
         const textY = (baseRadius + config.scale.tickLength + 15) * Math.sin(angle - Math.PI / 2);
-        
+
         // Add tick line
         labelLayer.append('line')
           .attr('x1', x1)
@@ -777,10 +774,10 @@ export function ChordView({
 
         // Add tick label
         if (config.scale.showLabels) {
-          const formattedTick = tick >= 1000000 
-            ? `${(tick / 1000000).toFixed(1)}M` 
-            : tick >= 1000 
-              ? `${(tick / 1000).toFixed(0)}K` 
+          const formattedTick = tick >= 1000000
+            ? `${(tick / 1000000).toFixed(1)}M`
+            : tick >= 1000
+              ? `${(tick / 1000).toFixed(0)}K`
               : tick.toString();
 
           labelLayer.append('text')
@@ -795,58 +792,272 @@ export function ChordView({
       });
     };
 
-    // Replace addPositionTick function with new arc-based version
-    const addPositionTick = (angle: number, position: number, isRef: boolean) => {
+    // Technique: Layered positioning with adaptive spacing
+    const addPositionTick = (angle: number, position: number, isRef: boolean, markerType: 'start' | 'end') => {
       const tickRadius = innerRadius + trackWidth;
       const { markers } = config;
-      
+
+      // Calculate block size to determine if we need special handling
+      const blockSize = isRef
+        ? selectedBlock.ref_end - selectedBlock.ref_start
+        : selectedBlock.query_end - selectedBlock.query_start;
+      const isSmallBlock = blockSize < 1_000_000; // Less than 1Mb
+
+      // Technique 1: Layered positioning - different radial layers for start/end
+      const layerOffset = isSmallBlock ? (markerType === 'start' ? 0 : 15) : 0;
+      const adjustedTickRadius = tickRadius + layerOffset;
+      const adjustedTextOffset = markers.textOffset + layerOffset;
+
+      // Technique 2: Staggered angular positioning for small blocks
+      let adjustedAngle = angle;
+      if (isSmallBlock) {
+        const staggerOffset = 0.08; // ~4.5 degrees
+        adjustedAngle = markerType === 'start' ? angle - staggerOffset : angle + staggerOffset;
+      }
+
+      // Draw tick line
       labelLayer.append('line')
-        .attr('x1', tickRadius * Math.cos(angle - Math.PI / 2))
-        .attr('y1', tickRadius * Math.sin(angle - Math.PI / 2))
-        .attr('x2', (tickRadius + markers.tickLength) * Math.cos(angle - Math.PI / 2))
-        .attr('y2', (tickRadius + markers.tickLength) * Math.sin(angle - Math.PI / 2))
+        .attr('x1', adjustedTickRadius * Math.cos(adjustedAngle - Math.PI / 2))
+        .attr('y1', adjustedTickRadius * Math.sin(adjustedAngle - Math.PI / 2))
+        .attr('x2', (adjustedTickRadius + markers.tickLength) * Math.cos(adjustedAngle - Math.PI / 2))
+        .attr('y2', (adjustedTickRadius + markers.tickLength) * Math.sin(adjustedAngle - Math.PI / 2))
         .attr('stroke', isRef ? markers.colors.reference : markers.colors.query)
         .attr('stroke-width', markers.strokeWidth)
         .attr('stroke-dasharray', `${markers.dashPattern[0]},${markers.dashPattern[1]}`);
 
-      const textX = (tickRadius + markers.textOffset) * Math.cos(angle - Math.PI / 2);
-      const textY = (tickRadius + markers.textOffset) * Math.sin(angle - Math.PI / 2);
-      const labelAngle = (angle * 180 / Math.PI - 90) % 360;
-      const rotateAngle = labelAngle > 90 && labelAngle < 270 ? labelAngle + 180 : labelAngle;
-      
-      const formattedPosition = position >= 1_000_000 
+      // Technique 3: Smart text positioning with quadrant-aware anchoring
+      const textX = (adjustedTickRadius + adjustedTextOffset) * Math.cos(adjustedAngle - Math.PI / 2);
+      const textY = (adjustedTickRadius + adjustedTextOffset) * Math.sin(adjustedAngle - Math.PI / 2);
+      const labelAngle = (adjustedAngle * 180 / Math.PI - 90) % 360;
+
+      // Determine text anchor based on position and marker type
+      let textAnchor: 'start' | 'middle' | 'end' = 'middle';
+      let rotateAngle = labelAngle;
+
+      if (labelAngle > 90 && labelAngle < 270) {
+        rotateAngle = labelAngle + 180;
+        textAnchor = markerType === 'start' ? 'end' : 'start';
+      } else {
+        textAnchor = markerType === 'start' ? 'start' : 'end';
+      }
+
+      const formattedPosition = position >= 1_000_000
         ? `${(position / 1_000_000).toFixed(1)}M`
-        : position >= 1_000 
+        : position >= 1_000
           ? `${(position / 1_000).toFixed(0)}K`
           : position.toString();
-      
-      labelLayer.append('text')
+
+      // Technique 4: Badge-style labels with better contrast
+      const badgeGroup = labelLayer.append('g')
+        .attr('class', `marker-badge ${markerType}`);
+
+      // Background badge
+      const badgeWidth = formattedPosition.length * markers.fontSize * 0.7;
+      const badgeHeight = markers.fontSize + 6;
+
+      badgeGroup.append('rect')
+        .attr('x', textX - badgeWidth / 2)
+        .attr('y', textY - badgeHeight / 2)
+        .attr('width', badgeWidth)
+        .attr('height', badgeHeight)
+        .attr('rx', badgeHeight / 2)
+        .attr('fill', isRef ? markers.colors.reference : markers.colors.query)
+        .attr('fill-opacity', 0.9)
+        .attr('stroke', 'white')
+        .attr('stroke-width', 1)
+        .attr('transform', `rotate(${rotateAngle}, ${textX}, ${textY})`);
+
+      badgeGroup.append('text')
         .attr('x', textX)
         .attr('y', textY)
         .attr('text-anchor', 'middle')
         .attr('dominant-baseline', 'middle')
         .attr('transform', `rotate(${rotateAngle}, ${textX}, ${textY})`)
-        .attr('font-size', `${markers.fontSize}px`)
-        .attr('font-weight', '400')
-        .attr('fill', isRef ? markers.colors.reference : markers.colors.query)
+        .attr('font-size', `${markers.fontSize - 1}px`)
+        .attr('font-weight', '600')
+        .attr('fill', 'white')
         .text(formattedPosition);
-        
-      labelLayer.append('circle')
-        .attr('cx', tickRadius * Math.cos(angle - Math.PI / 2))
-        .attr('cy', tickRadius * Math.sin(angle - Math.PI / 2))
+
+      // Enhanced marker with type indicator
+      const markerGroup = labelLayer.append('g');
+
+      // Outer ring for better visibility
+      markerGroup.append('circle')
+        .attr('cx', adjustedTickRadius * Math.cos(adjustedAngle - Math.PI / 2))
+        .attr('cy', adjustedTickRadius * Math.sin(adjustedAngle - Math.PI / 2))
+        .attr('r', markers.markerRadius + 2)
+        .attr('fill', 'white')
+        .attr('stroke', isRef ? markers.colors.reference : markers.colors.query)
+        .attr('stroke-width', 2);
+
+      // Inner marker with type indicator
+      markerGroup.append('circle')
+        .attr('cx', adjustedTickRadius * Math.cos(adjustedAngle - Math.PI / 2))
+        .attr('cy', adjustedTickRadius * Math.sin(adjustedAngle - Math.PI / 2))
         .attr('r', markers.markerRadius)
         .attr('fill', isRef ? markers.colors.reference : markers.colors.query);
+
+      // Add small indicator for start/end
+      const indicatorSize = 1;
+      markerGroup.append('rect')
+        .attr('x', adjustedTickRadius * Math.cos(adjustedAngle - Math.PI / 2) - indicatorSize / 2)
+        .attr('y', adjustedTickRadius * Math.sin(adjustedAngle - Math.PI / 2) - indicatorSize / 2)
+        .attr('width', indicatorSize)
+        .attr('height', indicatorSize)
+        .attr('fill', markerType === 'start' ? '#22c55e' : '#ef4444')
+        .attr('rx', 0.5);
     };
 
     // Add circular scales
     addCircularScale(true);   // Reference
     addCircularScale(false);  // Query
 
-    // Add position ticks with badges
-    addPositionTick(refScale(selectedBlock.ref_start), selectedBlock.ref_start, true);
-    addPositionTick(refScale(selectedBlock.ref_end), selectedBlock.ref_end, true);
-    addPositionTick(queryScale(selectedBlock.query_start), selectedBlock.query_start, false);
-    addPositionTick(queryScale(selectedBlock.query_end), selectedBlock.query_end, false);
+    // Smart marker positioning - combine when too close
+    const addSmartMarkers = (startAngle: number, endAngle: number, startPos: number, endPos: number, isRef: boolean) => {
+      const tickRadius = innerRadius + trackWidth;
+      const { markers } = config;
+      const blockSize = endPos - startPos;
+      const angleDiff = Math.abs(endAngle - startAngle);
+
+      // If markers are too close (< 0.15 radians ≈ 8.5°), combine them
+      const shouldCombine = angleDiff < 0.15 || blockSize < 500_000;
+
+      if (shouldCombine) {
+        // Single combined marker at midpoint
+        const midAngle = (startAngle + endAngle) / 2;
+        const midRadius = tickRadius + 10;
+
+        // Draw single tick line
+        labelLayer.append('line')
+          .attr('x1', tickRadius * Math.cos(midAngle - Math.PI / 2))
+          .attr('y1', tickRadius * Math.sin(midAngle - Math.PI / 2))
+          .attr('x2', (tickRadius + markers.tickLength) * Math.cos(midAngle - Math.PI / 2))
+          .attr('y2', (tickRadius + markers.tickLength) * Math.sin(midAngle - Math.PI / 2))
+          .attr('stroke', isRef ? markers.colors.reference : markers.colors.query)
+          .attr('stroke-width', markers.strokeWidth)
+          .attr('stroke-dasharray', `${markers.dashPattern[0]},${markers.dashPattern[1]}`);
+
+        // Combined badge showing size
+        const textX = (midRadius + markers.textOffset) * Math.cos(midAngle - Math.PI / 2);
+        const textY = (midRadius + markers.textOffset) * Math.sin(midAngle - Math.PI / 2);
+        const labelAngle = (midAngle * 180 / Math.PI - 90) % 360;
+        const rotateAngle = labelAngle > 90 && labelAngle < 270 ? labelAngle + 180 : labelAngle;
+
+        // Show midpoint position with size indicator
+        const midPosition = (startPos + endPos) / 2;
+        const formattedPosition = midPosition >= 1_000_000
+          ? `${(midPosition / 1_000_000).toFixed(1)}M`
+          : midPosition >= 1_000
+            ? `${(midPosition / 1_000).toFixed(0)}K`
+            : `${midPosition.toFixed(0)}bp`;
+
+        const formattedSize = blockSize >= 1_000_000
+          ? `${(blockSize / 1_000_000).toFixed(1)}M`
+          : blockSize >= 1_000
+            ? `${(blockSize / 1_000).toFixed(0)}K`
+            : `${blockSize}bp`;
+
+        // Display format: show block size instead of position
+        const displayText = `${formattedSize}`;
+
+        // Create tooltip-enabled badge group
+        const badgeGroup = labelLayer.append('g')
+          .attr('class', 'combined-marker-badge')
+          .style('cursor', 'pointer');
+
+        // Badge background
+        const badgeWidth = formattedSize.length * markers.fontSize * 0.8 + 8;
+        const badgeHeight = markers.fontSize + 8;
+
+        badgeGroup.append('rect')
+          .attr('x', textX - badgeWidth / 2)
+          .attr('y', textY - badgeHeight / 2)
+          .attr('width', badgeWidth)
+          .attr('height', badgeHeight)
+          .attr('rx', badgeHeight / 2)
+          .attr('fill', isRef ? markers.colors.reference : markers.colors.query)
+          .attr('fill-opacity', 0.95)
+          .attr('stroke', 'white')
+          .attr('stroke-width', 2)
+          .attr('transform', `rotate(${rotateAngle}, ${textX}, ${textY})`);
+
+        // Badge text - show position instead of size
+        badgeGroup.append('text')
+          .attr('x', textX)
+          .attr('y', textY)
+          .attr('text-anchor', 'middle')
+          .attr('dominant-baseline', 'middle')
+          .attr('transform', `rotate(${rotateAngle}, ${textX}, ${textY})`)
+          .attr('font-size', `${markers.fontSize}px`)
+          .attr('font-weight', '700')
+          .attr('fill', 'white')
+          .text(displayText);
+
+        // Single marker dot
+        labelLayer.append('circle')
+          .attr('cx', tickRadius * Math.cos(midAngle - Math.PI / 2))
+          .attr('cy', tickRadius * Math.sin(midAngle - Math.PI / 2))
+          .attr('r', markers.markerRadius + 1)
+          .attr('fill', 'white')
+          .attr('stroke', isRef ? markers.colors.reference : markers.colors.query)
+          .attr('stroke-width', 3);
+
+        // Add tooltip functionality with enhanced hover effects
+        badgeGroup
+          .on('mouseenter', (event) => {
+            const formatPos = (pos: number) => pos >= 1_000_000
+              ? `${(pos / 1_000_000).toFixed(2)}M`
+              : pos >= 1_000
+                ? `${(pos / 1_000).toFixed(0)}K`
+                : pos.toString();
+
+            // Enhance badge on hover
+            badgeGroup.select('rect')
+              .transition()
+              .duration(200)
+              .attr('stroke-width', 3)
+              .attr('fill-opacity', 1);
+
+            setHoveredBlock({
+              ...selectedBlock,
+              tooltipContent: `${isRef ? 'Reference' : 'Query'} Range\n${formatPos(startPos)} - ${formatPos(endPos)}\nSize: ${formattedSize}`,
+              isCompactMarker: true
+            } as any);
+          })
+          .on('mouseleave', () => {
+            // Reset badge appearance
+            badgeGroup.select('rect')
+              .transition()
+              .duration(200)
+              .attr('stroke-width', 2)
+              .attr('fill-opacity', 0.95);
+
+            setHoveredBlock(null);
+          });
+
+      } else {
+        // Separate markers for larger blocks
+        addPositionTick(startAngle, startPos, isRef, 'start');
+        addPositionTick(endAngle, endPos, isRef, 'end');
+      }
+    };
+
+    // Apply smart markers
+    addSmartMarkers(
+      refScale(selectedBlock.ref_start),
+      refScale(selectedBlock.ref_end),
+      selectedBlock.ref_start,
+      selectedBlock.ref_end,
+      true
+    );
+
+    addSmartMarkers(
+      queryScale(selectedBlock.query_start),
+      queryScale(selectedBlock.query_end),
+      selectedBlock.query_start,
+      selectedBlock.query_end,
+      false
+    );
 
     // Replace the size indicator text with a Glass Neumorphic Badge
     const sizeIndicator = g.append('g')
@@ -874,7 +1085,7 @@ export function ChordView({
     if (zoomBehaviorRef.current) {
       (zoomBehaviorRef.current as any).transform(svg, oldTransform);
     }
-    
+
     // Cleanup
     return () => {
       svg.on('.zoom', null); // Remove zoom behavior on cleanup
@@ -895,7 +1106,7 @@ export function ChordView({
   };
 
   return (
-    <div 
+    <div
       ref={containerRef}
       className={cn(
         "relative w-full h-full flex flex-col",
@@ -927,7 +1138,7 @@ export function ChordView({
             {isFullscreen && <span className="ml-2 text-xs">Settings</span>}
           </Button>
           <Separator orientation="vertical" className="h-6 mx-1" />
-          
+
           {/* Export Dropdown */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -960,7 +1171,7 @@ export function ChordView({
             {Math.round(zoom * 100)}%
           </Badge>
         </div>
-        
+
         <div className="flex items-center gap-2">
           <Button
             variant={isGraphFixed ? "secondary" : "outline"}
@@ -1097,11 +1308,11 @@ export function ChordView({
                           <Label className="text-xs">Ribbon Opacity</Label>
                           <Slider
                             value={[config.visual.ribbonOpacity * 100]}
-                            onValueChange={([value]) => 
-                              handleConfigChange({ 
+                            onValueChange={([value]) =>
+                              handleConfigChange({
                                 visual: {
                                   ...config.visual,
-                                  ribbonOpacity: value / 100 
+                                  ribbonOpacity: value / 100
                                 }
                               })
                             }
@@ -1115,11 +1326,11 @@ export function ChordView({
                           <Label className="text-xs">Block Opacity</Label>
                           <Slider
                             value={[config.visual.blockOpacity * 100]}
-                            onValueChange={([value]) => 
-                              handleConfigChange({ 
+                            onValueChange={([value]) =>
+                              handleConfigChange({
                                 visual: {
                                   ...config.visual,
-                                  blockOpacity: value / 100 
+                                  blockOpacity: value / 100
                                 }
                               })
                             }
@@ -1133,9 +1344,9 @@ export function ChordView({
                           <Label className="text-xs">Track Width</Label>
                           <Slider
                             value={[config.visual.trackWidth * 100]}
-                            onValueChange={([value]) => 
-                              handleConfigChange({ 
-                                visual: { ...config.visual, trackWidth: value / 100 } 
+                            onValueChange={([value]) =>
+                              handleConfigChange({
+                                visual: { ...config.visual, trackWidth: value / 100 }
                               })
                             }
                             max={50}
@@ -1148,9 +1359,9 @@ export function ChordView({
                           <Label className="text-xs">Gap Angle</Label>
                           <Slider
                             value={[config.visual.gapAngle * 100]}
-                            onValueChange={([value]) => 
-                              handleConfigChange({ 
-                                visual: { ...config.visual, gapAngle: value / 100 } 
+                            onValueChange={([value]) =>
+                              handleConfigChange({
+                                visual: { ...config.visual, gapAngle: value / 100 }
                               })
                             }
                             max={50}
@@ -1175,14 +1386,14 @@ export function ChordView({
                               <Input
                                 type="color"
                                 value={config.visual.colors.reference}
-                                onChange={(e) => 
+                                onChange={(e) =>
                                   handleConfigChange({
-                                    visual: { 
+                                    visual: {
                                       ...config.visual,
-                                      colors: { 
+                                      colors: {
                                         ...config.visual.colors,
-                                        reference: e.target.value 
-                                      } 
+                                        reference: e.target.value
+                                      }
                                     }
                                   })
                                 }
@@ -1205,14 +1416,14 @@ export function ChordView({
                               <Input
                                 type="color"
                                 value={config.visual.colors.query}
-                                onChange={(e) => 
+                                onChange={(e) =>
                                   handleConfigChange({
-                                    visual: { 
+                                    visual: {
                                       ...config.visual,
-                                      colors: { 
+                                      colors: {
                                         ...config.visual.colors,
-                                        query: e.target.value 
-                                      } 
+                                        query: e.target.value
+                                      }
                                     }
                                   })
                                 }
@@ -1231,9 +1442,9 @@ export function ChordView({
                           checked={config.annotations.show}
                           onCheckedChange={(checked) =>
                             handleConfigChange({
-                              annotations: { 
-                                ...config.annotations, 
-                                show: checked 
+                              annotations: {
+                                ...config.annotations,
+                                show: checked
                               }
                             })
                           }
@@ -1247,9 +1458,9 @@ export function ChordView({
                             value={[config.annotations.height]}
                             onValueChange={([value]) =>
                               handleConfigChange({
-                                annotations: { 
-                                  ...config.annotations, 
-                                  height: value 
+                                annotations: {
+                                  ...config.annotations,
+                                  height: value
                                 }
                               })
                             }
@@ -1265,9 +1476,9 @@ export function ChordView({
                             value={[config.annotations.spacing]}
                             onValueChange={([value]) =>
                               handleConfigChange({
-                                annotations: { 
-                                  ...config.annotations, 
-                                  spacing: value 
+                                annotations: {
+                                  ...config.annotations,
+                                  spacing: value
                                 }
                               })
                             }
@@ -1287,9 +1498,9 @@ export function ChordView({
                           checked={config.scale.showTicks}
                           onCheckedChange={(checked) =>
                             handleConfigChange({
-                              scale: { 
-                                ...config.scale, 
-                                showTicks: checked 
+                              scale: {
+                                ...config.scale,
+                                showTicks: checked
                               }
                             })
                           }
@@ -1303,9 +1514,9 @@ export function ChordView({
                             value={[config.scale.fontSize]}
                             onValueChange={([value]) =>
                               handleConfigChange({
-                                scale: { 
-                                  ...config.scale, 
-                                  fontSize: value 
+                                scale: {
+                                  ...config.scale,
+                                  fontSize: value
                                 }
                               })
                             }
@@ -1321,9 +1532,9 @@ export function ChordView({
                             value={[config.scale.tickCount]}
                             onValueChange={([value]) =>
                               handleConfigChange({
-                                scale: { 
-                                  ...config.scale, 
-                                  tickCount: value 
+                                scale: {
+                                  ...config.scale,
+                                  tickCount: value
                                 }
                               })
                             }
@@ -1340,9 +1551,9 @@ export function ChordView({
                             value={[config.scale.tickLength]}
                             onValueChange={([value]) =>
                               handleConfigChange({
-                                scale: { 
-                                  ...config.scale, 
-                                  tickLength: value 
+                                scale: {
+                                  ...config.scale,
+                                  tickLength: value
                                 }
                               })
                             }
@@ -1362,9 +1573,9 @@ export function ChordView({
                           checked={config.interaction.enableZoom}
                           onCheckedChange={(checked) =>
                             handleConfigChange({
-                              interaction: { 
-                                ...config.interaction, 
-                                enableZoom: checked 
+                              interaction: {
+                                ...config.interaction,
+                                enableZoom: checked
                               }
                             })
                           }
@@ -1378,12 +1589,12 @@ export function ChordView({
                             value={[config.interaction.zoomExtent[0] * 100]}
                             onValueChange={([value]) =>
                               handleConfigChange({
-                                interaction: { 
-                                  ...config.interaction, 
+                                interaction: {
+                                  ...config.interaction,
                                   zoomExtent: [
                                     value / 100,
                                     config.interaction.zoomExtent[1]
-                                  ] 
+                                  ]
                                 }
                               })
                             }
@@ -1400,12 +1611,12 @@ export function ChordView({
                             value={[config.interaction.zoomExtent[1] * 100]}
                             onValueChange={([value]) =>
                               handleConfigChange({
-                                interaction: { 
-                                  ...config.interaction, 
+                                interaction: {
+                                  ...config.interaction,
                                   zoomExtent: [
                                     config.interaction.zoomExtent[0],
                                     value / 100
-                                  ] 
+                                  ]
                                 }
                               })
                             }
@@ -1439,9 +1650,9 @@ export function ChordView({
                             value={[config.markers.tickLength]}
                             onValueChange={([value]) =>
                               handleConfigChange({
-                                markers: { 
-                                  ...config.markers, 
-                                  tickLength: value 
+                                markers: {
+                                  ...config.markers,
+                                  tickLength: value
                                 }
                               })
                             }
@@ -1458,9 +1669,9 @@ export function ChordView({
                             value={[config.markers.textOffset]}
                             onValueChange={([value]) =>
                               handleConfigChange({
-                                markers: { 
-                                  ...config.markers, 
-                                  textOffset: value 
+                                markers: {
+                                  ...config.markers,
+                                  textOffset: value
                                 }
                               })
                             }
@@ -1477,9 +1688,9 @@ export function ChordView({
                             value={[config.markers.fontSize]}
                             onValueChange={([value]) =>
                               handleConfigChange({
-                                markers: { 
-                                  ...config.markers, 
-                                  fontSize: value 
+                                markers: {
+                                  ...config.markers,
+                                  fontSize: value
                                 }
                               })
                             }
@@ -1496,9 +1707,9 @@ export function ChordView({
                             value={[config.markers.markerRadius]}
                             onValueChange={([value]) =>
                               handleConfigChange({
-                                markers: { 
-                                  ...config.markers, 
-                                  markerRadius: value 
+                                markers: {
+                                  ...config.markers,
+                                  markerRadius: value
                                 }
                               })
                             }
@@ -1515,9 +1726,9 @@ export function ChordView({
                             value={[config.markers.strokeWidth]}
                             onValueChange={([value]) =>
                               handleConfigChange({
-                                markers: { 
-                                  ...config.markers, 
-                                  strokeWidth: value 
+                                markers: {
+                                  ...config.markers,
+                                  strokeWidth: value
                                 }
                               })
                             }
@@ -1649,47 +1860,47 @@ export function ChordView({
           <div className="shrink-0 px-4 pb-4 space-y-2">
             <AnimatePresence>
               {showInfo && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: 20 }}
-                    transition={{ duration: 0.2, delay: 0.05 }}
-                    className={cn(
-                      "relative w-full z-20 p-2 bg-white/40 dark:bg-gray-950/40 backdrop-blur-md border-t border-white/50 dark:border-gray-800/50 rounded-lg"
-                    )}
-                  >
-                    <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-xs">
-                      <div className="flex items-center gap-1.5">
-                        <span className="font-medium text-gray-500 dark:text-gray-400">Ref Range:</span>
-                        <span className="text-gray-800 dark:text-gray-200">
-                          {(selectedBlock?.ref_start! / 1_000_000).toFixed(1)}-{(selectedBlock?.ref_end! / 1_000_000).toFixed(1)}Mb
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-1.5">
-                        <span className="font-medium text-gray-500 dark:text-gray-400">Query Range:</span>
-                        <span className="text-gray-800 dark:text-gray-200">
-                          {(selectedBlock?.query_start! / 1_000_000).toFixed(1)}-{(selectedBlock?.query_end! / 1_000_000).toFixed(1)}Mb
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-1.5">
-                        <span className="font-medium text-gray-500 dark:text-gray-400">Size:</span>
-                        <span className="text-gray-800 dark:text-gray-200">
-                          {((selectedBlock?.ref_end - selectedBlock?.ref_start) / 1_000_000).toFixed(2)} Mb
-                        </span>
-                      </div>
-                      <Badge
-                        variant="secondary"
-                        className={cn(
-                          "flex items-center gap-1 text-xs px-1.5 py-0.5",
-                          selectedBlock?.query_strand === '+' 
-                            ? "bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300" 
-                            : "bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-300"
-                        )}
-                      >
-                        {selectedBlock?.query_strand === '+' ? 'Forward' : 'Reverse'} ({selectedBlock?.query_strand})
-                      </Badge>
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 20 }}
+                  transition={{ duration: 0.2, delay: 0.05 }}
+                  className={cn(
+                    "relative w-full z-20 p-2 bg-white/40 dark:bg-gray-950/40 backdrop-blur-md border-t border-white/50 dark:border-gray-800/50 rounded-lg"
+                  )}
+                >
+                  <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-xs">
+                    <div className="flex items-center gap-1.5">
+                      <span className="font-medium text-gray-500 dark:text-gray-400">Ref Range:</span>
+                      <span className="text-gray-800 dark:text-gray-200">
+                        {(selectedBlock?.ref_start! / 1_000_000).toFixed(1)}-{(selectedBlock?.ref_end! / 1_000_000).toFixed(1)}Mb
+                      </span>
                     </div>
-                  </motion.div>
+                    <div className="flex items-center gap-1.5">
+                      <span className="font-medium text-gray-500 dark:text-gray-400">Query Range:</span>
+                      <span className="text-gray-800 dark:text-gray-200">
+                        {(selectedBlock?.query_start! / 1_000_000).toFixed(1)}-{(selectedBlock?.query_end! / 1_000_000).toFixed(1)}Mb
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <span className="font-medium text-gray-500 dark:text-gray-400">Size:</span>
+                      <span className="text-gray-800 dark:text-gray-200">
+                        {((selectedBlock?.ref_end - selectedBlock?.ref_start) / 1_000_000).toFixed(2)} Mb
+                      </span>
+                    </div>
+                    <Badge
+                      variant="secondary"
+                      className={cn(
+                        "flex items-center gap-1 text-xs px-1.5 py-0.5",
+                        selectedBlock?.query_strand === '+'
+                          ? "bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300"
+                          : "bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-300"
+                      )}
+                    >
+                      {selectedBlock?.query_strand === '+' ? 'Forward' : 'Reverse'} ({selectedBlock?.query_strand})
+                    </Badge>
+                  </div>
+                </motion.div>
               )}
             </AnimatePresence>
             <HoverTooltip
@@ -1803,24 +2014,51 @@ function PersistentProgressBar({
                 </motion.span>
               ) : (
                 <>
-                  <motion.span
-                    className="absolute"
-                    style={{ left: `${startPercent}%`, transform: 'translateX(-50%)' }}
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                  >
-                    {startLabel}
-                  </motion.span>
-                  <motion.span
-                    className="absolute"
-                    style={{ left: `${startPercent + widthPercent}%`, transform: 'translateX(-50%)' }}
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                  >
-                    {endLabel}
-                  </motion.span>
+                  {/* Check if labels would overlap and handle accordingly */}
+                  {widthPercent < 15 ? (
+                    // For small blocks, show combined label
+                    <motion.span
+                      className="absolute whitespace-nowrap bg-background/80 backdrop-blur-sm px-2 py-1 rounded border text-xs"
+                      style={{
+                        left: `${startPercent + widthPercent / 2}%`,
+                        transform: 'translateX(-50%)',
+                        zIndex: 10
+                      }}
+                      initial={{ opacity: 0, scale: 0.8 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.8 }}
+                    >
+                      {startLabel} - {endLabel}
+                    </motion.span>
+                  ) : (
+                    // For larger blocks, show separate labels
+                    <>
+                      <motion.span
+                        className="absolute whitespace-nowrap"
+                        style={{
+                          left: `${startPercent}%`,
+                          transform: startPercent < 10 ? 'translateX(0%)' : 'translateX(-50%)'
+                        }}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                      >
+                        {startLabel}
+                      </motion.span>
+                      <motion.span
+                        className="absolute whitespace-nowrap"
+                        style={{
+                          left: `${startPercent + widthPercent}%`,
+                          transform: (startPercent + widthPercent) > 90 ? 'translateX(-100%)' : 'translateX(-50%)'
+                        }}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                      >
+                        {endLabel}
+                      </motion.span>
+                    </>
+                  )}
                 </>
               )}
             </div>

@@ -383,7 +383,7 @@ export function ChromosomeSynteny({
   // Modified selection handler
   const handleSyntenySelection = (link: SyntenyData, isSelected: boolean) => {
     onSyntenySelect(link, isSelected);
-    setToastMessage(isSelected ? "Selected" : "Deselected");
+    setToastMessage(isSelected ? "Block Selected" : "Block Deselected");
     setShowToast(true);
     setTimeout(() => setShowToast(false), 2000);
   };

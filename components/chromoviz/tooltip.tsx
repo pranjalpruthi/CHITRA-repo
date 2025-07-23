@@ -168,9 +168,27 @@ export function getChromosomeTooltip(chr: ChromosomeData, maxChrSizeMb: number):
 export function SelectionToast({ message, show }: { message: string; show: boolean }) {
   const toastVariants: Variants = {
     hidden: { opacity: 0, y: -20, scale: 0.95 },
-    visible: { opacity: 1, y: 0, scale: 1 },
-    exit: { opacity: 0, y: -20, scale: 0.95 },
+    visible: { 
+      opacity: 1, 
+      y: 0, 
+      scale: 1,
+      transition: {
+        type: "spring",
+        stiffness: 400,
+        damping: 25
+      }
+    },
+    exit: { 
+      opacity: 0, 
+      y: -20, 
+      scale: 0.95,
+      transition: {
+        duration: 0.2
+      }
+    },
   };
+
+  const isSelected = message.includes("Selected");
 
   return (
     <AnimatePresence>
@@ -181,15 +199,22 @@ export function SelectionToast({ message, show }: { message: string; show: boole
           animate="visible"
           exit="exit"
           className={cn(
-            "fixed top-4 left-4 z-[100]",
-            "px-6 py-3 rounded-lg text-base font-semibold text-white shadow-xl",
-            "border border-white/20",
-            message === "Selected"
-              ? "bg-gradient-to-r from-green-500 to-emerald-500"
-              : "bg-gradient-to-r from-red-500 to-rose-500"
+            "fixed top-6 left-6 z-[100]",
+            "px-8 py-4 rounded-2xl text-base font-bold text-white shadow-2xl",
+            "border border-white/30 backdrop-blur-md",
+            "ring-2 ring-white/20",
+            isSelected
+              ? "bg-gradient-to-br from-emerald-500 via-green-500 to-teal-500"
+              : "bg-gradient-to-br from-red-500 via-rose-500 to-pink-500"
           )}
         >
-          {message}
+          <div className="flex items-center gap-3">
+            <div className={cn(
+              "w-3 h-3 rounded-full animate-pulse",
+              isSelected ? "bg-emerald-200" : "bg-red-200"
+            )} />
+            <span className="tracking-wide">{message}</span>
+          </div>
         </motion.div>
       )}
     </AnimatePresence>
@@ -589,11 +614,13 @@ export function HoverTooltip({
             animate="visible"
             exit="hidden"
             className={cn(
-              "fixed top-24 left-1/2 -translate-x-1/2 z-[90]",
-              "w-auto",
-              glassEffect,
-              "rounded-full shadow-2xl shadow-black/20",
-              "border-gray-200/50 dark:border-white/10",
+              "fixed top-20 left-1/2 -translate-x-1/2 z-[90]",
+              "w-auto max-w-4xl",
+              "bg-white/95 dark:bg-gray-900/95",
+              "backdrop-blur-md",
+              "border border-gray-300 dark:border-gray-600",
+              "rounded-full shadow-xl shadow-black/25",
+              "ring-1 ring-black/5 dark:ring-white/10",
               className
             )}
           >
