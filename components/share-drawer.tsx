@@ -64,7 +64,7 @@ export function ShareDrawer({ user, onShare }: ShareDrawerProps) {
   };
 
   const handleCopyLink = (id: string) => {
-    const url = `${window.location.origin}/chitra/shared/${id}`;
+    const url = `${window.location.origin}/chitra?shareId=${id}`;
     if (navigator.clipboard && window.isSecureContext) {
       navigator.clipboard.writeText(url).then(() => {
         toast.success('Link copied to clipboard!');
