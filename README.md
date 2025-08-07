@@ -248,6 +248,14 @@ pnpm docker:down
 For detailed deployment guides, refer to the [official Next.js deployment documentation](https://nextjs.org/docs/deployment).
 
 
+<img width="1632" height="1006" alt="Chitra-flow-3" src="https://github.com/user-attachments/assets/7e7bdaf8-60ec-4e32-b508-9202e1a1b7d4" />
+
+
+Figure . The workflow encompasses four sequential phases: (A) Data input supporting direct CSV upload, NCBI Feature Table conversion, or example datasets; (B) Automated data processing with validation, filtering, and coordinate transformation; (C) Interactive visualization generation featuring linear synteny views, mutation type annotation, and detailed chord diagrams; and (D) Collaborative output system with multi-format export capabilities, cloud-based link sharing, and persistent state management for reproducible research workflows.
+(Additionally, CHITRA includes an integrated NCBI RefSeq Feature Table converter that automatically generates reference genome and annotation files from standard NCBI feature tables.)
+
+
+
 
 ## Funding
 
