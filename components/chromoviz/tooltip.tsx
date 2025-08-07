@@ -16,21 +16,21 @@ const glassEffect = cn(
 );
 
 export function getChromosomeTooltip(chr: ChromosomeData, maxChrSizeMb: number): ReactElement {
-  const mbSize = (chr.chr_size_bp / 1_000_000).toFixed(2);          
+  const mbSize = (chr.chr_size_bp / 1_000_000).toFixed(2);
   const centromereInfo = chr.centromere_start && chr.centromere_end
     ? {
-        start: (chr.centromere_start / 1_000_000).toFixed(2),
-        end: (chr.centromere_end / 1_000_000).toFixed(2)
-      }
+      start: (chr.centromere_start / 1_000_000).toFixed(2),
+      end: (chr.centromere_end / 1_000_000).toFixed(2)
+    }
     : null;
-  
+
   return (
     <div className="space-y-4 p-1 min-w-[300px]">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Badge 
-            variant="outline" 
+          <Badge
+            variant="outline"
             className="bg-gradient-to-r from-indigo-50 to-blue-50 text-gray-800 dark:from-indigo-950/30 dark:to-blue-950/30 dark:text-gray-100 dark:border-blue-800/30"
           >
             Chromosome
@@ -39,7 +39,7 @@ export function getChromosomeTooltip(chr: ChromosomeData, maxChrSizeMb: number):
             {chr.chr_id}
           </span>
         </div>
-        <Badge 
+        <Badge
           variant="secondary"
           className="bg-blue-100/50 text-blue-900 dark:bg-blue-950/50 dark:text-blue-100 dark:border-blue-800/30"
         >
@@ -49,8 +49,8 @@ export function getChromosomeTooltip(chr: ChromosomeData, maxChrSizeMb: number):
 
       {/* Species Info */}
       <div className="flex items-center gap-2">
-        <Badge 
-          variant="outline" 
+        <Badge
+          variant="outline"
           className="bg-gray-50 text-gray-800 dark:bg-gray-900/50 dark:text-gray-100 dark:border-gray-700"
         >
           Species
@@ -64,8 +64,8 @@ export function getChromosomeTooltip(chr: ChromosomeData, maxChrSizeMb: number):
       <div className="grid grid-cols-2 gap-3">
         {/* Type */}
         <div className="space-y-1.5">
-          <Badge 
-            variant="outline" 
+          <Badge
+            variant="outline"
             className="bg-gray-50 text-gray-800 dark:bg-gray-900/50 dark:text-gray-100 dark:border-gray-700"
           >
             Type
@@ -78,8 +78,8 @@ export function getChromosomeTooltip(chr: ChromosomeData, maxChrSizeMb: number):
         {/* Structure */}
         {chr.centromere_start && (
           <div className="space-y-1.5">
-            <Badge 
-              variant="outline" 
+            <Badge
+              variant="outline"
               className="bg-gray-50 text-gray-800 dark:bg-gray-900/50 dark:text-gray-100 dark:border-gray-700"
             >
               Structure
@@ -95,13 +95,13 @@ export function getChromosomeTooltip(chr: ChromosomeData, maxChrSizeMb: number):
       {centromereInfo && (
         <div className="space-y-2 border-t border-gray-100 dark:border-gray-800 pt-3">
           <div className="flex items-center justify-between">
-            <Badge 
-              variant="outline" 
+            <Badge
+              variant="outline"
               className="bg-gray-50 text-gray-800 dark:bg-gray-900/50 dark:text-gray-100 dark:border-gray-700"
             >
               Centromere Position
             </Badge>
-            <Badge 
+            <Badge
               variant="secondary"
               className="bg-indigo-100/50 text-indigo-900 dark:bg-indigo-950/50 dark:text-indigo-100 dark:border-indigo-800/30"
             >
@@ -111,9 +111,9 @@ export function getChromosomeTooltip(chr: ChromosomeData, maxChrSizeMb: number):
 
           {/* Centromere Position Visualization */}
           <div className="w-full bg-gray-100 dark:bg-gray-800 h-2 rounded-full overflow-hidden">
-            <div 
+            <div
               className="h-full bg-indigo-500 dark:bg-indigo-600"
-              style={{ 
+              style={{
                 width: `${((Number(centromereInfo.end) - Number(centromereInfo.start)) / (chr.chr_size_bp / 1_000_000)) * 100}%`,
                 marginLeft: `${(Number(centromereInfo.start) / (chr.chr_size_bp / 1_000_000)) * 100}%`,
                 transition: 'all 0.3s ease-in-out'
@@ -126,32 +126,32 @@ export function getChromosomeTooltip(chr: ChromosomeData, maxChrSizeMb: number):
       {/* Size Comparison */}
       <div className="space-y-2 border-t border-gray-100 dark:border-gray-800 pt-3">
         <div className="flex items-center justify-between">
-          <Badge 
-            variant="outline" 
+          <Badge
+            variant="outline"
             className="bg-gray-50 text-gray-800 dark:bg-gray-900/50 dark:text-gray-100 dark:border-gray-700"
           >
             Size Category
           </Badge>
-          <Badge 
-            variant="secondary" 
+          <Badge
+            variant="secondary"
             className={cn(
               "text-xs",
               Number(mbSize) > 100 ? "bg-green-100 text-green-900 dark:bg-green-950/50 dark:text-green-100 dark:border-green-800/30" :
-              Number(mbSize) > 50 ? "bg-yellow-100 text-yellow-900 dark:bg-yellow-950/50 dark:text-yellow-100 dark:border-yellow-800/30" :
-              "bg-orange-100 text-orange-900 dark:bg-orange-950/50 dark:text-orange-100 dark:border-orange-800/30"
+                Number(mbSize) > 50 ? "bg-yellow-100 text-yellow-900 dark:bg-yellow-950/50 dark:text-yellow-100 dark:border-yellow-800/30" :
+                  "bg-orange-100 text-orange-900 dark:bg-orange-950/50 dark:text-orange-100 dark:border-orange-800/30"
             )}
           >
-            {Number(mbSize) > 100 ? 'Large (>100Mb)' : 
-             Number(mbSize) > 50 ? 'Medium (50-100Mb)' : 
-             'Small (<50Mb)'}
+            {Number(mbSize) > 100 ? 'Large (>100Mb)' :
+              Number(mbSize) > 50 ? 'Medium (50-100Mb)' :
+                'Small (<50Mb)'}
           </Badge>
         </div>
 
         {/* Size Visualization */}
         <div className="w-full bg-gray-100 dark:bg-gray-800 h-1.5 rounded-full overflow-hidden">
-          <div 
+          <div
             className="h-full bg-gradient-to-r from-blue-500 to-indigo-500 dark:from-blue-600 dark:to-indigo-600"
-            style={{ 
+            style={{
               width: `${(Number(mbSize) / Math.max(maxChrSizeMb, Number(mbSize))) * 100}%`,
               transition: 'width 0.3s ease-in-out'
             }}
@@ -168,9 +168,9 @@ export function getChromosomeTooltip(chr: ChromosomeData, maxChrSizeMb: number):
 export function SelectionToast({ message, show }: { message: string; show: boolean }) {
   const toastVariants: Variants = {
     hidden: { opacity: 0, y: -20, scale: 0.95 },
-    visible: { 
-      opacity: 1, 
-      y: 0, 
+    visible: {
+      opacity: 1,
+      y: 0,
       scale: 1,
       transition: {
         type: "spring",
@@ -178,9 +178,9 @@ export function SelectionToast({ message, show }: { message: string; show: boole
         damping: 25
       }
     },
-    exit: { 
-      opacity: 0, 
-      y: -20, 
+    exit: {
+      opacity: 0,
+      y: -20,
       scale: 0.95,
       transition: {
         duration: 0.2
@@ -248,8 +248,8 @@ export function getBreakpointTooltip(breakpoint: ChromosomeBreakpoint): ReactEle
         {/* Chromosome info */}
         <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg border border-gray-100 dark:border-gray-700/50">
           <div className="flex items-center gap-2">
-            <Badge 
-              variant="outline" 
+            <Badge
+              variant="outline"
               className="bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 font-medium"
             >
               Chromosome
@@ -265,8 +265,8 @@ export function getBreakpointTooltip(breakpoint: ChromosomeBreakpoint): ReactEle
           <span className="text-sm font-semibold text-blue-900 dark:text-blue-100 uppercase tracking-wide">
             Position
           </span>
-          <Badge 
-            variant="secondary" 
+          <Badge
+            variant="secondary"
             className="bg-white dark:bg-gray-900 text-blue-800 dark:text-blue-200 border border-blue-300 dark:border-blue-700 px-3 py-1 font-mono text-sm"
           >
             {formatBp(breakpoint.ref_start)} - {formatBp(breakpoint.ref_end)}
@@ -278,8 +278,8 @@ export function getBreakpointTooltip(breakpoint: ChromosomeBreakpoint): ReactEle
           <span className="text-sm font-semibold text-emerald-900 dark:text-emerald-100 uppercase tracking-wide">
             Size
           </span>
-          <Badge 
-            variant="secondary" 
+          <Badge
+            variant="secondary"
             className="bg-white dark:bg-gray-900 text-emerald-800 dark:text-emerald-200 border border-emerald-300 dark:border-emerald-700 px-3 py-1 font-mono text-sm"
           >
             {sizeMb} Mb
@@ -301,7 +301,7 @@ export function getSyntenyTooltip(link: SyntenyData, maxSyntenySizeMb: number): 
   };
   const size = ((link.ref_end - link.ref_start) / 1_000_000).toFixed(2);
   const percentage = (Number(size) / Math.max(maxSyntenySizeMb, Number(size))) * 100;
-  
+
   return (
     <div className="space-y-4 p-1">
       {/* Header */}
@@ -309,12 +309,12 @@ export function getSyntenyTooltip(link: SyntenyData, maxSyntenySizeMb: number): 
         <Badge variant="outline" className="bg-gradient-to-r from-blue-50 to-purple-50 text-gray-800 dark:from-blue-950/30 dark:to-purple-950/30 dark:text-gray-100 dark:border-blue-800/30">
           Syntenic Block
         </Badge>
-        <Badge 
+        <Badge
           variant="secondary"
           className={cn(
             "flex items-center gap-1",
-            link.query_strand === '+' 
-              ? "bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300 hover:bg-blue-200/80" 
+            link.query_strand === '+'
+              ? "bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300 hover:bg-blue-200/80"
               : "bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-300 hover:bg-red-200/80"
           )}
         >
@@ -362,22 +362,22 @@ export function getSyntenyTooltip(link: SyntenyData, maxSyntenySizeMb: number): 
       <div className="space-y-2 border-t border-gray-100 dark:border-gray-800 pt-3">
         <div className="flex items-center justify-between">
           <Badge variant="outline" className="bg-gray-50 dark:bg-gray-900/50 dark:text-gray-100 dark:border-gray-700">
-          Synteny Block Size
+            Synteny Block Size
           </Badge>
           <span className="text-sm font-medium dark:text-gray-200">{size} Mb</span>
         </div>
         <div className="flex items-center justify-between">
           <Badge variant="outline" className="bg-gray-50 dark:bg-gray-900/50 dark:text-gray-100 dark:border-gray-700">
-             Size Category
+            Size Category
           </Badge>
-          <Badge 
-            variant="secondary" 
+          <Badge
+            variant="secondary"
             className={cn(
               "text-xs",
               Number(size) > 10 ? "bg-green-100 text-green-900 dark:bg-green-950/50 dark:text-green-100 dark:border-green-800/30" :
-              Number(size) > 5 ? "bg-yellow-100 text-yellow-900 dark:bg-yellow-950/50 dark:text-yellow-100 dark:border-yellow-800/30" :
-              Number(size) > 1 ? "bg-orange-100 text-orange-900 dark:bg-orange-950/50 dark:text-orange-100 dark:border-orange-800/30" :
-              "bg-red-100 text-red-900 dark:bg-red-950/50 dark:text-red-100 dark:border-red-800/30"
+                Number(size) > 5 ? "bg-yellow-100 text-yellow-900 dark:bg-yellow-950/50 dark:text-yellow-100 dark:border-yellow-800/30" :
+                  Number(size) > 1 ? "bg-orange-100 text-orange-900 dark:bg-orange-950/50 dark:text-orange-100 dark:border-orange-800/30" :
+                    "bg-red-100 text-red-900 dark:bg-red-950/50 dark:text-red-100 dark:border-red-800/30"
             )}
           >
             {calculateConservation(Number(size))}
@@ -387,9 +387,9 @@ export function getSyntenyTooltip(link: SyntenyData, maxSyntenySizeMb: number): 
 
       {/* Progress Bar */}
       <div className="w-full bg-gray-100 dark:bg-gray-800 h-1.5 rounded-full overflow-hidden">
-        <div 
+        <div
           className="h-full bg-gradient-to-r from-blue-500 to-purple-500 dark:from-blue-600 dark:to-purple-600"
-          style={{ 
+          style={{
             width: `${percentage}%`,
             transition: 'width 0.3s ease-in-out'
           }}
@@ -431,21 +431,21 @@ interface TooltipProps {
   showTooltips?: boolean;
 }
 
-export function Tooltip({ 
-  info, 
+export function Tooltip({
+  info,
   enabled = true,
   showTooltips = true
 }: TooltipProps) {
   if (!enabled || !showTooltips || !info || !info.isOpen) return null;
 
   const tooltipVariants: Variants = {
-    hidden: { 
-      opacity: 0, 
+    hidden: {
+      opacity: 0,
       scale: 0.95,
       y: 10
     },
-    visible: { 
-      opacity: 1, 
+    visible: {
+      opacity: 1,
       scale: 1,
       y: 0,
       transition: {
@@ -454,7 +454,7 @@ export function Tooltip({
         damping: 25
       }
     },
-    exit: { 
+    exit: {
       opacity: 0,
       scale: 0.95,
       y: 10
@@ -524,9 +524,9 @@ interface HoverTooltipProps {
   showTooltips?: boolean;
 }
 
-export function HoverTooltip({ 
-  hoveredBlock, 
-  hoveredChromosome, 
+export function HoverTooltip({
+  hoveredBlock,
+  hoveredChromosome,
   selectedBlock,
   refChromosome,
   queryChromosome,
@@ -547,8 +547,8 @@ export function HoverTooltip({
   if (!showTooltips || !isRendered) return null;
 
   const tooltipVariants: Variants = {
-    hidden: { 
-      opacity: 0, 
+    hidden: {
+      opacity: 0,
       y: -10,
       scale: 0.95,
       transition: {
@@ -556,8 +556,8 @@ export function HoverTooltip({
         ease: "easeOut"
       }
     },
-    visible: { 
-      opacity: 1, 
+    visible: {
+      opacity: 1,
       y: 0,
       scale: 1,
       transition: {
@@ -570,15 +570,15 @@ export function HoverTooltip({
   };
 
   const contentVariants = {
-    hidden: { 
-      opacity: 0, 
+    hidden: {
+      opacity: 0,
       y: 5,
       transition: {
         duration: 0.1
       }
     },
-    visible: { 
-      opacity: 1, 
+    visible: {
+      opacity: 1,
       y: 0,
       transition: {
         duration: 0.15,
@@ -630,27 +630,27 @@ export function HoverTooltip({
                 <span className="text-sm font-bold text-gray-800 dark:text-white tracking-wide">Synteny</span>
               </div>
               <Divider />
-              <InfoItem 
-                label="Ref" 
-                value={`${hoveredBlock.ref_chr}: ${(hoveredBlock.ref_start / 1_000_000).toFixed(2)}-${(hoveredBlock.ref_end / 1_000_000).toFixed(2)}Mb`} 
+              <InfoItem
+                label="Ref"
+                value={`${hoveredBlock.ref_chr}: ${(hoveredBlock.ref_start / 1_000_000).toFixed(2)}-${(hoveredBlock.ref_end / 1_000_000).toFixed(2)}Mb`}
               />
               <Divider />
-              <InfoItem 
-                label="Query" 
-                value={`${hoveredBlock.query_chr}: ${(hoveredBlock.query_start / 1_000_000).toFixed(2)}-${(hoveredBlock.query_end / 1_000_000).toFixed(2)}Mb`} 
+              <InfoItem
+                label="Query"
+                value={`${hoveredBlock.query_chr}: ${(hoveredBlock.query_start / 1_000_000).toFixed(2)}-${(hoveredBlock.query_end / 1_000_000).toFixed(2)}Mb`}
               />
               <Divider />
-              <InfoItem 
-                label="Strand" 
-                value={hoveredBlock.query_strand} 
-                icon={hoveredBlock.query_strand === '+' 
-                  ? <ArrowRight className="w-4 h-4 text-green-500 dark:text-green-400" /> 
+              <InfoItem
+                label="Strand"
+                value={hoveredBlock.query_strand}
+                icon={hoveredBlock.query_strand === '+'
+                  ? <ArrowRight className="w-4 h-4 text-green-500 dark:text-green-400" />
                   : <ArrowLeft className="w-4 h-4 text-red-500 dark:text-red-400" />}
               />
               <Divider />
-              <InfoItem 
-                label="Size" 
-                value={`${((hoveredBlock.ref_end - hoveredBlock.ref_start) / 1_000_000).toFixed(2)}Mb`} 
+              <InfoItem
+                label="Size"
+                value={`${((hoveredBlock.ref_end - hoveredBlock.ref_start) / 1_000_000).toFixed(2)}Mb`}
               />
             </div>
           </motion.div>
@@ -681,13 +681,13 @@ export function HoverTooltip({
             <div className="relative space-y-3 p-3">
               {/* Position Content */}
               <div className="flex items-center justify-between group">
-                <Badge 
-                  variant="outline" 
+                <Badge
+                  variant="outline"
                   className="bg-gradient-to-r from-indigo-50 to-blue-50 text-gray-800 dark:from-indigo-950/30 dark:to-blue-950/30 dark:text-gray-100 dark:border-blue-800/30 transition-all group-hover:from-indigo-100 group-hover:to-blue-100"
                 >
                   {hoveredChromosome.isRef ? 'Reference Position' : `Query: ${queryChromosome?.species_name} ${queryChromosome?.chr_id}`}
                 </Badge>
-                <Badge 
+                <Badge
                   variant="secondary"
                   className="bg-blue-100/50 text-blue-900 dark:bg-blue-950/50 dark:text-blue-100 dark:border-blue-800/30 transition-colors group-hover:bg-blue-200/50"
                 >
@@ -703,14 +703,14 @@ export function HoverTooltip({
                   className="p-2 rounded-md hover:bg-gray-50/50 dark:hover:bg-gray-900/30 transition-colors"
                 >
                   <div className="flex items-center justify-between mb-2">
-                    <Badge 
-                      variant="outline" 
+                    <Badge
+                      variant="outline"
                       className="bg-gray-50 text-gray-800 dark:bg-gray-900/50 dark:text-gray-100 dark:border-gray-700"
                     >
                       Gene
                     </Badge>
-                    <Badge 
-                      variant="secondary" 
+                    <Badge
+                      variant="secondary"
                       className="bg-gray-100/50 dark:bg-gray-900/50 dark:text-gray-100"
                     >
                       {hoveredChromosome.gene.class || 'NA'}

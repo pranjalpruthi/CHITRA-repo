@@ -18,7 +18,7 @@ export default function OpenSource() {
             id: "2",
             icon: Cpu,
             question: "What are the main features?",
-            answer: "CHITRA offers Synteny Block Visualization, Chromosome Breakpoint Analysis, Evolutionary Insights, and User-Friendly Visualization with dynamic adjustments. Users can compare species and zoom into specific chromosomal regions."
+            answer: "CHITRA offers Synteny Block Visualization, Chromosome Breakpoint Analysis, Interactive Visualization Interface, and Multi-format Data Export. Users can compare genomes and zoom into specific chromosomal regions with dynamic adjustments."
         },
         {
             id: "3",
@@ -27,11 +27,12 @@ export default function OpenSource() {
             answer: "Mandatory files include Synteny Data, Species Data, and Reference Chromosome Size (all in CSV format). Optional files include Gene Annotations and Breakpoint Data."
         },
         {
-            id: "4",
+            id: "4", 
             icon: Database,
             question: "What example datasets are available?",
-            answer: "CHITRA provides three types of example datasets: Basic Synteny (3 species comparison), Multiple Synteny (multiple species comparison), and Annotated Genome (with additional gene annotations and breakpoints)."
-        },
+            answer: "CHITRA provides three types of example datasets: Basic Synteny (3 genomes comparison), Multiple Synteny (multiple genomes comparison), and Annotated Genome (with additional gene annotations and breakpoints)."
+        }
+    ,
         {
             id: "5",
             icon: Settings,
