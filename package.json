@@ -119,7 +119,7 @@
     "million": "^3.1.11",
     "mini-svg-data-uri": "^1.4.4",
     "motion": "^12.19.1",
-    "next": "latest",
+    "next": "15.5.8",
     "next-themes": "^0.3.0",
     "onborda": "^1.2.4",
     "pako": "^2.1.0",
