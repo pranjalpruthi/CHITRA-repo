@@ -1,4 +1,4 @@
-query_name,query_chr,query_start,query_end,query_strand,ref_chr,ref_start,ref_end,ref_species,qry_lvl
+query_name,query_chr,query_start,query_end,query_strand,ref_chr,ref_start,ref_end,ref_name,qry_lvl
 Species_1,chr1,1000000,5000000,+,chr1,1000000,5000000,Reference,chromosome
 Species_1,chr1,15000000,25000000,-,chr1,15000000,25000000,Reference,chromosome
 Species_1,chr2,30000000,40000000,+,chr2,30000000,40000000,Reference,chromosome

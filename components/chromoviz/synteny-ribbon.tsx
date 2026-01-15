@@ -122,10 +122,10 @@ export function renderSyntenyRibbon({
 
     // Check if reference chromosome is selected
     const isRefSelected = selectedChromosomes.includes(refChr);
-    
+
     // If reference chromosome is selected but no query chromosomes are selected,
     // show all connections to this reference chromosome
-    const hasSelectedQueryChrs = selectedChromosomes.some(chr => 
+    const hasSelectedQueryChrs = selectedChromosomes.some(chr =>
       chr.startsWith(link.query_name + ":")
     );
 
@@ -147,9 +147,9 @@ export function renderSyntenyRibbon({
   const isInViewport = () => {
     const bounds = g.node()?.getBoundingClientRect();
     if (!bounds) return false;
-    return !(bounds.right < 0 || bounds.bottom < 0 || 
-            bounds.left > window.innerWidth || 
-            bounds.top > window.innerHeight);
+    return !(bounds.right < 0 || bounds.bottom < 0 ||
+      bounds.left > window.innerWidth ||
+      bounds.top > window.innerHeight);
   };
 
   // Skip rendering if not in viewport
@@ -174,21 +174,21 @@ export function renderSyntenyRibbon({
   const x2 = getXPosition(targetSpecies, link.query_chr, link.query_start);
 
   // Get chromosome sizes for width constraints
-  const sourceChromosome = referenceData.find(c => 
+  const sourceChromosome = referenceData.find(c =>
     c.species_name === sourceSpecies && c.chr_id === link.ref_chr
   );
-  const targetChromosome = referenceData.find(c => 
+  const targetChromosome = referenceData.find(c =>
     c.species_name === targetSpecies && c.chr_id === link.query_chr
   );
 
   // Calculate constrained widths
-  const width1 = sourceChromosome ? 
+  const width1 = sourceChromosome ?
     Math.min(
       xScale(link.ref_end - link.ref_start),
       xScale(sourceChromosome.chr_size_bp) - (x1 - getXPosition(sourceSpecies, link.ref_chr, 0))
     ) : 0;
 
-  const width2 = targetChromosome ? 
+  const width2 = targetChromosome ?
     Math.min(
       xScale(link.query_end - link.query_start),
       xScale(targetChromosome.chr_size_bp) - (x2 - getXPosition(targetSpecies, link.query_chr, 0))
@@ -261,9 +261,9 @@ export function renderSyntenyRibbon({
     .attr("y2", targetY);
 
   // Get the query species color with custom color support
-  const queryColor = customSpeciesColors?.get(targetSpecies) || 
+  const queryColor = customSpeciesColors?.get(targetSpecies) ||
     speciesColorScale(targetSpecies);
-  
+
   // Create a more visible gradient with higher opacity
   gradient.append("stop")
     .attr("offset", "0%")
@@ -334,7 +334,7 @@ export function renderSyntenyRibbon({
         ribbon.attr("opacity", SYNTENY_COLORS.OPACITY.HOVER);
         sourceBlock.attr("opacity", 1);
         targetBlock.attr("opacity", 1);
-        blockGroup.raise();
+        // Removed blockGroup.raise() to preserve z-index
       }
       onHover(event, link);
     })
@@ -350,6 +350,55 @@ export function renderSyntenyRibbon({
     .on("click", (event: MouseEvent) => {
       event.preventDefault();
       event.stopPropagation();
+
+      const elements = document.elementsFromPoint(event.clientX, event.clientY);
+
+      // Filter for synteny ribbons/groups
+      const syntenyElements = elements.filter(el =>
+        el.classList.contains('synteny-ribbon') ||
+        (el.classList.contains('synteny-group') && el.tagName === 'g') ||
+        el.closest('.synteny-group')
+      );
+
+      // Extract unique groups
+      const uniqueGroups = new Set<Element>();
+      syntenyElements.forEach(el => {
+        const group = el.closest('.synteny-group');
+        if (group) uniqueGroups.add(group);
+      });
+
+      const overlappingGroups = Array.from(uniqueGroups);
+      const myGroup = blockGroup.node();
+      const isMyGroupTop = overlappingGroups[0] === myGroup;
+
+      if (overlappingGroups.length > 1 && isMyGroupTop) {
+        // If I am the top-most overlapping element
+        const isCurrentlySelected = blockGroup.classed("selected");
+
+        if (isCurrentlySelected) {
+          // If I am already selected, cycle to the next one
+          onSelect(link, false); // Deselect me
+
+          // Trigger click on the next element
+          const nextGroup = overlappingGroups[1];
+          const nextClickable = nextGroup.querySelector('.synteny-ribbon') || nextGroup;
+
+          // Create a new click event that bypasses the stopPropagation of the first one
+          // We dispatch it directly to the next element
+          const nextEvent = new MouseEvent('click', {
+            bubbles: true,
+            cancelable: true,
+            view: window,
+            clientX: event.clientX,
+            clientY: event.clientY,
+            buttons: 1
+          });
+          nextClickable.dispatchEvent(nextEvent);
+          return;
+        }
+      }
+
+      // Default behavior: Toggle selection
       const currentlySelected = blockGroup.classed("selected");
       onSelect(link, !currentlySelected);
     });

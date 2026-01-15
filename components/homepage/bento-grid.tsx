@@ -9,7 +9,7 @@ export function BentoGrid() {
         title="Chromosome Visualization"
         description="Create stunning, interactive visualizations of chromosomal data with customizable layouts and styling options."
         className={`sm:col-span-1 sm:row-span-2 p-4 sm:p-6 h-full 
-          bg-gradient-to-br from-indigo-500/10 via-blue-500/10 to-sky-500/10
+          bg-linear-to-br from-indigo-500/10 via-blue-500/10 to-sky-500/10
           dark:from-indigo-400/10 dark:via-blue-400/10 dark:to-sky-400/10
           border border-indigo-500/20 dark:border-indigo-400/20
           backdrop-blur-md shadow-[0_0_25px_-5px_rgba(99,102,241,0.3)]
@@ -23,7 +23,7 @@ export function BentoGrid() {
         title="Syntenic Relationships"
         description="Explore and visualize syntenic relationships between different species with intuitive, interactive displays."
         className={`sm:col-span-1 p-4 sm:p-6 h-full 
-          bg-gradient-to-br from-rose-500/10 via-pink-500/10 to-red-500/10
+          bg-linear-to-br from-rose-500/10 via-pink-500/10 to-red-500/10
           dark:from-rose-400/10 dark:via-pink-400/10 dark:to-red-400/10
           border border-rose-500/20 dark:border-rose-400/20
           backdrop-blur-md shadow-[0_0_25px_-5px_rgba(244,63,94,0.3)]
@@ -37,7 +37,7 @@ export function BentoGrid() {
         title="Data Integration"
         description="Import and integrate various genomic data formats seamlessly for comprehensive visualization and analysis."
         className={`sm:col-span-1 p-4 sm:p-6 h-full 
-          bg-gradient-to-br from-teal-500/10 via-emerald-500/10 to-green-500/10
+          bg-linear-to-br from-teal-500/10 via-emerald-500/10 to-green-500/10
           dark:from-teal-400/10 dark:via-emerald-400/10 dark:to-green-400/10
           border border-teal-500/20 dark:border-teal-400/20
           backdrop-blur-md shadow-[0_0_25px_-5px_rgba(20,184,166,0.3)]
@@ -51,7 +51,7 @@ export function BentoGrid() {
         title="Interactive Analysis"
         description="Perform dynamic analysis with real-time updates and interactive features for deeper insights into your genomic data."
         className={`sm:col-span-2 p-4 sm:p-6 h-full 
-          bg-gradient-to-br from-violet-500/10 via-purple-500/10 to-fuchsia-500/10
+          bg-linear-to-br from-violet-500/10 via-purple-500/10 to-fuchsia-500/10
           dark:from-violet-400/10 dark:via-purple-400/10 dark:to-fuchsia-400/10
           border border-violet-500/20 dark:border-violet-400/20
           backdrop-blur-md shadow-[0_0_25px_-5px_rgba(139,92,246,0.3)]

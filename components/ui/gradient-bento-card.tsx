@@ -55,7 +55,7 @@ export function GradientBentoCard({
           background: gradient,
         }}
       />
-      <div className="absolute inset-[1px] rounded-[11px] bg-neutral-100/80 dark:bg-neutral-900/80 backdrop-blur-sm" />
+      <div className="absolute inset-px rounded-[11px] bg-neutral-100/80 dark:bg-neutral-900/80 backdrop-blur-xs" />
       <div className={cn(
         "relative p-6",
         size === "full" && "p-8",

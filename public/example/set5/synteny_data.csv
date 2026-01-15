@@ -1,4 +1,4 @@
-query_name,query_chr,query_start,query_end,query_strand,ref_chr,ref_start,ref_end,ref_species,qry_lvl
+query_name,query_chr,query_start,query_end,query_strand,ref_chr,ref_start,ref_end,ref_name,qry_lvl
 Pan_troglodytes,chr22,9051892,19374727,+,chr18,9051892,19374727,Homo_sapiens,chromosome
 Pan_troglodytes,chr14,48892826,60406850,-,chr13,48892826,60406850,Homo_sapiens,chromosome
 Pan_troglodytes,chr9,1564826,8148818,-,chr5,1564826,8148818,Homo_sapiens,chromosome

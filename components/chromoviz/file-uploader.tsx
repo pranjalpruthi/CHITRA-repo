@@ -68,7 +68,7 @@ export const FILE_CONFIGS = {
         { field: "ref_chr", desc: "Reference chromosome ID" },
         { field: "ref_start", desc: "Start position in reference" },
         { field: "ref_end", desc: "End position in reference" },
-        { field: "ref_species", desc: "Reference species name" },
+        { field: "ref_name", desc: "Reference species name" },
         { field: "qry_lvl", desc: "Query level" }
       ]
     },
@@ -80,7 +80,7 @@ export const FILE_CONFIGS = {
       ref_start: +d.ref_start,
       ref_end: +d.ref_end,
       query_name: d.query_name || d.species_name || "Unknown",
-      ref_species: d.ref_species || "Reference",
+      ref_name: d.ref_name || "Reference",
       qry_lvl: d.qry_lvl || "synteny",
       symbol: d.symbol || "",
       class: d.class || "synteny",
@@ -250,7 +250,7 @@ const FileFormatInfo = ({ config }: { config: typeof FILE_CONFIGS[FileType] }) =
 const DirectFileFormatInfo = ({ config, type }: { config: typeof FILE_CONFIGS[FileType], type: FileType }) => (
   <Accordion type="single" collapsible className="w-full mt-2">
     <AccordionItem value={`item-${type}`} className="border border-muted-foreground/10 rounded-lg bg-muted/20">
-      <AccordionTrigger className="px-3 py-2 text-xs hover:no-underline [&[data-state=open]]:border-b border-muted-foreground/10">
+      <AccordionTrigger className="px-3 py-2 text-xs hover:no-underline data-[state=open]:border-b border-muted-foreground/10">
         <div className="flex items-center gap-2">
           <HelpCircle className="h-3.5 w-3.5 text-muted-foreground" />
           <span>View File Format Details</span>
@@ -300,12 +300,12 @@ export function CSVUploader({ onDataLoad, type, required = true }: FileUploaderP
 
   const validateCSVFormat = (data: any[]): boolean => {
     if (!data || data.length === 0) return false;
-    
+
     // Get required fields from the config's tooltip format
     const requiredFields = config.tooltip.format.map(f => f.field);
-    
+
     // Check if first row has all required fields
-    const hasAllFields = requiredFields.every(field => 
+    const hasAllFields = requiredFields.every(field =>
       Object.keys(data[0]).includes(field)
     );
 
@@ -350,7 +350,7 @@ export function CSVUploader({ onDataLoad, type, required = true }: FileUploaderP
       }
 
       const text = await file.text();
-      
+
       // Check if file is empty
       if (!text.trim()) {
         toast.error(`The uploaded file for ${config.title} is empty`);
@@ -407,16 +407,16 @@ export function CSVUploader({ onDataLoad, type, required = true }: FileUploaderP
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.3 }}
       >
-        <FileInput className="border border-dashed border-muted-foreground/25 rounded-lg hover:border-muted-foreground/50 transition-colors bg-gradient-to-br from-background to-muted/30 hover:from-background hover:to-muted/50">
+        <FileInput className="border border-dashed border-muted-foreground/25 rounded-lg hover:border-muted-foreground/50 transition-colors bg-linear-to-br from-background to-muted/30 hover:from-background hover:to-muted/50">
           <div className="flex items-center justify-between p-3 text-left relative">
             <motion.div
-              className={`absolute inset-0 bg-gradient-to-br ${GRADIENT_CONFIGS[type].gradient} opacity-50 rounded-lg transition-colors duration-300 ${GRADIENT_CONFIGS[type].hover}`}
+              className={`absolute inset-0 bg-linear-to-br ${GRADIENT_CONFIGS[type].gradient} opacity-50 rounded-lg transition-colors duration-300 ${GRADIENT_CONFIGS[type].hover}`}
               initial={{ opacity: 0 }}
               animate={{ opacity: 0.5 }}
               transition={{ duration: 0.5 }}
             />
             <div className="flex items-center gap-3 relative z-10">
-              <Upload className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+              <Upload className="h-4 w-4 text-muted-foreground shrink-0" />
               <div>
                 <p className="text-sm font-medium leading-none">{config.title}</p>
                 <p className="text-xs text-muted-foreground mt-1">{config.description}</p>
@@ -433,11 +433,11 @@ export function CSVUploader({ onDataLoad, type, required = true }: FileUploaderP
         {/* Display file format information directly below the input using Accordion */}
         {/* Wrapper to prevent click on accordion from triggering file dialog */}
         <div onClick={(e) => { e.stopPropagation(); e.preventDefault(); }} className="flex items-center gap-2 w-full">
-          <div className="flex-grow">
+          <div className="grow">
             <DirectFileFormatInfo config={config} type={type} />
           </div>
           <ExampleFilesDrawer onLoadExample={() => {
-              toast.info("Load Example feature is not implemented in this context yet.")
+            toast.info("Load Example feature is not implemented in this context yet.")
           }}>
             <Badge variant="secondary" className="cursor-pointer h-9 flex items-center">
               <Download className="h-3 w-3 mr-1" />
@@ -446,11 +446,11 @@ export function CSVUploader({ onDataLoad, type, required = true }: FileUploaderP
           </ExampleFilesDrawer>
         </div>
       </motion.div>
-      
+
       <FileUploaderContent>
         {files?.map((file, i) => (
-          <FileUploaderItem 
-            key={i} 
+          <FileUploaderItem
+            key={i}
             index={i}
             className="flex items-center gap-2 text-xs p-2 mt-1.5"
           >
@@ -571,7 +571,8 @@ export function FileUploaderGroup({ onDataLoad, user, children, trigger }: FileU
             onDataLoad.breakpoints?.(uploadedData.breakpoints.data, datasetId);
           }
         } catch (error) {
-          toast.error((error as Error).message);
+          const errorMessage = error instanceof Error ? error.message : "An error occurred during file upload";
+          toast.error(errorMessage);
           return;
         }
       } else {
@@ -589,11 +590,11 @@ export function FileUploaderGroup({ onDataLoad, user, children, trigger }: FileU
     }
   };
 
-  const requiredFilesCount = Object.keys(uploadedData).filter(key => 
+  const requiredFilesCount = Object.keys(uploadedData).filter(key =>
     ['synteny', 'species', 'reference'].includes(key)
   ).length;
 
-  const optionalFilesCount = Object.keys(uploadedData).filter(key => 
+  const optionalFilesCount = Object.keys(uploadedData).filter(key =>
     ['annotations', 'breakpoints'].includes(key)
   ).length;
 
@@ -607,7 +608,7 @@ export function FileUploaderGroup({ onDataLoad, user, children, trigger }: FileU
           </Button>
         )}
       </DrawerTrigger>
-      
+
       <DrawerContent className="h-[85vh] max-h-[85vh] md:h-[90vh] md:max-h-[90vh] overflow-hidden bg-white/95 dark:bg-gray-950/80">
         <DrawerHeader className="pb-2 border-b border-gray-200 dark:border-gray-800">
           <div className="flex items-center justify-between">
@@ -625,7 +626,7 @@ export function FileUploaderGroup({ onDataLoad, user, children, trigger }: FileU
         </DrawerHeader>
 
         {/* Mobile Layout with Tabs */}
-        <div className="lg:hidden h-[calc(100%-5rem)] overflow-hidden">
+        <div className="flex lg:hidden flex-1 overflow-hidden flex-col">
           <Tabs defaultValue="required" className="h-full flex flex-col">
             <TabsList className="w-full justify-start px-4 pt-2">
               <TabsTrigger value="required" className="flex items-center gap-2">
@@ -654,9 +655,9 @@ export function FileUploaderGroup({ onDataLoad, user, children, trigger }: FileU
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: ['synteny', 'species', 'reference'].indexOf(type) * 0.1 }}
                       >
-                        <CSVUploader 
-                          type={type as keyof typeof FILE_CONFIGS} 
-                          onDataLoad={(file, data) => handleDataLoad(type as keyof typeof onDataLoad, file, data)} 
+                        <CSVUploader
+                          type={type as keyof typeof FILE_CONFIGS}
+                          onDataLoad={(file, data) => handleDataLoad(type as keyof typeof onDataLoad, file, data)}
                         />
                       </motion.div>
                     ))}
@@ -692,8 +693,8 @@ export function FileUploaderGroup({ onDataLoad, user, children, trigger }: FileU
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: ['annotations', 'breakpoints'].indexOf(type) * 0.1 }}
                       >
-                        <CSVUploader 
-                          type={type as keyof typeof FILE_CONFIGS} 
+                        <CSVUploader
+                          type={type as keyof typeof FILE_CONFIGS}
                           onDataLoad={(file, data) => handleDataLoad(type as keyof typeof onDataLoad, file, data)}
                           required={false}
                         />
@@ -739,10 +740,10 @@ export function FileUploaderGroup({ onDataLoad, user, children, trigger }: FileU
         </div>
 
         {/* Desktop Layout - Three Columns */}
-        <div className="hidden lg:flex h-[calc(100%-5rem)] overflow-hidden">
+        <div className="flex max-lg:hidden flex-1 overflow-hidden">
           {/* Left Column - Required Files */}
           <div className="w-full lg:w-1/3 border-b lg:border-b-0 lg:border-r border-gray-200 dark:border-gray-800 overflow-auto">
-            <div className="p-4 border-b border-gray-200 dark:border-gray-800 bg-gradient-to-r from-gray-50/50 via-gray-50/30 to-transparent dark:from-gray-900/50 dark:via-gray-900/30 dark:to-transparent">
+            <div className="p-4 border-b border-gray-200 dark:border-gray-800 bg-linear-to-r from-gray-50/50 via-gray-50/30 to-transparent dark:from-gray-900/50 dark:via-gray-900/30 dark:to-transparent">
               <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-2">
                 <FileText className="h-4 w-4" />
                 Required Files
@@ -760,15 +761,15 @@ export function FileUploaderGroup({ onDataLoad, user, children, trigger }: FileU
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: ['synteny', 'species', 'reference'].indexOf(type) * 0.1 }}
                 >
-                  <CSVUploader 
-                    type={type as keyof typeof FILE_CONFIGS} 
-                    onDataLoad={(file, data) => handleDataLoad(type as keyof typeof onDataLoad, file, data)} 
+                  <CSVUploader
+                    type={type as keyof typeof FILE_CONFIGS}
+                    onDataLoad={(file, data) => handleDataLoad(type as keyof typeof onDataLoad, file, data)}
                   />
                 </motion.div>
               ))}
             </div>
 
-            <div className="sticky bottom-0 p-4 bg-white/80 dark:bg-gray-950/80 border-t border-gray-200 dark:border-gray-800 backdrop-blur-sm">
+            <div className="sticky bottom-0 p-4 bg-white/80 dark:bg-gray-950/80 border-t border-gray-200 dark:border-gray-800 backdrop-blur-xs">
               <div className="space-y-2">
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-600 dark:text-gray-400">Required Files</span>
@@ -788,7 +789,7 @@ export function FileUploaderGroup({ onDataLoad, user, children, trigger }: FileU
 
           {/* Middle Column - Optional Files */}
           <div className="w-full lg:w-1/3 border-b lg:border-b-0 lg:border-r border-gray-200 dark:border-gray-800 overflow-auto">
-            <div className="p-4 border-b border-gray-200 dark:border-gray-800 bg-gradient-to-r from-gray-50/50 via-gray-50/30 to-transparent dark:from-gray-900/50 dark:via-gray-900/30 dark:to-transparent">
+            <div className="p-4 border-b border-gray-200 dark:border-gray-800 bg-linear-to-r from-gray-50/50 via-gray-50/30 to-transparent dark:from-gray-900/50 dark:via-gray-900/30 dark:to-transparent">
               <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-2">
                 <FileText className="h-4 w-4" />
                 Optional Files
@@ -806,8 +807,8 @@ export function FileUploaderGroup({ onDataLoad, user, children, trigger }: FileU
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: ['annotations', 'breakpoints'].indexOf(type) * 0.1 }}
                 >
-                  <CSVUploader 
-                    type={type as keyof typeof FILE_CONFIGS} 
+                  <CSVUploader
+                    type={type as keyof typeof FILE_CONFIGS}
                     onDataLoad={(file, data) => handleDataLoad(type as keyof typeof onDataLoad, file, data)}
                     required={false}
                   />
@@ -815,7 +816,7 @@ export function FileUploaderGroup({ onDataLoad, user, children, trigger }: FileU
               ))}
             </div>
 
-            <div className="sticky bottom-0 p-4 bg-white/80 dark:bg-gray-950/80 border-t border-gray-200 dark:border-gray-800 backdrop-blur-sm">
+            <div className="sticky bottom-0 p-4 bg-white/80 dark:bg-gray-950/80 border-t border-gray-200 dark:border-gray-800 backdrop-blur-xs">
               <div className="space-y-2">
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-600 dark:text-gray-400">Optional Files</span>
@@ -835,7 +836,7 @@ export function FileUploaderGroup({ onDataLoad, user, children, trigger }: FileU
 
           {/* Right Column - Feature Table Converter */}
           <div className="w-full lg:w-1/3 overflow-auto">
-            <div className="p-4 border-b border-gray-200 dark:border-gray-800 bg-gradient-to-r from-gray-50/50 via-gray-50/30 to-transparent dark:from-gray-900/50 dark:via-gray-900/30 dark:to-transparent">
+            <div className="p-4 border-b border-gray-200 dark:border-gray-800 bg-linear-to-r from-gray-50/50 via-gray-50/30 to-transparent dark:from-gray-900/50 dark:via-gray-900/30 dark:to-transparent">
               <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-2">
                 <TableProperties className="h-4 w-4" />
                 Feature Table Converter
@@ -858,7 +859,7 @@ export function FileUploaderGroup({ onDataLoad, user, children, trigger }: FileU
         </div>
 
         {/* Bottom Action Bar */}
-        <div className="sticky bottom-0 p-4 bg-white/80 dark:bg-gray-950/80 border-t border-gray-200 dark:border-gray-800 backdrop-blur-sm">
+        <div className="sticky bottom-0 p-4 bg-white/80 dark:bg-gray-950/80 border-t border-gray-200 dark:border-gray-800 backdrop-blur-xs">
           <div className="flex items-center justify-between">
             <div className="text-sm text-gray-500 dark:text-gray-400">
               {requiredFilesCount === 3 ? (

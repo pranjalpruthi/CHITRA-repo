@@ -76,7 +76,7 @@ function TabsList({
   return (
     <MotionHighlight
       controlledItems
-      className={cn('rounded-sm bg-background shadow-sm', activeClassName)}
+      className={cn('rounded-sm bg-background shadow-xs', activeClassName)}
       value={activeValue}
       transition={transition}
     >
@@ -103,7 +103,7 @@ function TabsTrigger({ className, value, ...props }: TabsTriggerProps) {
       <TabsPrimitive.Trigger
         data-slot="tabs-trigger"
         className={cn(
-          'inline-flex cursor-pointer items-center size-full justify-center whitespace-nowrap rounded-sm px-2 py-1 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:text-foreground z-[1]',
+          'inline-flex cursor-pointer items-center size-full justify-center whitespace-nowrap rounded-sm px-2 py-1 text-sm font-medium ring-offset-background transition-all focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:text-foreground z-1',
           className,
         )}
         value={value}
@@ -131,7 +131,7 @@ function TabsContent({
     <TabsPrimitive.Content asChild {...props}>
       <motion.div
         data-slot="tabs-content"
-        className={cn('flex-1 outline-none', className)}
+        className={cn('flex-1 outline-hidden', className)}
         layout
         initial={{ opacity: 0, y: -10, filter: 'blur(4px)' }}
         animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}

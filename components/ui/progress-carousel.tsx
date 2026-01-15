@@ -227,7 +227,7 @@ const CustomCursor: React.FC<CustomCursorProps> = ({
           }}
         >
           <motion.div
-            className="flex items-center justify-center w-[50px] h-[50px] bg-white/20 backdrop-blur-sm text-white rounded-full"
+            className="flex items-center justify-center w-[50px] h-[50px] bg-white/20 backdrop-blur-xs text-white rounded-full"
             animate={{
               rotate: rotation ? 180 : 0,
             }}
@@ -251,8 +251,8 @@ export function SliderBtnGroup({
   return (
     <div className={cn(
       "absolute bottom-0 left-0 right-0",
-      "bg-gradient-to-t from-black/90 via-black/50 to-transparent",
-      "backdrop-blur-sm",
+      "bg-linear-to-t from-black/90 via-black/50 to-transparent",
+      "backdrop-blur-xs",
       "p-2 sm:p-4",
       "grid grid-cols-2 sm:flex sm:flex-row sm:justify-center items-center gap-2 sm:gap-4",
       className

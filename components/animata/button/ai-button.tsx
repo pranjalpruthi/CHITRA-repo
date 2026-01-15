@@ -183,11 +183,11 @@ function AiButton({
 
   const gradientClasses = {
     default: cn(
-      "bg-white/90 dark:bg-black/50 backdrop-blur-md border-[1px]",
+      "bg-white/90 dark:bg-black/50 backdrop-blur-md border",
       gradientConfigs[color].default
     ),
     simple: cn(
-      "bg-transparent border-[1px]",
+      "bg-transparent border",
       gradientConfigs[color].simple
     )
   };

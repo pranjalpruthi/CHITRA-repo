@@ -28,7 +28,7 @@ export function UserProfile({ user, onSignOut }: { user: SupabaseUser | null; on
 
     return (
         <DropdownMenu>
-            <DropdownMenuTrigger asChild className="w-[2.25rem] h-[2.25rem]">
+            <DropdownMenuTrigger asChild className="w-9 h-9">
                 <Avatar>
                     <AvatarImage src={user.user_metadata.avatar_url} alt="User Profile" />
                     <AvatarFallback>{user.email?.[0].toUpperCase()}</AvatarFallback>

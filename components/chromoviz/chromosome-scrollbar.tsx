@@ -216,7 +216,7 @@ export const ChromosomeScrollbar = ({
         variant="outline"
         size="icon"
         className={cn(
-          "h-8 w-8 rounded-full text-white backdrop-blur-sm transition-colors",
+          "h-8 w-8 rounded-full text-white backdrop-blur-xs transition-colors",
           "bg-primary/40 border-primary/50 hover:bg-primary/50",
           activeScroll === 'left' && "bg-primary/70 border-primary/60"
         )}
@@ -231,7 +231,7 @@ export const ChromosomeScrollbar = ({
       </Button>
       <div
         ref={scrollTrackRef}
-        className="relative w-full h-3 bg-primary/10 backdrop-blur-sm rounded-full select-none flex-1"
+        className="relative w-full h-3 bg-primary/10 backdrop-blur-xs rounded-full select-none flex-1"
         onMouseDown={(e) => e.stopPropagation()}
       >
         <div
@@ -259,7 +259,7 @@ export const ChromosomeScrollbar = ({
         variant="outline"
         size="icon"
         className={cn(
-          "h-8 w-8 rounded-full text-white backdrop-blur-sm transition-colors",
+          "h-8 w-8 rounded-full text-white backdrop-blur-xs transition-colors",
           "bg-primary/40 border-primary/50 hover:bg-primary/50",
           activeScroll === 'right' && "bg-primary/70 border-primary/60"
         )}

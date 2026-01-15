@@ -36,7 +36,7 @@ function downloadCSV(data: SyntenyData[], filename: string) {
   ]
 
   const rows = data.map(link => [
-    link.ref_species,
+    link.ref_name,
     link.ref_chr,
     (link.ref_start / 1_000_000).toFixed(2),
     (link.ref_end / 1_000_000).toFixed(2),
@@ -151,7 +151,7 @@ export function InlineSyntenyDisplay({
                     className={cn(
                       "relative group transition-all duration-150",
                       "hover:bg-blue-500/5 dark:hover:bg-blue-500/10",
-                      isCompact ? "ring-1 ring-black/5 dark:ring-white/10 shadow-xs hover:shadow-sm" : "border-none ring-1 ring-black/5 dark:ring-white/10 shadow-sm hover:shadow-md",
+                      isCompact ? "ring-1 ring-black/5 dark:ring-white/10 shadow-2xs hover:shadow-xs" : "border-none ring-1 ring-black/5 dark:ring-white/10 shadow-xs hover:shadow-md",
                       "cursor-pointer",
                       index === currentBlockIndex && [
                         "ring-1 ring-blue-500 dark:ring-blue-400",
@@ -173,12 +173,12 @@ export function InlineSyntenyDisplay({
                                     e.stopPropagation();
                                     onToggleSelection(link);
                                   }}
-                                  className="h-6 w-6 rounded-full bg-background/70 backdrop-blur-sm ring-1 ring-black/5 dark:ring-white/10 shadow-md hover:bg-red-500/10 hover:text-red-500 hover:scale-105 active:scale-95"
+                                  className="h-6 w-6 rounded-full bg-background/70 backdrop-blur-xs ring-1 ring-black/5 dark:ring-white/10 shadow-md hover:bg-red-500/10 hover:text-red-500 hover:scale-105 active:scale-95"
                                 >
                                   <X className="h-3 w-3" />
                                 </Button>
                               </TooltipTrigger>
-                              <TooltipContent side="top" className="bg-background/90 backdrop-blur-sm text-xs p-1.5">
+                              <TooltipContent side="top" className="bg-background/90 backdrop-blur-xs text-xs p-1.5">
                                 <p>Deselect</p>
                               </TooltipContent>
                             </Tooltip>
@@ -195,10 +195,10 @@ export function InlineSyntenyDisplay({
                       >
                         <div className={cn("flex items-center gap-1.5", isCompact && "gap-1")}>
                           <span className={cn("font-medium tracking-tight text-sm", isCompact && "text-xs truncate max-w-[100px]")}>
-                            {link.ref_species} {link.ref_chr}
+                            {link.ref_name} {link.ref_chr}
                           </span>
                           <ChevronRight className={cn(
-                            "h-3.5 w-3.5 flex-shrink-0", 
+                            "h-3.5 w-3.5 shrink-0", 
                             index === currentBlockIndex 
                               ? "text-blue-500"
                               : "text-muted-foreground",

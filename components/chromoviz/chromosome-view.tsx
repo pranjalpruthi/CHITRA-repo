@@ -248,7 +248,7 @@ export function renderChromosome({
                       <div className="flex items-center gap-3">
                         <Badge
                           variant="outline"
-                          className="bg-gradient-to-r from-blue-50 to-indigo-50 text-blue-800 border-blue-200 px-3 py-1.5 font-semibold dark:from-blue-950/40 dark:to-indigo-950/40 dark:text-blue-100 dark:border-blue-800/50"
+                          className="bg-linear-to-r from-blue-50 to-indigo-50 text-blue-800 border-blue-200 px-3 py-1.5 font-semibold dark:from-blue-950/40 dark:to-indigo-950/40 dark:text-blue-100 dark:border-blue-800/50"
                         >
                           <div className="h-4 w-4 mr-2 rounded-full bg-blue-500 dark:bg-blue-400" />
                           Gene Density
@@ -262,7 +262,7 @@ export function renderChromosome({
                     {/* Content sections */}
                     <div className="space-y-3">
                       {/* Position info */}
-                      <div className="flex items-center justify-between p-3 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 rounded-lg border border-blue-200 dark:border-blue-800/30">
+                      <div className="flex items-center justify-between p-3 bg-linear-to-r from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 rounded-lg border border-blue-200 dark:border-blue-800/30">
                         <span className="text-sm font-semibold text-blue-900 dark:text-blue-100 uppercase tracking-wide">
                           Position
                         </span>
@@ -275,7 +275,7 @@ export function renderChromosome({
                       </div>
 
                       {/* Density information */}
-                      <div className="flex items-center justify-between p-3 bg-gradient-to-r from-emerald-50 to-green-50 dark:from-emerald-950/30 dark:to-green-950/30 rounded-lg border border-emerald-200 dark:border-emerald-800/30">
+                      <div className="flex items-center justify-between p-3 bg-linear-to-r from-emerald-50 to-green-50 dark:from-emerald-950/30 dark:to-green-950/30 rounded-lg border border-emerald-200 dark:border-emerald-800/30">
                         <span className="text-sm font-semibold text-emerald-900 dark:text-emerald-100 uppercase tracking-wide">
                           Density
                         </span>

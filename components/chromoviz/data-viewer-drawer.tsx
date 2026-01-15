@@ -96,13 +96,13 @@ function VirtualTable<T>({
       : 0
 
   return (
-    <div className="space-y-2.5">
+    <div className="space-y-2.5 pt-4">
       <div className="flex flex-wrap items-center gap-2">
         <Input
           placeholder="Search all columns..."
           value={globalFilter ?? ""}
           onChange={(event) => setGlobalFilter(event.target.value)}
-          className="max-w-xs h-8 text-xs flex-grow"
+          className="max-w-xs h-8 text-xs grow"
         />
         {filterColumn && (
           <Input
@@ -113,52 +113,92 @@ function VirtualTable<T>({
             onChange={(event) =>
               table.getColumn(filterColumn)?.setFilterValue(event.target.value)
             }
-            className="max-w-xs h-8 text-xs flex-grow"
+            className="max-w-xs h-8 text-xs grow"
           />
         )}
       </div>
 
       <div ref={parentRef} className="h-[60vh] overflow-auto border rounded-md">
-        <div style={{ height: `${totalSize}px`, position: "relative" }}>
-          {!isMobile && (
-            <table className="min-w-full border-collapse sticky top-0 bg-background z-10">
-              <thead>
-                {table.getHeaderGroups().map((headerGroup: any) => (
-                  <tr key={headerGroup.id}>
-                    {headerGroup.headers.map((header: any) => (
-                      <th
-                        key={header.id}
-                        className="h-10 px-2 text-left align-middle font-medium text-muted-foreground bg-background text-xs"
-                        style={{ width: header.getSize() }}
-                      >
-                        {header.isPlaceholder ? null : (
-                          <Button
-                            variant="ghost"
-                            onClick={header.column.getToggleSortingHandler()}
-                            className={cn(
-                              "h-8 flex items-center gap-1.5 px-1",
-                              header.column.getCanSort()
-                                ? "cursor-pointer select-none"
-                                : ""
-                            )}
-                          >
+        {!isMobile ? (
+          <table className="w-full border-collapse" style={{ tableLayout: 'fixed' }}>
+            <colgroup>
+              {table.getAllColumns().map((column: any) => (
+                <col key={column.id} style={{ width: column.getSize() }} />
+              ))}
+            </colgroup>
+            <thead className="sticky top-0 bg-background z-10">
+              {table.getHeaderGroups().map((headerGroup: any) => (
+                <tr key={headerGroup.id}>
+                  {headerGroup.headers.map((header: any) => (
+                    <th
+                      key={header.id}
+                      className="h-10 px-2 text-left align-middle font-medium text-muted-foreground bg-background text-xs border-b"
+                    >
+                      {header.isPlaceholder ? null : (
+                        <Button
+                          variant="ghost"
+                          onClick={header.column.getToggleSortingHandler()}
+                          className={cn(
+                            "h-8 flex items-center gap-1.5 px-1 w-full justify-start",
+                            header.column.getCanSort()
+                              ? "cursor-pointer select-none"
+                              : ""
+                          )}
+                        >
+                          <span className="truncate">
                             {flexRender(
                               header.column.columnDef.header,
                               header.getContext()
                             )}
-                            {header.column.getCanSort() && (
-                              <ArrowUpDown className="h-3.5 w-3.5" />
-                            )}
-                          </Button>
+                          </span>
+                          {header.column.getCanSort() && (
+                            <ArrowUpDown className="h-3.5 w-3.5 shrink-0" />
+                          )}
+                        </Button>
+                      )}
+                    </th>
+                  ))}
+                </tr>
+              ))}
+            </thead>
+            <tbody>
+              {paddingTop > 0 && (
+                <tr>
+                  <td style={{ height: `${paddingTop}px` }} colSpan={table.getAllColumns().length} />
+                </tr>
+              )}
+              {virtualRows.map((virtualRow: any) => {
+                const row = rows[virtualRow.index]
+                return (
+                  <tr
+                    key={row.id}
+                    className="border-b hover:bg-muted/50"
+                    style={{
+                      height: 40,
+                    }}
+                  >
+                    {row.getVisibleCells().map((cell: any) => (
+                      <td
+                        key={cell.id}
+                        className="p-2 text-xs truncate"
+                      >
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext()
                         )}
-                      </th>
+                      </td>
                     ))}
                   </tr>
-                ))}
-              </thead>
-            </table>
-          )}
-
+                )
+              })}
+              {paddingBottom > 0 && (
+                <tr>
+                  <td style={{ height: `${paddingBottom}px` }} colSpan={table.getAllColumns().length} />
+                </tr>
+              )}
+            </tbody>
+          </table>
+        ) : (
           <div
             style={{
               height: `${totalSize}px`,
@@ -181,49 +221,28 @@ function VirtualTable<T>({
                     transform: `translateY(${virtualRow.start}px)`,
                   }}
                 >
-                  {isMobile ? (
-                    <div className="p-3 border-b">
-                      {row.getVisibleCells().map((cell: any) => (
-                        <div
-                          key={cell.id}
-                          className="flex justify-between text-xs py-0.5"
-                        >
-                          <span className="font-bold text-muted-foreground pr-2">
-                            {flexRender(
-                              cell.column.columnDef.header,
-                              cell.getContext()
-                            )}
-                            :
-                          </span>
-                          <span className="text-right truncate">
-                            {flexRender(
-                              cell.column.columnDef.cell,
-                              cell.getContext()
-                            )}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                     <table className="min-w-full border-collapse">
-                      <tbody>
-                        <tr className="border-b hover:bg-muted/50">
-                          {row.getVisibleCells().map((cell: any) => (
-                            <td
-                              key={cell.id}
-                              className="p-2 text-xs"
-                              style={{ width: cell.column.getSize() }}
-                            >
-                              {flexRender(
-                                cell.column.columnDef.cell,
-                                cell.getContext()
-                              )}
-                            </td>
-                          ))}
-                        </tr>
-                      </tbody>
-                    </table>
-                  )}
+                  <div className="p-3 border-b">
+                    {row.getVisibleCells().map((cell: any) => (
+                      <div
+                        key={cell.id}
+                        className="flex justify-between text-xs py-0.5"
+                      >
+                        <span className="font-bold text-muted-foreground pr-2">
+                          {flexRender(
+                            cell.column.columnDef.header,
+                            cell.getContext()
+                          )}
+                          :
+                        </span>
+                        <span className="text-right truncate">
+                          {flexRender(
+                            cell.column.columnDef.cell,
+                            cell.getContext()
+                          )}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               )
             })}
@@ -231,7 +250,7 @@ function VirtualTable<T>({
               <div style={{ height: `${paddingBottom}px` }} />
             )}
           </div>
-        </div>
+        )}
       </div>
       <div className="text-xs text-muted-foreground pt-1">
         Showing {rows.length} rows
@@ -252,7 +271,7 @@ const syntenyColumns = [
   columnHelper.accessor('ref_chr', { header: 'Ref Chr', size: 90 }),
   columnHelper.accessor('ref_start', { header: 'Ref Start', size: 110, cell: (info: CellContext<any, number>) => info.getValue().toLocaleString() }),
   columnHelper.accessor('ref_end', { header: 'Ref End', size: 110, cell: (info: CellContext<any, number>) => info.getValue().toLocaleString() }),
-  columnHelper.accessor('ref_species', { header: 'Ref Species', size: 140 }),
+  columnHelper.accessor('ref_name', { header: 'Ref Species', size: 140 }),
   columnHelper.accessor('symbol', { header: 'Symbol', size: 90 }),
   columnHelper.accessor('class', { header: 'Class', size: 110 }),
   columnHelper.accessor('GeneID', { header: 'Gene ID', size: 110 }),
@@ -334,13 +353,13 @@ export function RawDataTablesDisplay({
   return (
     <div className={cn("w-full", className)}>
       <Tabs defaultValue="synteny" className="mt-2">
-        <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 md:grid-cols-5 text-xs">
+        <TabsList className="inline-flex w-auto h-auto justify-start p-1 bg-muted rounded-lg text-xs overflow-x-auto max-w-full">
           {TABS.map(tab => (
-            <TabsTrigger key={tab.id} value={tab.id} className="py-1.5 px-2">{tab.label}</TabsTrigger>
+            <TabsTrigger key={tab.id} value={tab.id} className="py-1.5 px-3 whitespace-nowrap">{tab.label}</TabsTrigger>
           ))}
         </TabsList>
         {TABS.map(tab => (
-          <TabsContent key={tab.id} value={tab.id} className="mt-3">
+          <TabsContent key={tab.id} value={tab.id} className="mt-8">
             {!tab.data ? (
               <SkeletonLoader />
             ) : tab.data.length > 0 ? (
@@ -372,7 +391,7 @@ export function DataViewerDrawer({
       <DrawerTrigger asChild>
         {children}
       </DrawerTrigger>
-      <DrawerContent showOverlay={false}>
+      <DrawerContent>
         <div className="w-full relative">
           <DrawerClose asChild>
             <Button variant="ghost" size="icon" className="absolute top-4 right-4 h-8 w-8 rounded-full bg-red-500/20 text-red-500 hover:bg-red-500/30 z-10">

@@ -147,7 +147,7 @@ export function FloatingHUDBar({
     ];
 
     const rows = data.map(link => [
-      link.ref_species,
+      link.ref_name,
       link.ref_chr,
       (link.ref_start / 1_000_000).toFixed(2),
       (link.ref_end / 1_000_000).toFixed(2),
@@ -225,7 +225,7 @@ export function FloatingHUDBar({
       style={{ x, y }}
       className={cn(
         "fixed bottom-4 sm:bottom-8 inset-x-0 mx-auto w-fit cursor-grab active:cursor-grabbing",
-        isFullScreen ? "z-[51]" : "z-50"
+        isFullScreen ? "z-51" : "z-50"
       )}
     >
       <div className="relative">
@@ -233,26 +233,28 @@ export function FloatingHUDBar({
         <div className={cn(
           "absolute inset-0 blur-2xl rounded-2xl",
           isVertical
-            ? "bg-gradient-to-b from-blue-500/20 to-purple-500/20"
-            : "bg-gradient-to-r from-blue-500/20 via-indigo-500/20 to-purple-500/20"
+            ? "bg-linear-to-b from-blue-500/20 to-purple-500/20"
+            : "bg-linear-to-r from-blue-500/20 via-indigo-500/20 to-purple-500/20"
         )} />
         <div className={cn(
           "absolute inset-0 blur-xl rounded-2xl opacity-50",
           isVertical
-            ? "bg-gradient-to-t from-blue-400/10 to-purple-400/10"
-            : "bg-gradient-to-l from-blue-400/10 via-indigo-400/10 to-purple-400/10"
+            ? "bg-linear-to-t from-blue-400/10 to-purple-400/10"
+            : "bg-linear-to-l from-blue-400/10 via-indigo-400/10 to-purple-400/10"
         )} />
 
         {/* Main container */}
         <div className={cn(
-          "relative bg-white/90 dark:bg-black/50 backdrop-blur-xl border border-white/30 dark:border-white/10 rounded-3xl shadow-2xl hover:shadow-3xl transition-all duration-500",
-          "ring-1 ring-black/5 dark:ring-white/10",
+          "relative backdrop-blur-xl border rounded-2xl shadow-xl transition-all duration-300",
+          "bg-white/95 dark:bg-zinc-900/95",
+          "border-zinc-200/80 dark:border-zinc-700/50",
+          "ring-1 ring-zinc-900/5 dark:ring-white/10",
           isVertical
             ? "px-3 py-4"
             : "px-3 sm:px-5 py-2 sm:py-2.5"
         )}>
           <div className={cn(
-            "flex items-center gap-1 sm:gap-2 [&>*]:!text-gray-700 dark:[&>*]:!text-white [&_svg]:!stroke-gray-600 dark:[&_svg]:!stroke-white",
+            "flex items-center gap-1 sm:gap-2",
             isVertical ? "flex-col" : "flex-row justify-center"
           )}>
             {/* User Profile / Sign In Button */}
@@ -265,7 +267,7 @@ export function FloatingHUDBar({
               />
             </div>
 
-            {!isVertical && <Separator orientation="vertical" className="h-6 mx-1 bg-white/20" />}
+            {!isVertical && <Separator orientation="vertical" className="h-6 mx-1 bg-zinc-300 dark:bg-zinc-600" />}
 
             {/* Reset/Go Back Button */}
             <Button
@@ -288,7 +290,7 @@ export function FloatingHUDBar({
                 <Home className="h-3.5 w-3.5" />
               )}
               {!isVertical && (
-                <span className="hidden sm:inline ml-1.5">
+                <span className="max-sm:hidden ml-1.5">
                   {referenceGenomeData ? "Go Back" : "Main"}
                 </span>
               )}
@@ -307,7 +309,7 @@ export function FloatingHUDBar({
                 )}
               >
                 <Upload className="h-3.5 w-3.5" />
-                {!isVertical && <span className="hidden sm:inline ml-1.5">Upload</span>}
+                {!isVertical && <span className="max-sm:hidden ml-1.5">Upload</span>}
               </Button>
             </FileUploaderGroup>
 
@@ -324,7 +326,7 @@ export function FloatingHUDBar({
                 )}
               >
                 <FileText className="h-3.5 w-3.5" />
-                {!isVertical && <span className="hidden sm:inline ml-1.5">Examples</span>}
+                {!isVertical && <span className="max-sm:hidden ml-1.5">Examples</span>}
               </Button>
             </ExampleFilesDrawer>
 
@@ -352,7 +354,7 @@ export function FloatingHUDBar({
                         )}
                       >
                         <TableProperties className="h-3.5 w-3.5" />
-                        {!isVertical && <span className="hidden sm:inline ml-1.5">Filter</span>}
+                        {!isVertical && <span className="max-sm:hidden ml-1.5">Filter</span>}
 
                         {/* Notification indicator when no data loaded */}
                         <div className="absolute -top-1 -right-1 w-3 h-3 bg-purple-500 rounded-full animate-pulse border border-white dark:border-gray-800 z-20" />
@@ -379,7 +381,7 @@ export function FloatingHUDBar({
                           )}
                         >
                           <TableProperties className="h-3.5 w-3.5" />
-                          {!isVertical && <span className="hidden sm:inline ml-1.5">Filter</span>}
+                          {!isVertical && <span className="max-sm:hidden ml-1.5">Filter</span>}
                         </Button>
                       </FilterDrawer>
                     )}
@@ -398,7 +400,7 @@ export function FloatingHUDBar({
 
             {/* Separator */}
             {!isVertical && (
-              <Separator orientation="vertical" className="h-6 mx-1 bg-white/20 hidden sm:block" />
+              <Separator orientation="vertical" className="h-6 mx-1 bg-zinc-300 dark:bg-zinc-600 hidden sm:block" />
             )}
 
             {/* Tooltip Toggle Button */}
@@ -422,7 +424,7 @@ export function FloatingHUDBar({
                 <MessageCircleOff className="h-3.5 w-3.5" />
               )}
               {!isVertical && (
-                <span className="hidden sm:inline ml-1.5">
+                <span className="max-sm:hidden ml-1.5">
                   {showTooltips ? "Hide Tips" : "Show Tips"}
                 </span>
               )}
@@ -444,29 +446,22 @@ export function FloatingHUDBar({
                           });
                         }}
                         className={cn(
-                          "relative overflow-hidden transition-all duration-300 group",
-                          "bg-gradient-to-br from-gray-400/20 via-slate-400/15 to-gray-500/10",
-                          "dark:from-gray-600/20 dark:via-slate-600/15 dark:to-gray-700/10",
-                          "text-gray-600 dark:text-gray-400 font-medium",
-                          "border border-gray-300/30 dark:border-gray-600/20",
-                          "hover:from-gray-400/30 hover:via-slate-400/25 hover:to-gray-500/20",
-                          "dark:hover:from-gray-600/30 dark:hover:via-slate-600/25 dark:hover:to-gray-700/20",
-                          "hover:border-gray-400/50 dark:hover:border-gray-500/40",
-                          "hover:shadow-lg hover:shadow-gray-500/15 dark:hover:shadow-gray-400/10",
-                          "[&_svg]:stroke-gray-500 dark:[&_svg]:stroke-gray-400",
-                          "active:scale-95 hover:scale-105",
-                          "rounded-2xl",
+                          "transition-colors duration-200 group border bg-background/50 backdrop-blur-sm",
+                          "border-border/50",
+                          "text-muted-foreground hover:text-foreground",
+                          "hover:bg-accent/50",
+                          "[&_svg]:stroke-muted-foreground group-hover:[&_svg]:stroke-foreground",
+                          "rounded-xl",
                           isVertical
                             ? "h-10 w-10 p-0"
                             : "h-9 px-3 text-xs font-semibold"
                         )}
                       >
-                        <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent opacity-50 group-hover:opacity-70 transition-opacity" />
-                        <Database className="h-4 w-4 relative z-10" />
-                        {!isVertical && <span className="hidden sm:inline ml-2 relative z-10">View Data</span>}
+                        <Database className="h-4 w-4 transition-colors" />
+                        {!isVertical && <span className="max-sm:hidden ml-2 font-medium">View Data</span>}
 
                         {/* Notification indicator when no data loaded */}
-                        <div className="absolute -top-1 -right-1 w-3 h-3 bg-blue-500 rounded-full animate-pulse border border-white dark:border-gray-800 z-20" />
+                        <div className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-blue-500 rounded-full animate-pulse border border-background z-20" />
                       </Button>
                     ) : (
                       <DataViewerDrawer
@@ -479,26 +474,19 @@ export function FloatingHUDBar({
                           variant="ghost"
                           size="sm"
                           className={cn(
-                            "relative overflow-hidden transition-all duration-300 group",
-                            "bg-gradient-to-br from-amber-400/30 via-orange-400/25 to-red-400/20",
-                            "dark:from-amber-500/25 dark:via-orange-500/20 dark:to-red-500/15",
-                            "text-amber-700 dark:text-amber-300 font-medium",
-                            "border border-amber-300/40 dark:border-amber-600/30",
-                            "hover:from-amber-400/40 hover:via-orange-400/35 hover:to-red-400/30",
-                            "dark:hover:from-amber-500/35 dark:hover:via-orange-500/30 dark:hover:to-red-500/25",
-                            "hover:border-amber-400/60 dark:hover:border-amber-500/50",
-                            "hover:shadow-lg hover:shadow-amber-500/20 dark:hover:shadow-amber-400/10",
-                            "active:scale-95 hover:scale-105",
+                            "transition-colors duration-200 group border bg-background/50 backdrop-blur-sm",
+                            "border-amber-200 dark:border-amber-800",
+                            "text-amber-700 dark:text-amber-300",
+                            "hover:bg-amber-100/50 dark:hover:bg-amber-900/30",
                             "[&_svg]:stroke-amber-600 dark:[&_svg]:stroke-amber-400",
-                            "rounded-2xl",
+                            "rounded-xl",
                             isVertical
                               ? "h-10 w-10 p-0"
                               : "h-9 px-3 text-xs font-semibold"
                           )}
                         >
-                          <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent opacity-50 group-hover:opacity-70 transition-opacity" />
-                          <Database className="h-4 w-4 relative z-10" />
-                          {!isVertical && <span className="hidden sm:inline ml-2 relative z-10">View Data</span>}
+                          <Database className="h-4 w-4 transition-colors" />
+                          {!isVertical && <span className="max-sm:hidden ml-2 font-medium">View Data</span>}
                         </Button>
                       </DataViewerDrawer>
                     )}
@@ -533,48 +521,31 @@ export function FloatingHUDBar({
                       onToggleDetailView();
                     }}
                     className={cn(
-                      "relative overflow-hidden transition-all duration-300 group",
+                      "transition-colors duration-200 group border bg-background/50 backdrop-blur-sm",
                       isVertical
                         ? "h-10 w-10 p-0"
                         : "h-9 px-3 text-xs font-semibold",
                       isDetailViewOpen && selectedSynteny.length > 0 ? [
-                        "bg-gradient-to-br from-green-400/30 via-emerald-400/25 to-teal-400/20",
-                        "dark:from-green-500/25 dark:via-emerald-500/20 dark:to-teal-500/15",
-                        "text-green-700 dark:text-green-300 font-medium",
-                        "border border-green-300/40 dark:border-green-600/30",
-                        "hover:from-green-400/40 hover:via-emerald-400/35 hover:to-teal-400/30",
-                        "dark:hover:from-green-500/35 dark:hover:via-emerald-500/30 dark:hover:to-teal-500/25",
-                        "hover:border-green-400/60 dark:hover:border-green-500/50",
-                        "hover:shadow-lg hover:shadow-green-500/20 dark:hover:shadow-green-400/10",
+                        "border-green-200 dark:border-green-800",
+                        "text-green-700 dark:text-green-300",
+                        "hover:bg-green-100/50 dark:hover:bg-green-900/30",
                         "[&_svg]:stroke-green-600 dark:[&_svg]:stroke-green-400"
                       ] : selectedSynteny.length > 0 ? [
-                        "bg-gradient-to-br from-orange-400/20 via-yellow-400/15 to-amber-400/10",
-                        "dark:from-orange-500/20 dark:via-yellow-500/15 dark:to-amber-500/10",
-                        "text-orange-700 dark:text-orange-300 font-medium",
-                        "border border-orange-300/30 dark:border-orange-600/20",
-                        "hover:from-orange-400/30 hover:via-yellow-400/25 hover:to-amber-400/20",
-                        "dark:hover:from-orange-500/30 dark:hover:via-yellow-500/25 dark:hover:to-amber-500/20",
-                        "hover:border-orange-400/50 dark:hover:border-orange-500/40",
-                        "hover:shadow-lg hover:shadow-orange-500/15 dark:hover:shadow-orange-400/10",
+                        "border-orange-200 dark:border-orange-800",
+                        "text-orange-700 dark:text-orange-300",
+                        "hover:bg-orange-100/50 dark:hover:bg-orange-900/30",
                         "[&_svg]:stroke-orange-600 dark:[&_svg]:stroke-orange-400"
                       ] : [
-                        "bg-gradient-to-br from-gray-400/20 via-slate-400/15 to-gray-500/10",
-                        "dark:from-gray-600/20 dark:via-slate-600/15 dark:to-gray-700/10",
-                        "text-gray-600 dark:text-gray-400 font-medium",
-                        "border border-gray-300/30 dark:border-gray-600/20",
-                        "hover:from-gray-400/30 hover:via-slate-400/25 hover:to-gray-500/20",
-                        "dark:hover:from-gray-600/30 dark:hover:via-slate-600/25 dark:hover:to-gray-700/20",
-                        "hover:border-gray-400/50 dark:hover:border-gray-500/40",
-                        "hover:shadow-lg hover:shadow-gray-500/15 dark:hover:shadow-gray-400/10",
-                        "[&_svg]:stroke-gray-500 dark:[&_svg]:stroke-gray-400"
+                        "border-border/50",
+                        "text-muted-foreground hover:text-foreground",
+                        "hover:bg-accent/50",
+                        "[&_svg]:stroke-muted-foreground group-hover:[&_svg]:stroke-foreground"
                       ],
-                      "active:scale-95 hover:scale-105",
-                      "rounded-2xl"
+                      "rounded-xl"
                     )}
                   >
-                    <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent opacity-50 group-hover:opacity-70 transition-opacity" />
                     <svg
-                      className="h-4 w-4 relative z-10"
+                      className="h-4 w-4 transition-colors"
                       viewBox="0 0 24 24"
                       fill="none"
                       stroke="currentColor"
@@ -586,7 +557,7 @@ export function FloatingHUDBar({
                       <path d="M16 8l-8 8" />
                       <path d="M8 8l8 8" />
                     </svg>
-                    {!isVertical && <span className="hidden sm:inline ml-2 relative z-10">Chord View</span>}
+                    {!isVertical && <span className="max-sm:hidden ml-2 font-medium">Chord View</span>}
 
                     {/* Notification indicator when no blocks selected */}
                     {selectedSynteny.length === 0 && (
@@ -615,38 +586,26 @@ export function FloatingHUDBar({
                     variant="ghost"
                     size="sm"
                     className={cn(
-                      "relative overflow-hidden transition-all duration-300 group",
+                      "transition-colors duration-200 group border bg-background/50 backdrop-blur-sm",
                       isVertical
                         ? "h-10 w-10 p-0"
                         : "h-9 px-3 text-xs font-semibold",
                       selectedSynteny.length > 0 ? [
-                        "bg-gradient-to-br from-blue-400/30 via-indigo-400/25 to-purple-400/20",
-                        "dark:from-blue-500/25 dark:via-indigo-500/20 dark:to-purple-500/15",
-                        "text-blue-700 dark:text-blue-300 font-medium",
-                        "border border-blue-300/40 dark:border-blue-600/30",
-                        "hover:from-blue-400/40 hover:via-indigo-400/35 hover:to-purple-400/30",
-                        "dark:hover:from-blue-500/35 dark:hover:via-indigo-500/30 dark:hover:to-purple-500/25",
-                        "hover:border-blue-400/60 dark:hover:border-blue-500/50",
-                        "hover:shadow-lg hover:shadow-blue-500/20 dark:hover:shadow-blue-400/10",
+                        "border-blue-200 dark:border-blue-800",
+                        "text-blue-700 dark:text-blue-300",
+                        "hover:bg-blue-100/50 dark:hover:bg-blue-900/30",
                         "[&_svg]:stroke-blue-600 dark:[&_svg]:stroke-blue-400"
                       ] : [
-                        "bg-gradient-to-br from-gray-400/20 via-slate-400/15 to-gray-500/10",
-                        "dark:from-gray-600/20 dark:via-slate-600/15 dark:to-gray-700/10",
-                        "text-gray-600 dark:text-gray-400 font-medium",
-                        "border border-gray-300/30 dark:border-gray-600/20",
-                        "hover:from-gray-400/30 hover:via-slate-400/25 hover:to-gray-500/20",
-                        "dark:hover:from-gray-600/30 dark:hover:via-slate-600/25 dark:hover:to-gray-700/20",
-                        "hover:border-gray-400/50 dark:hover:border-gray-500/40",
-                        "hover:shadow-lg hover:shadow-gray-500/15 dark:hover:shadow-gray-400/10",
-                        "[&_svg]:stroke-gray-500 dark:[&_svg]:stroke-gray-400"
+                        "border-border/50",
+                        "text-muted-foreground hover:text-foreground",
+                        "hover:bg-accent/50",
+                        "[&_svg]:stroke-muted-foreground group-hover:[&_svg]:stroke-foreground"
                       ],
-                      "active:scale-95 hover:scale-105",
-                      "rounded-2xl"
+                      "rounded-xl"
                     )}
                   >
-                    <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent opacity-50 group-hover:opacity-70 transition-opacity" />
-                    <TableIcon className="h-4 w-4 relative z-10" />
-                    {!isVertical && <span className="hidden sm:inline ml-2 relative z-10">Selected</span>}
+                    <TableIcon className="h-4 w-4 transition-colors" />
+                    {!isVertical && <span className="max-sm:hidden ml-2 font-medium">Selected</span>}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent
@@ -656,7 +615,7 @@ export function FloatingHUDBar({
                 >
                   <div className="flex flex-col h-full">
                     {/* Header */}
-                    <div className="px-4 py-3 border-b border-white/10 dark:border-white/5 bg-white/10 dark:bg-white/5 backdrop-blur-sm">
+                    <div className="px-4 py-3 border-b border-white/10 dark:border-white/5 bg-white/10 dark:bg-white/5 backdrop-blur-xs">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
                           <div className="p-1.5 bg-blue-500/10 rounded-lg">
@@ -745,7 +704,7 @@ export function FloatingHUDBar({
                                       e.stopPropagation();
                                       onToggleSelection(link);
                                     }}
-                                    className="h-6 w-6 rounded-full bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm border border-gray-200 dark:border-gray-700 shadow-lg hover:bg-red-50 dark:hover:bg-red-950/50 hover:text-red-600 dark:hover:text-red-400 hover:border-red-300 dark:hover:border-red-600"
+                                    className="h-6 w-6 rounded-full bg-white/90 dark:bg-gray-800/90 backdrop-blur-xs border border-gray-200 dark:border-gray-700 shadow-lg hover:bg-red-50 dark:hover:bg-red-950/50 hover:text-red-600 dark:hover:text-red-400 hover:border-red-300 dark:hover:border-red-600"
                                   >
                                     <X className="h-3 w-3" />
                                   </Button>
@@ -756,9 +715,9 @@ export function FloatingHUDBar({
                                   {/* Species and chromosome info */}
                                   <div className="flex items-center gap-2">
                                     <span className="font-semibold text-sm text-gray-900 dark:text-gray-100 truncate max-w-[180px]">
-                                      {link.ref_species} {link.ref_chr}
+                                      {link.ref_name} {link.ref_chr}
                                     </span>
-                                    <ChevronRight className="h-4 w-4 flex-shrink-0 text-gray-400" />
+                                    <ChevronRight className="h-4 w-4 shrink-0 text-gray-400" />
                                     <span className="font-semibold text-sm text-gray-900 dark:text-gray-100 truncate max-w-[180px]">
                                       {link.query_name} {link.query_chr}
                                     </span>
@@ -852,22 +811,25 @@ export function FloatingHUDBar({
             {/* Fullscreen Button */}
             <Button
               variant="ghost"
-              size="icon"
+              size="sm"
               onClick={onToggleFullScreen}
               className={cn(
-                "hover:bg-accent hover:text-accent-foreground bg-blue-500/20 text-blue-600 dark:text-blue-400",
-                isVertical ? "h-8 w-8 p-0" : "h-8 px-3 text-xs font-medium min-w-[120px]"
+                "transition-colors font-medium",
+                "bg-indigo-500/15 text-indigo-600 dark:text-indigo-400",
+                "hover:bg-indigo-500/25 dark:hover:bg-indigo-500/20",
+                "border border-indigo-300/50 dark:border-indigo-600/30",
+                isVertical ? "h-8 w-8 p-0" : "h-8 px-3 text-xs"
               )}
             >
               {isFullScreen ? (
                 <>
                   <Minimize2 className="h-3.5 w-3.5" />
-                  {!isVertical && <span className="hidden sm:inline ml-1.5">Exit Full View</span>}
+                  {!isVertical && <span className="ml-1.5">Exit Full View</span>}
                 </>
               ) : (
                 <>
                   <Maximize2 className="h-3.5 w-3.5" />
-                  {!isVertical && <span className="hidden sm:inline ml-1.5">Full Screen</span>}
+                  {!isVertical && <span className="ml-1.5">Full Screen</span>}
                 </>
               )}
             </Button>

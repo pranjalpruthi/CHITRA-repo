@@ -175,7 +175,7 @@ export function FeatureTableConverter() {
       processedLines++;
       if (!line.startsWith('#') && line.trim()) {
         const fields = line.split('\t');
-        
+
         // Skip malformed lines
         if (fields.length < 10) continue;
 
@@ -225,8 +225,8 @@ export function FeatureTableConverter() {
       }
 
       if (processedLines % 1000 === 0) {
-        setStatus({ 
-          stage: 'processing', 
+        setStatus({
+          stage: 'processing',
           progress: 25 + Math.floor((processedLines / totalLines) * 75)
         });
       }
@@ -303,16 +303,27 @@ export function FeatureTableConverter() {
         },
       });
 
+      // Verification of content length if header is present
+      const contentLength = response.headers['content-length'];
+      if (contentLength && parseInt(contentLength) !== response.data.byteLength) {
+        throw new Error(`Download incomplete: expected ${contentLength} bytes but received ${response.data.byteLength} bytes.`);
+      }
+
       let content: string;
       if (httpUrl.endsWith('.gz')) {
         toast.info("Decompressing file...");
         setStatus({ stage: 'parsing', progress: 50 });
-        const decompressedData = pako.inflate(response.data);
-        content = new TextDecoder('utf-8').decode(decompressedData);
+        try {
+          const decompressedData = pako.inflate(response.data);
+          content = new TextDecoder('utf-8').decode(decompressedData);
+        } catch (err: any) {
+          console.error("Decompression error:", err);
+          throw new Error(`Decompression failed: ${err.message || "Unknown error"}. The file might be corrupted or incomplete.`);
+        }
       } else {
         content = new TextDecoder('utf-8').decode(response.data);
       }
-      
+
       await processFeatureTableContent(content);
 
     } catch (error) {
@@ -337,16 +348,16 @@ export function FeatureTableConverter() {
 
     // Format headers
     const headers = Object.keys(data[0]).join(',');
-    
+
     // Format rows with proper escaping
-    const rows = data.map(obj => 
+    const rows = data.map(obj =>
       Object.values(obj)
         .map(formatCSVValue)
         .join(',')
     );
 
     const csv = [headers, ...rows].join('\n');
-    
+
     const blob = new Blob([csv], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
@@ -403,9 +414,9 @@ export function FeatureTableConverter() {
         </div>
 
         <div className="relative flex items-center my-4">
-          <div className="flex-grow border-t border-muted-foreground/20"></div>
-          <span className="flex-shrink mx-4 text-xs text-muted-foreground">OR</span>
-          <div className="flex-grow border-t border-muted-foreground/20"></div>
+          <div className="grow border-t border-muted-foreground/20"></div>
+          <span className="shrink mx-4 text-xs text-muted-foreground">OR</span>
+          <div className="grow border-t border-muted-foreground/20"></div>
         </div>
 
         <FileUploader
@@ -455,14 +466,14 @@ export function FeatureTableConverter() {
                   </div>
                 </TooltipTrigger>
                 <TooltipContent className="max-w-[300px]">
-                  <p>Chromosome sizes are estimated based on the last annotated feature position. 
-                     This may not reflect the complete chromosome length as it excludes non-coding regions 
-                     beyond the last gene and other structural elements. For accurate chromosome sizes, 
-                     please refer to genome assembly data.</p>
+                  <p>Chromosome sizes are estimated based on the last annotated feature position.
+                    This may not reflect the complete chromosome length as it excludes non-coding regions
+                    beyond the last gene and other structural elements. For accurate chromosome sizes,
+                    please refer to genome assembly data.</p>
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
-            
+
             <Button
               onClick={() => downloadCSV(processedData.chromosomeSizes, 'ref_chromosome_sizes.csv')}
               variant="outline"

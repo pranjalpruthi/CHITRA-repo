@@ -22,7 +22,7 @@ const CITATION = `Pruthi, P., Narayan, J., Agarwal, P., Shukla, N., & Bhatia, A.
 function Breadcrumbs() {
   const pathname = usePathname()
   const paths = pathname.split('/').filter(Boolean)
-  
+
   return (
     <div className="flex items-center gap-1 text-sm text-gray-500">
       <Link href="/" className="hover:text-gray-900 dark:hover:text-gray-50">
@@ -31,7 +31,7 @@ function Breadcrumbs() {
       {paths.map((path, index) => {
         const href = `/${paths.slice(0, index + 1).join('/')}`
         const isLast = index === paths.length - 1
-        
+
         return (
           <div key={path} className="flex items-center">
             <ChevronRight className="h-4 w-4 mx-1" />
@@ -68,8 +68,8 @@ function CopyButton() {
   }
 
   return (
-    <Button 
-      variant="ghost" 
+    <Button
+      variant="ghost"
       className="h-8 w-8 sm:w-auto hover:bg-background/80 text-sm p-0 sm:p-2"
       onClick={handleCopy}
       data-copy-button="true"
@@ -92,8 +92,8 @@ function NavButton({ href, icon: Icon, children }: { href: string; icon: any; ch
 
   return (
     <Link href={href} onClick={handleClick}>
-      <Button 
-        variant="ghost" 
+      <Button
+        variant="ghost"
         className="h-8 w-auto hover:bg-background/80 text-sm p-2"
         disabled={isLoading}
       >
@@ -114,18 +114,18 @@ function NavActions() {
   return (
     <>
       {/* Desktop view */}
-      <div className="hidden sm:flex items-center gap-2">
+      <div className="flex max-sm:hidden items-center gap-2">
         <AboutSheet>
-          <Button 
-            variant="ghost" 
+          <Button
+            variant="ghost"
             className="h-8 w-auto hover:bg-background/80 text-sm p-2"
           >
             <Info className="h-4 w-4" />
             <span className="ml-2">About</span>
           </Button>
         </AboutSheet>
-        <Button 
-          variant="ghost" 
+        <Button
+          variant="ghost"
           className="h-8 w-auto hover:bg-background/80 text-sm p-2"
           onClick={() => setIsGuideOpen(true)}
         >
@@ -138,36 +138,36 @@ function NavActions() {
         <CopyButton />
       </div>
 
-      {/* New Mobile view with icons */}
+      {/* Mobile view with icons */}
       <div className="flex sm:hidden items-center gap-0.5">
         <AboutSheet>
-          <Button 
-            variant="ghost" 
+          <Button
+            variant="ghost"
             className="h-7 w-7 p-0 hover:bg-background/80"
           >
             <Info className="h-3.5 w-3.5" />
           </Button>
         </AboutSheet>
-        
-        <Button 
-          variant="ghost" 
+
+        <Button
+          variant="ghost"
           className="h-7 w-7 p-0 hover:bg-background/80"
           onClick={() => setIsGuideOpen(true)}
         >
           <BookOpen className="h-3.5 w-3.5" />
         </Button>
-        
+
         <Link href="/docs">
-          <Button 
-            variant="ghost" 
+          <Button
+            variant="ghost"
             className="h-7 w-7 p-0 hover:bg-background/80"
           >
             <FileText className="h-3.5 w-3.5" />
           </Button>
         </Link>
-        
-        <Button 
-          variant="ghost" 
+
+        <Button
+          variant="ghost"
           className="h-7 w-7 p-0 hover:bg-background/80"
           onClick={() => {
             const copyButton = document.querySelector('[data-copy-button="true"]') as HTMLButtonElement;
@@ -182,6 +182,36 @@ function NavActions() {
   )
 }
 
+function GetStartedButton() {
+  const router = useRouter();
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleClick = () => {
+    setIsLoading(true);
+    router.push('/chitra');
+  };
+
+  return (
+    <div className="relative overflow-hidden rounded-full shadow group p-0.5">
+      <span className="absolute inset-[-1000%] animate-[spin_5s_linear_infinite_reverse] bg-[conic-gradient(from_90deg_at_50%_50%,#4f46e5_0%,#06b6d4_25%,#3b82f6_50%,#4f46e5_75%)] dark:bg-[conic-gradient(from_90deg_at_50%_50%,#1d4ed8_0%,#2563eb_25%,#3b82f6_50%,#60a5fa_75%)]" />
+      <button
+        onClick={handleClick}
+        disabled={isLoading}
+        className="relative flex items-center gap-1 h-7 px-3 rounded-full font-medium bg-white/80 dark:bg-black/80 backdrop-blur-xl text-zinc-800 dark:text-zinc-200 border-0 transition-colors duration-300 z-10 text-xs whitespace-nowrap @sm:h-8 @sm:px-4 @sm:text-sm cursor-pointer disabled:cursor-not-allowed"
+      >
+        {isLoading ? (
+          <Loader2 className="h-3.5 w-3.5 animate-spin" />
+        ) : (
+          <>
+            Get Started
+            <ChevronRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1" />
+          </>
+        )}
+      </button>
+    </div>
+  );
+}
+
 export default function NavBar() {
   const [isScrolled, setIsScrolled] = useState(false)
   const pathname = usePathname()
@@ -191,8 +221,14 @@ export default function NavBar() {
 
   useEffect(() => {
     const fetchUser = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      setUser(session?.user ?? null);
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        setUser(session?.user ?? null);
+      } catch (error) {
+        // Silently handle auth session fetch errors (network issues, etc.)
+        console.warn('Auth session fetch failed:', error);
+        setUser(null);
+      }
     };
     fetchUser();
 
@@ -226,11 +262,11 @@ export default function NavBar() {
   }, [])
 
   return (
-    <motion.div 
+    <motion.div
       className="fixed top-0 left-0 right-0 z-50 h-[50px] sm:h-[60px]"
       layout
     >
-      <motion.header 
+      <motion.header
         layout
         className={clsx(
           "w-full h-full relative",
@@ -239,29 +275,29 @@ export default function NavBar() {
               ? "max-w-2xl mx-auto px-1 sm:px-4"
               : "w-full px-2 sm:px-8",
             "rounded-full",
-            isScrolled 
-              ? "bg-background/40 backdrop-blur-[16px] brightness-[1.1] border border-white/[0.1] dark:border-white/[0.05]"
-              : "bg-background/30 backdrop-blur-[16px]"
+            isScrolled
+              ? "bg-background/40 backdrop-blur-lg brightness-[1.1] border border-white/10 dark:border-white/5"
+              : "bg-background/30 backdrop-blur-lg"
           ],
           !isHomePage && [
-            isScrolled 
-              ? "bg-background/40 backdrop-blur-[16px] brightness-[1.1] border-b border-white/[0.1] dark:border-white/[0.05]"
-              : "bg-background/30 backdrop-blur-[16px]"
+            isScrolled
+              ? "bg-background/40 backdrop-blur-lg brightness-[1.1] border-b border-white/10 dark:border-white/5"
+              : "bg-background/30 backdrop-blur-lg"
           ]
         )}
       >
         {/* Glass edge with animation */}
-        <motion.div 
+        <motion.div
           layout
           className={clsx(
-            "absolute inset-x-0 -bottom-[1px] h-[1px]",
-            "bg-gradient-to-r from-transparent via-white/[0.15] to-transparent",
-            "backdrop-blur-[8px]",
+            "absolute inset-x-0 -bottom-px h-px",
+            "bg-linear-to-r from-transparent via-white/15 to-transparent",
+            "backdrop-blur-sm",
             isHomePage && "rounded-full"
-          )} 
+          )}
         />
 
-        <motion.div 
+        <motion.div
           layout
           className={clsx(
             "flex items-center justify-between",
@@ -271,14 +307,14 @@ export default function NavBar() {
           )}
         >
           {/* Left side - Logo and Title */}
-          <motion.div 
+          <motion.div
             layout
             className="flex items-center gap-2 sm:gap-4"
           >
             <Link href="/">
               <ShinyRotatingBorderButton className={clsx(
-                "!p-1 sm:!p-1.5 !px-2 sm:!px-3",
-                isHomePage && "!border-0"
+                "p-1! sm:p-1.5! px-2! sm:px-3!",
+                isHomePage && "border-0!"
               )}>
                 <span className="text-xs sm:text-sm font-bold tracking-tight">CHITRA</span>
               </ShinyRotatingBorderButton>
@@ -287,21 +323,21 @@ export default function NavBar() {
           </motion.div>
 
           {/* Right side content */}
-          <motion.div 
+          <motion.div
             layout
             className="flex items-center gap-2 sm:gap-4"
           >
-            <div className={clsx(
-              "hidden md:block",
-              isHomePage && "hidden"
-            )}>
-              <Breadcrumbs />
-            </div>
+            {!isHomePage && (
+              <div className="hidden md:flex">
+                <Breadcrumbs />
+              </div>
+            )}
             <div className="flex items-center gap-1 sm:gap-2">
               {config?.auth?.enabled && (
-                <UserActions user={user} onSignOut={handleSignOut} onShare={async () => null}/>
+                <UserActions user={user} onSignOut={handleSignOut} onShare={async () => null} />
               )}
               <ModeToggle />
+              <GetStartedButton />
             </div>
           </motion.div>
         </motion.div>

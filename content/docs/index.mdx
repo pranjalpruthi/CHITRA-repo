@@ -1,12 +1,43 @@
 ---
 title: Introduction
 description: A comprehensive guide to using CHITRA for analyzing chromosomal rearrangements
-icon: HomeIcon
+icon: BookOpen
 ---
 
 # CHITRA
 
 The Chromosome Interactive Tool for Rearrangement Analysis (CHITRA) is an advanced bioinformatics tool designed to study chromosomal rearrangements by providing detailed and interactive visualizations of synteny blocks and chromosome breakpoints. This tool is a powerful resource for investigating evolutionary dynamics across multiple genomes.
+
+
+<video controls autoPlay muted loop playsInline className="w-full rounded-lg border shadow-lg">
+  <source src="/media/v1.mp4" type="video/mp4" />
+</video>
+
+
+import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
+
+## Workflow Diagram
+
+<Tabs items={['Flowchart', 'Description']}>
+  <Tab value="Flowchart">
+    <div className="relative aspect-video w-full rounded-lg overflow-hidden border bg-background">
+      <iframe
+        frameBorder="0"
+        style={{ width: '100%', height: '100%' }}
+        src="https://viewer.diagrams.net/?tags=%7B%7D&lightbox=1&edit=_blank&layers=1&nav=1&title=Chitra-flow.drawio&dark=0&zoom=1.5#Uhttps%3A%2F%2Fdrive.google.com%2Fuc%3Fid%3D17w3unzRnXwZJFQm252RN1HcSqaLhxKEm%26export%3Ddownload"
+        title="CHITRA Workflow Diagram"
+      />
+    </div>
+  </Tab>
+  <Tab value="Description">
+    The CHITRA workflow integrates multiple data inputs to produce comprehensive visualizations:
+    
+    1. **Input Data**: Synteny data, Species data, and Reference sizes are the core inputs.
+    2. **Optional Inputs**: Gene annotations and Breakpoints enrich the visualization.
+    3. **Processing**: The system processes these files to map coordinates and identify syntenic regions.
+    4. **Visualization**: Outputs include Linear Views and Circular Chord Maps.
+  </Tab>
+</Tabs>
 
 ## Features
 
@@ -18,9 +49,17 @@ The Chromosome Interactive Tool for Rearrangement Analysis (CHITRA) is an advanc
 
 4. **Multi-format Data Export:** Supports export of visualizations (SVG, PNG, JPG) and data tables (CSV) for further analysis
 
+
+<video controls autoPlay muted loop playsInline className="w-full rounded-lg border shadow-lg">
+  <source src="/media/v3.mp4" type="video/mp4" />
+</video>
+
+
 ## What are Synteny Blocks?
 
 A synteny block refers to a conserved segment of a genome where genes or sequences are found in the same relative order and orientation across different genomic strains. These blocks provide insights into the evolutionary relationships between genomes, helping researchers understand genomic rearrangements, speciation, and structural changes.
+
+![](/assets/synteny-blocks.jpg)
 
 ## **HOW TO USE CHITRA?**
 
@@ -29,8 +68,6 @@ Below are the step-by-step instructions, accompanied by pictorial representation
 #### **Step 1: Getting Started**
 
 - On the landing page, click the “**Get Started**” button to begin.
-
-![](public/media/image7.png)
 
 #### **Step 2: Uploading Files or Viewing Example Data**
 
@@ -58,31 +95,63 @@ _Click the_ “**Upload Data**” button. A popup window will appear where you c
 
 > **Note**: All input files should be in CSV format
 
-![](public/media/image3.png)
+![](/media/image3.png)
 
 ### **2.1.2 Using Example Datasets**
 
 CHITRA includes pre-loaded example datasets to help users explore its functionality. Three types of example datasets are available:
 
+#### 1. Basic Synteny
 
-1. **Basic Synteny**
-   - _Visualize synteny blocks among_ **three genomes**.
-   - Input files required:
-     - synteny_data.csv
-     - species_data.csv
-     - reference_chromosome_sizes.csv
+_Visualize synteny blocks among_ **three genomes**.
 
-2. **Multiple Synteny**
-   - _Compare synteny blocks among_ **multiple genomes**
-   - _Input files required same as_ _Basic Synteny_
-     - ref_gene_annotations.csv
-     - breakpoints.csv
+**Input files required:**
 
-3. **Annotated Genome**
+<div className="space-y-2 my-4">
+  <div className="flex items-center justify-between p-3 rounded-lg border bg-card/50">
+    <span className="text-sm font-medium">synteny_data.csv</span>
+    <div className="flex gap-2">
+      <a href="/example/set1/synteny_data.csv" target="_blank" className="inline-flex items-center gap-1 px-2 py-1 text-xs rounded-md bg-blue-500/10 hover:bg-blue-500/20 text-blue-500 transition-colors">Preview</a>
+      <a href="/example/set1/synteny_data.csv" download className="inline-flex items-center gap-1 px-2 py-1 text-xs rounded-md bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-500 transition-colors">Download</a>
+    </div>
+  </div>
+  <div className="flex items-center justify-between p-3 rounded-lg border bg-card/50">
+    <span className="text-sm font-medium">species_data.csv</span>
+    <div className="flex gap-2">
+      <a href="/example/set1/species_data.csv" target="_blank" className="inline-flex items-center gap-1 px-2 py-1 text-xs rounded-md bg-blue-500/10 hover:bg-blue-500/20 text-blue-500 transition-colors">Preview</a>
+      <a href="/example/set1/species_data.csv" download className="inline-flex items-center gap-1 px-2 py-1 text-xs rounded-md bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-500 transition-colors">Download</a>
+    </div>
+  </div>
+  <div className="flex items-center justify-between p-3 rounded-lg border bg-card/50">
+    <span className="text-sm font-medium">ref_chromosome_sizes.csv</span>
+    <div className="flex gap-2">
+      <a href="/example/set1/ref_chromosome_sizes.csv" target="_blank" className="inline-flex items-center gap-1 px-2 py-1 text-xs rounded-md bg-blue-500/10 hover:bg-blue-500/20 text-blue-500 transition-colors">Preview</a>
+      <a href="/example/set1/ref_chromosome_sizes.csv" download className="inline-flex items-center gap-1 px-2 py-1 text-xs rounded-md bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-500 transition-colors">Download</a>
+    </div>
+  </div>
+</div>
 
-- _Analyze_ _annotated genomes_ using real datasets.
+#### 2. Multiple Synteny
 
-- _Input files required here are the same as for_ **Multiple Synteny with two more additional files**
+_Compare synteny blocks among_ **multiple genomes**. Uses the same files as Basic Synteny.
 
-  - ref_gene_annotations.csv
-  - breakpoints.csv
+#### 3. Annotated Genome
+
+_Analyze annotated genomes_ using real datasets. Uses the same files as Basic Synteny, plus these additional files:
+
+<div className="space-y-2 my-4">
+  <div className="flex items-center justify-between p-3 rounded-lg border bg-card/50">
+    <span className="text-sm font-medium">ref_gene_annotations.csv</span>
+    <div className="flex gap-2">
+      <a href="/example/set3/ref_gene_annotations.csv" target="_blank" className="inline-flex items-center gap-1 px-2 py-1 text-xs rounded-md bg-blue-500/10 hover:bg-blue-500/20 text-blue-500 transition-colors">Preview</a>
+      <a href="/example/set3/ref_gene_annotations.csv" download className="inline-flex items-center gap-1 px-2 py-1 text-xs rounded-md bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-500 transition-colors">Download</a>
+    </div>
+  </div>
+  <div className="flex items-center justify-between p-3 rounded-lg border bg-card/50">
+    <span className="text-sm font-medium">breakpoints.csv</span>
+    <div className="flex gap-2">
+      <a href="/example/set3/bp.csv" target="_blank" className="inline-flex items-center gap-1 px-2 py-1 text-xs rounded-md bg-blue-500/10 hover:bg-blue-500/20 text-blue-500 transition-colors">Preview</a>
+      <a href="/example/set3/bp.csv" download className="inline-flex items-center gap-1 px-2 py-1 text-xs rounded-md bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-500 transition-colors">Download</a>
+    </div>
+  </div>
+</div>

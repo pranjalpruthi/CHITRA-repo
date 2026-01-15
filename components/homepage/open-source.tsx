@@ -58,12 +58,12 @@ export default function OpenSource() {
                 >
                     <div className="inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium 
                         bg-blue-500/10 text-blue-600 dark:bg-blue-400/10 dark:text-blue-300 
-                        backdrop-blur-sm border border-blue-500/20 dark:border-blue-400/20
+                        backdrop-blur-xs border border-blue-500/20 dark:border-blue-400/20
                         shadow-[0_0_15px_rgba(59,130,246,0.1)]">
                         FAQ
                     </div>
                     <div className="text-3xl md:text-4xl font-bold tracking-tight 
-                        bg-gradient-to-b from-foreground to-muted-foreground bg-clip-text text-transparent">
+                        bg-linear-to-b from-foreground to-muted-foreground bg-clip-text text-transparent">
                         Common Questions about CHITRA
                     </div>
                 </motion.div>
@@ -80,7 +80,7 @@ export default function OpenSource() {
                                 value={item.id} 
                                 key={item.id} 
                                 className="border border-black/10 dark:border-white/10 
-                                    rounded-lg mb-4 backdrop-blur-sm bg-black/5 dark:bg-white/5"
+                                    rounded-lg mb-4 backdrop-blur-xs bg-black/5 dark:bg-white/5"
                             >
                                 <AccordionTrigger className="px-4 py-4 text-[15px] hover:no-underline">
                                     <span className="flex items-center gap-3">
@@ -120,7 +120,7 @@ export default function OpenSource() {
                                 hover:bg-[#FCE9CF] dark:hover:bg-[#3D321F]
                                 border-[#F5A524]/30 hover:border-[#F5A524]/50
                                 transition-all duration-300 rounded-lg font-medium
-                                backdrop-blur-sm shadow-[0_8px_16px_rgba(245,165,36,0.1)]"
+                                backdrop-blur-xs shadow-[0_8px_16px_rgba(245,165,36,0.1)]"
                         >
                             <Star className="w-5 h-5 fill-[#F5A524]" />
                             Star us on GitHub
@@ -134,7 +134,7 @@ export default function OpenSource() {
                                 hover:bg-blue-500/20 
                                 border-blue-500/30 hover:border-blue-500/50
                                 transition-all duration-300 rounded-lg font-medium
-                                backdrop-blur-sm"
+                                backdrop-blur-xs"
                         >
                             Contact Us
                         </Button>

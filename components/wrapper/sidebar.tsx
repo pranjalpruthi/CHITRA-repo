@@ -46,7 +46,7 @@ const renderNavItem = (item: NavItem, isCollapsed: boolean, pathname: string) =>
             "justify-center": isCollapsed
           }
         )}>
-          <item.icon className="h-4 w-4 flex-shrink-0" />
+          <item.icon className="h-4 w-4 shrink-0" />
           {!isCollapsed && (
             <>
               <span>{item.title}</span>
@@ -132,7 +132,7 @@ export function Sidebar() {
               }
             )}
           >
-            <HomeIcon className="h-4 w-4 flex-shrink-0" />
+            <HomeIcon className="h-4 w-4 shrink-0" />
             {!isCollapsed && <span>Home</span>}
           </Link>
           
@@ -175,7 +175,7 @@ export function Sidebar() {
   if (isMobile) {
     return (
       <>
-        <nav className="fixed bottom-0 left-0 z-50 w-full border-t bg-background/80 backdrop-blur-lg backdrop-saturate-150 supports-[backdrop-filter]:bg-background/60">
+        <nav className="fixed bottom-0 left-0 z-50 w-full border-t bg-background/80 backdrop-blur-lg backdrop-saturate-150 supports-backdrop-filter:bg-background/60">
           <div className="flex items-center justify-around h-16 px-4">
             <Link
               href="/"
@@ -241,7 +241,7 @@ export function Sidebar() {
           "fixed left-0 top-0 h-screen z-50",
           "hidden md:block",
           "transition-all duration-300",
-          "border-r bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60",
+          "border-r bg-background/95 backdrop-blur-sm supports-backdrop-filter:bg-background/60",
           { "w-[70px]": isCollapsed, "w-[280px]": !isCollapsed }
         )}
         onMouseEnter={handleMouseEnter}

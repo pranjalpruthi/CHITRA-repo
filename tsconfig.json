@@ -2,10 +2,19 @@
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./*"]
+      "@/*": [
+        "./*"
+      ],
+      "fumadocs-mdx:collections/*": [
+        ".source/*"
+      ]
     },
     "target": "es5",
-    "lib": ["dom", "dom.iterable", "esnext"],
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ],
     "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
@@ -15,7 +24,7 @@
     "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "jsx": "preserve",
+    "jsx": "react-jsx",
     "incremental": true,
     "plugins": [
       {
@@ -29,7 +38,11 @@
     "**/*.tsx",
     ".next/types/**/*.ts",
     "next.config.mjs",
-    "types/**/*.ts"
-, "public/old_data/morebk/chromosome-synteny.bk"  ],
-  "exclude": ["node_modules"]
+    "types/**/*.ts",
+    "public/old_data/morebk/chromosome-synteny.bk",
+    ".next/dev/types/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
 }

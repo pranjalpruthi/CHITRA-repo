@@ -25,7 +25,7 @@ interface FilterBadgeProps {
 }
 
 const FilterBadge = ({ count, total }: FilterBadgeProps) => (
-  <Badge 
+  <Badge
     variant={count === total ? "secondary" : "default"}
     className="ml-2 text-xs"
   >
@@ -59,7 +59,7 @@ const FilterSection = ({
   }, [onClear]);
 
   return (
-    <motion.div 
+    <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       className="rounded-lg border border-border/50 dark:border-border/30 bg-card dark:bg-card/50 p-4 space-y-4"
@@ -124,7 +124,7 @@ interface FilterDrawerProps {
   showConnectedOnly?: boolean
 }
 
-export const FilterDrawer = ({ 
+export const FilterDrawer = ({
   children,
   showConnectedOnly,
   selectedSpecies,
@@ -140,12 +140,12 @@ export const FilterDrawer = ({
   // Get connected query chromosomes for selected reference chromosomes
   const getConnectedQueryChromosomes = (refChrs: string[]) => {
     if (!syntenyData) return [];
-    
+
     const refChrsWithoutPrefix = refChrs.map(chr => chr.replace('ref:', ''));
-    
+
     // Use a Map to ensure uniqueness based on value
     const uniqueChromosomes = new Map();
-    
+
     syntenyData
       .filter(syn => refChrsWithoutPrefix.includes(syn.ref_chr))
       .forEach(syn => {
@@ -158,7 +158,7 @@ export const FilterDrawer = ({
           });
         }
       });
-    
+
     return Array.from(uniqueChromosomes.values());
   };
 
@@ -176,11 +176,11 @@ export const FilterDrawer = ({
       // If "Show Connected Only" is active, filter query chromosomes
       const connectedChrs = getConnectedQueryChromosomes(selectedRefChrs);
       const connectedValues = new Set(connectedChrs.map(chr => chr.value));
-      
-      const currentQueryChrs = selectedChromosomes.filter(chr => 
+
+      const currentQueryChrs = selectedChromosomes.filter(chr =>
         !chr.startsWith('ref:') && connectedValues.has(chr)
       );
-      
+
       setSelectedChromosomes([...selectedRefChrs, ...currentQueryChrs]);
     } else if (selectedRefChrs.length === 0) {
       // If no reference chromosomes are selected, do nothing to the query selection
@@ -192,17 +192,17 @@ export const FilterDrawer = ({
   // Add this function to filter synteny data based on selections
   const getFilteredSyntenyData = (data: typeof syntenyData) => {
     if (!data) return [];
-    
+
     return data.filter(syn => {
       const refChr = `ref:${syn.ref_chr}`;
       const queryChr = `${syn.query_name}:${syn.query_chr}`;
-      
+
       // If no chromosomes are selected, show all
       if (selectedChromosomes.length === 0) return true;
-      
+
       // Only show ribbons between selected chromosomes
-      return selectedChromosomes.includes(refChr) && 
-             selectedChromosomes.includes(queryChr);
+      return selectedChromosomes.includes(refChr) &&
+        selectedChromosomes.includes(queryChr);
     });
   };
 
@@ -213,7 +213,7 @@ export const FilterDrawer = ({
       <DrawerTrigger asChild>
         {children}
       </DrawerTrigger>
-      
+
       <DrawerContent className="h-[85vh] max-h-[85vh] md:h-[90vh] md:max-h-[90vh] overflow-hidden">
         <DrawerHeader className="border-b border-border/50 dark:border-border/30">
           <div className="flex items-center justify-between">
@@ -241,7 +241,7 @@ export const FilterDrawer = ({
           <ScrollArea className="h-full px-6">
             <div className="py-6">
               {/* Main Grid Layout */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Left Column - Species and Reference Selection */}
                 <div className="space-y-6">
                   {/* Species Filter Section */}
@@ -253,7 +253,7 @@ export const FilterDrawer = ({
                     icon={<Database className="h-4 w-4 text-blue-500" />}
                     onClear={() => {
                       setSelectedSpecies([]);
-                      const remainingChromosomes = selectedChromosomes.filter(chr => 
+                      const remainingChromosomes = selectedChromosomes.filter(chr =>
                         chr.startsWith('ref:')
                       );
                       setSelectedChromosomes(remainingChromosomes);
@@ -309,7 +309,7 @@ export const FilterDrawer = ({
                       count={connectedQueryChromosomes.length}
                       total={connectedQueryChromosomes.length}
                       icon={<ChevronRight className="h-4 w-4 text-violet-500" />}
-                      onClear={() => {}}
+                      onClear={() => { }}
                     >
                       <div className="grid grid-cols-1 gap-2 mt-2">
                         {connectedQueryChromosomes.map((chr) => (
@@ -330,7 +330,7 @@ export const FilterDrawer = ({
                 </div>
 
                 {/* Right Column - Species Chromosomes */}
-                <div className="lg:col-span-2 xl:col-span-1">
+                <div className="space-y-6">
                   <FilterSection
                     title="Species Chromosomes"
                     description="Select chromosomes from each species"
@@ -342,12 +342,12 @@ export const FilterDrawer = ({
                       setSelectedChromosomes(refChromosomes);
                     }}
                   >
-                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-1 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 gap-4">
                       {Object.entries(chromosomeOptions).map(([species, chromosomes]) => {
                         if (species === 'Reference') return null;
                         if (selectedSpecies.length > 0 && !selectedSpecies.includes(species)) return null;
 
-                        const selectedCount = selectedChromosomes.filter(chr => 
+                        const selectedCount = selectedChromosomes.filter(chr =>
                           chr.startsWith(`${species}:`)
                         ).length;
 
@@ -370,7 +370,7 @@ export const FilterDrawer = ({
                                   variant="ghost"
                                   size="sm"
                                   onClick={() => {
-                                    const otherChromosomes = selectedChromosomes.filter(chr => 
+                                    const otherChromosomes = selectedChromosomes.filter(chr =>
                                       !chr.startsWith(`${species}:`)
                                     );
                                     setSelectedChromosomes(otherChromosomes);
@@ -381,22 +381,22 @@ export const FilterDrawer = ({
                                 </Button>
                               )}
                             </div>
-                              <MultiSelect
-                                value={selectedChromosomes.filter(chr => 
-                                  chr.startsWith(`${species}:`)
-                                )}
-                                options={chromosomes}
-                                onValueChange={(values) => {
-                                  const otherChromosomes = selectedChromosomes.filter(chr => 
-                                    !chr.startsWith(`${species}:`)
-                                  );
-                                  setSelectedChromosomes([...otherChromosomes, ...values]);
-                                }}
-                                placeholder={`Select chromosomes...`}
-                                disabled={isLoading || showConnectedOnly}
-                                maxCount={2}
-                                modalPopover={true}
-                              />
+                            <MultiSelect
+                              value={selectedChromosomes.filter(chr =>
+                                chr.startsWith(`${species}:`)
+                              )}
+                              options={chromosomes}
+                              onValueChange={(values) => {
+                                const otherChromosomes = selectedChromosomes.filter(chr =>
+                                  !chr.startsWith(`${species}:`)
+                                );
+                                setSelectedChromosomes([...otherChromosomes, ...values]);
+                              }}
+                              placeholder={`Select chromosomes...`}
+                              disabled={isLoading || showConnectedOnly}
+                              maxCount={2}
+                              modalPopover={true}
+                            />
                           </motion.div>
                         );
                       })}

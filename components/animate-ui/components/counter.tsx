@@ -82,7 +82,7 @@ function Counter({
       onKeyDown={handleKeyDown}
       transition={transition}
       className={cn(
-        'flex items-center justify-between w-full p-1 rounded-xl bg-neutral-100 dark:bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2',
+        'flex items-center justify-between w-full p-1 rounded-xl bg-neutral-100 dark:bg-neutral-800 focus:outline-hidden focus:ring-2 focus:ring-ring focus:ring-offset-2',
         className,
       )}
       {...props}
@@ -102,7 +102,7 @@ function Counter({
       </motion.div>
 
       <div
-        className="relative h-8 flex-grow flex items-center justify-center cursor-text"
+        className="relative h-8 grow flex items-center justify-center cursor-text"
         onClick={() => setIsEditing(true)}
       >
         {isEditing ? (
@@ -113,7 +113,7 @@ function Counter({
             onChange={handleInputChange}
             onBlur={handleInputBlur}
             onKeyDown={handleInputKeyDown}
-            className="w-full text-center bg-transparent text-lg focus:outline-none"
+            className="w-full text-center bg-transparent text-lg focus:outline-hidden"
           />
         ) : (
           <SlidingNumber

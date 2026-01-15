@@ -1,4 +1,4 @@
-ref_species,ref_chr,ref_start,ref_end,query_chr,query_start,query_end,query_strand,query_name,qry_lvl
+ref_name,ref_chr,ref_start,ref_end,query_chr,query_start,query_end,query_strand,query_name,qry_lvl
 Adineta_vaga:300k,chr1,4984,14396,chr1,49238,70904,+,Adineta_ricciae,Chromosomes
 Adineta_vaga:300k,chr1,606881,649071,chr3,20627262,20702659,-,Adineta_ricciae,Chromosomes
 Adineta_vaga:300k,chr1,1063861,17898661,chr1,161849,19196025,-,Adineta_ricciae,Chromosomes

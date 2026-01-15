@@ -46,6 +46,7 @@ import {
     OPTIMIZATION_CONFIG,
 } from "@/config/chromoviz.config";
 import BreathingText from "@/components/ui/breathing-text";
+import { MobileWarning } from "@/components/chromoviz/mobile-warning";
 import { supabase } from '@/lib/supabaseClient';
 import { toast } from "sonner";
 import { User } from '@supabase/supabase-js';
@@ -186,10 +187,10 @@ interface SyntenyViewConfig {
 }
 
 // Add a loading skeleton component
-function LoadingSkeleton({ 
-    isSharedLink = false, 
-    downloadProgress = null 
-}: { 
+function LoadingSkeleton({
+    isSharedLink = false,
+    downloadProgress = null
+}: {
     isSharedLink?: boolean;
     downloadProgress?: { current: number; total: number } | null;
 }) {
@@ -200,7 +201,7 @@ function LoadingSkeleton({
         "Loading Annotations...",
         "Preparing Data...",
     ];
-    
+
     const sharedLinkMessages = [
         "Loading Shared Visualization...",
         "Downloading Files from Storage...",
@@ -208,7 +209,7 @@ function LoadingSkeleton({
         "Reconstructing Visualization...",
         "Applying Saved Settings...",
     ];
-    
+
     const messages = isSharedLink ? sharedLinkMessages : defaultMessages;
     const [message, setMessage] = useState(messages[0]);
 
@@ -235,7 +236,7 @@ function LoadingSkeleton({
                             <div className="space-y-2">
                                 <div>Downloading files: {downloadProgress.current} of {downloadProgress.total}</div>
                                 <div className="w-full max-w-xs mx-auto bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                                    <div 
+                                    <div
                                         className="bg-blue-500 h-2 rounded-full transition-all duration-300"
                                         style={{ width: `${(downloadProgress.current / downloadProgress.total) * 100}%` }}
                                     />
@@ -291,7 +292,7 @@ function downloadCSV(data: SyntenyData[], filename: string) {
 
     // Convert data to CSV rows
     const rows = data.map(link => [
-        link.ref_species,
+        link.ref_name,
         link.ref_chr,
         (link.ref_start / 1_000_000).toFixed(2),
         (link.ref_end / 1_000_000).toFixed(2),
@@ -591,7 +592,7 @@ function ChromoVizContent() {
     // Get reference species from synteny data
     const referenceSpecies = React.useMemo(() => {
         if (syntenyData.length === 0) return null;
-        return syntenyData[0].ref_species;
+        return syntenyData[0].ref_name;
     }, [syntenyData]);
 
     // Modify the loadExampleData function to include breakpoints
@@ -1057,13 +1058,13 @@ function ChromoVizContent() {
                             if (listError) throw listError;
 
                             setDownloadProgress({ current: 0, total: files.length });
-                            
+
                             const loadedFiles: { name: string; data: string }[] = [];
-                            
+
                             for (let i = 0; i < files.length; i++) {
                                 const file = files[i];
                                 setDownloadProgress({ current: i + 1, total: files.length });
-                                
+
                                 const { data: blobData, error: downloadError } = await supabase.storage
                                     .from('user-uploads')
                                     .download(`${state.user_id}/${state.datasetId}/${file.name}`);
@@ -1073,7 +1074,7 @@ function ChromoVizContent() {
                                 const text = await blobData.text();
                                 loadedFiles.push({ name: file.name, data: text });
                             }
-                            
+
                             setDownloadProgress(null); // Clear progress when done
 
                             // This is a simplified parsing logic. You might need to make this more robust
@@ -1115,11 +1116,11 @@ function ChromoVizContent() {
                         setIsDetailViewOpen(state.isDetailViewOpen !== undefined ? state.isDetailViewOpen : true);
                         setCurrentBlockIndex(state.currentSelectedBlockIndex || 0);
 
-                        const dataTypeMessage = state.dataSetType === 'custom_db' 
-                            ? "Shared custom visualization loaded!" 
+                        const dataTypeMessage = state.dataSetType === 'custom_db'
+                            ? "Shared custom visualization loaded!"
                             : state.dataSetType === 'example'
-                            ? "Shared example visualization loaded!"
-                            : "Shared visualization loaded!";
+                                ? "Shared example visualization loaded!"
+                                : "Shared visualization loaded!";
                         toast.success(dataTypeMessage);
                     } else {
                         toast.error("Could not find the shared visualization.");
@@ -1128,7 +1129,7 @@ function ChromoVizContent() {
                 } catch (e) {
                     console.error("Error loading shared visualization:", e);
                     let errorMessage = "Failed to load shared visualization.";
-                    
+
                     if (e instanceof Error) {
                         if (e.message.includes('storage')) {
                             errorMessage = "Failed to download custom files from storage. The files may have been deleted.";
@@ -1138,7 +1139,7 @@ function ChromoVizContent() {
                             errorMessage = e.message;
                         }
                     }
-                    
+
                     toast.error(errorMessage);
                     setProcessedShareId(shareId); // Mark as processed on error
                 } finally {
@@ -1246,452 +1247,455 @@ function ChromoVizContent() {
     }
 
     return (
-        <PageWrapper hideNavbar={isFullScreen} hideFooter={isFullScreen}>
-            {/* When mainCardRef (a child) is fullscreen, this outer div should not apply fixed/z-index/backdrop styles.
+        <>
+            <MobileWarning />
+            <PageWrapper hideNavbar={isFullScreen} hideFooter={isFullScreen}>
+                {/* When mainCardRef (a child) is fullscreen, this outer div should not apply fixed/z-index/backdrop styles.
           The browser handles the fullscreen layer for mainCardRef.
           We only adjust padding based on fullscreen state here. */}
-            <div className={cn(
-                "relative w-full bg-background flex-1 flex flex-col",
-                isFullScreen ? "fixed inset-0 z-50 p-0" : "py-4 sm:py-6"
-            )}>
                 <div className={cn(
-                    "flex-1 flex flex-col w-full",
-                    isFullScreen ? "h-full p-0" : "px-4 sm:px-6"
+                    "relative w-full bg-background flex-1 flex flex-col",
+                    isFullScreen ? "fixed inset-0 z-50 p-0" : "py-4 sm:py-6"
                 )}>
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className={cn(
-                            "flex-1 w-full max-w-[2000px] mx-auto flex flex-col"
-                            // Removed: isFullScreen && "backdrop-blur-md" to simplify stacking context
-                        )}
-                    >
-                        {/* Main Content Grid */}
-                        <div className="grid grid-cols-12 gap-4 h-full">
-                            <motion.div
-                                initial={{ opacity: 0, x: 20 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                transition={{ delay: 0.4 }}
-                                className="col-span-12 flex flex-col h-full"
-                            >
-                                {/* Controls Bar */}
-                                <FloatingHUDBar
-                                    onLoadExample={loadExampleData}
-                                    selectedSpecies={selectedSpecies}
-                                    setSelectedSpecies={setSelectedSpecies}
-                                    selectedChromosomes={selectedChromosomes}
-                                    setSelectedChromosomes={setSelectedChromosomes}
-                                    speciesOptions={speciesOptions}
-                                    chromosomeOptions={chromosomeOptions}
-                                    referenceGenomeData={referenceData}
-                                    syntenyData={syntenyData}
-                                    onDataLoad={onDataLoad}
-                                    isFullScreen={isFullScreen}
-                                    onToggleFullScreen={() => setIsFullScreen(!isFullScreen)}
-                                    showTooltips={showTooltips}
-                                    onToggleTooltips={() => setShowTooltips(!showTooltips)}
-                                    onResetToWelcome={handleResetToWelcome}
-                                    speciesData={speciesData}
-                                    onShare={handleShare}
-                                    user={user}
-                                    isDetailViewOpen={isDetailViewOpen}
-                                    onToggleDetailView={() => setIsDetailViewOpen(prev => !prev)}
-                                    selectedSynteny={selectedSynteny}
-                                    onToggleSelection={handleSyntenyToggle}
-                                    onSelectBlock={(block) => {
-                                        const index = selectedSynteny.findIndex(b =>
-                                            b.ref_chr === block.ref_chr &&
-                                            b.query_chr === block.query_chr &&
-                                            b.ref_start === block.ref_start
-                                        );
-                                        if (index !== -1) {
-                                            setCurrentBlockIndex(index);
-                                        }
-                                    }}
-                                    currentBlockIndex={currentBlockIndex}
-                                    onExport={(data) => downloadCSV(
-                                        data,
-                                        `synteny-blocks-${new Date().toISOString().split('T')[0]}.csv`
-                                    )}
-                                />
+                    <div className={cn(
+                        "flex-1 flex flex-col w-full",
+                        isFullScreen ? "h-full p-0" : "px-4 sm:px-6"
+                    )}>
+                        <motion.div
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className={cn(
+                                "flex-1 w-full max-w-[2000px] mx-auto flex flex-col"
+                                // Removed: isFullScreen && "backdrop-blur-md" to simplify stacking context
+                            )}
+                        >
+                            {/* Main Content Grid */}
+                            <div className="grid grid-cols-12 gap-4 h-full">
+                                <motion.div
+                                    initial={{ opacity: 0, x: 20 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    transition={{ delay: 0.4 }}
+                                    className="col-span-12 flex flex-col h-full"
+                                >
+                                    {/* Controls Bar */}
+                                    <FloatingHUDBar
+                                        onLoadExample={loadExampleData}
+                                        selectedSpecies={selectedSpecies}
+                                        setSelectedSpecies={setSelectedSpecies}
+                                        selectedChromosomes={selectedChromosomes}
+                                        setSelectedChromosomes={setSelectedChromosomes}
+                                        speciesOptions={speciesOptions}
+                                        chromosomeOptions={chromosomeOptions}
+                                        referenceGenomeData={referenceData}
+                                        syntenyData={syntenyData}
+                                        onDataLoad={onDataLoad}
+                                        isFullScreen={isFullScreen}
+                                        onToggleFullScreen={() => setIsFullScreen(!isFullScreen)}
+                                        showTooltips={showTooltips}
+                                        onToggleTooltips={() => setShowTooltips(!showTooltips)}
+                                        onResetToWelcome={handleResetToWelcome}
+                                        speciesData={speciesData}
+                                        onShare={handleShare}
+                                        user={user}
+                                        isDetailViewOpen={isDetailViewOpen}
+                                        onToggleDetailView={() => setIsDetailViewOpen(prev => !prev)}
+                                        selectedSynteny={selectedSynteny}
+                                        onToggleSelection={handleSyntenyToggle}
+                                        onSelectBlock={(block) => {
+                                            const index = selectedSynteny.findIndex(b =>
+                                                b.ref_chr === block.ref_chr &&
+                                                b.query_chr === block.query_chr &&
+                                                b.ref_start === block.ref_start
+                                            );
+                                            if (index !== -1) {
+                                                setCurrentBlockIndex(index);
+                                            }
+                                        }}
+                                        currentBlockIndex={currentBlockIndex}
+                                        onExport={(data) => downloadCSV(
+                                            data,
+                                            `synteny-blocks-${new Date().toISOString().split('T')[0]}.csv`
+                                        )}
+                                    />
 
-                                {/* Responsive Layout for Visualization and Details */}
-                                <div className={cn("grid grid-cols-12 gap-6 flex-1 min-h-0", isFullScreen && "pb-24")}> {/* Increased gap */}
-                                    {/* Main Visualization Area */}
-                                    <div className={cn(
-                                        "transition-all duration-300 ease-in-out",
-                                        isDetailViewOpen && selectedSynteny.length > 0
-                                            ? "col-span-12 lg:col-span-8"
-                                            : "col-span-12"
-                                    )}>
-                                        <Card className={cn(
-                                            "h-[80vh] flex flex-col border-l-4 border-r-4", // Added fixed height
-                                            isFullScreen && "h-full" // Ensure fullscreen still takes full screen height
-                                        )} ref={mainCardRef}>
-                                            {/* Modified Card Header with integrated Tips and Back Button */}
-                                            {referenceData && !showWelcomeCard && (
-                                                <CardHeader className="p-4 border-b">
-                                                    <div className="flex items-center justify-between gap-4">
-                                                        <div className="flex items-center gap-4">
-                                                            <Button
-                                                                variant="ghost"
-                                                                size="sm"
-                                                                onClick={handleResetToWelcome}
-                                                                className="h-8 px-2 text-xs font-medium text-red-600 dark:text-red-400 
+                                    {/* Responsive Layout for Visualization and Details */}
+                                    <div className={cn("grid grid-cols-12 gap-6 flex-1 min-h-0", isFullScreen && "pb-24")}> {/* Increased gap */}
+                                        {/* Main Visualization Area */}
+                                        <div className={cn(
+                                            "transition-all duration-300 ease-in-out",
+                                            isDetailViewOpen && selectedSynteny.length > 0
+                                                ? "col-span-12 lg:col-span-8"
+                                                : "col-span-12"
+                                        )}>
+                                            <Card className={cn(
+                                                "h-[80vh] flex flex-col border-l-4 border-r-4", // Added fixed height
+                                                isFullScreen && "h-full" // Ensure fullscreen still takes full screen height
+                                            )} ref={mainCardRef}>
+                                                {/* Modified Card Header with integrated Tips and Back Button */}
+                                                {referenceData && !showWelcomeCard && (
+                                                    <CardHeader className="p-4 border-b">
+                                                        <div className="flex items-center justify-between gap-4">
+                                                            <div className="flex items-center gap-4">
+                                                                <Button
+                                                                    variant="ghost"
+                                                                    size="sm"
+                                                                    onClick={handleResetToWelcome}
+                                                                    className="h-8 px-2 text-xs font-medium text-red-600 dark:text-red-400 
                                   hover:bg-red-500/10 transition-colors group [&_svg]:stroke-red-500
                                   sm:bg-red-500/20 sm:hover:bg-red-500/30"
-                                                            >
-                                                                <ArrowLeft className="h-3.5 w-3.5 mr-1.5" />
-                                                                <span className="hidden sm:inline">Go Back</span>
-                                                            </Button>
-                                                            <CardTitle className="text-lg font-medium">Linear Synteny Visualization</CardTitle>
-                                                            <div className="flex items-center gap-1.5 ml-auto">
-                                                                <Switch
-                                                                    id="draggable-view"
-                                                                    checked={showKonvaDemo}
-                                                                    onCheckedChange={() => setShowKonvaDemo(!showKonvaDemo)}
-                                                                />
-                                                                <label htmlFor="draggable-view" className="text-xs text-muted-foreground whitespace-nowrap">
-                                                                    Draggable View
-                                                                </label>
-                                                                <Badge variant="outline" className="text-xs px-1.5 py-0.5">
-                                                                    Beta
-                                                                </Badge>
-                                                            </div>
-                                                        </div>
-                                                        <div className="h-8 border-l pl-4 hidden sm:block">
-                                                            <TipsCarousel variant="compact" className="w-[300px]" />
-                                                        </div>
-                                                    </div>
-                                                </CardHeader>
-                                            )}
-
-                                            {isLoading ? (
-                                                <div className="p-4 flex-1">
-                                                    <LoadingSkeleton 
-                                                        isSharedLink={isLoadingShare} 
-                                                        downloadProgress={downloadProgress}
-                                                    />
-                                                </div>
-                                            ) : showKonvaDemo && syntenyData.length > 0 && referenceData && !showWelcomeCard ? ( // Added referenceData check for Konva
-                                                <div className="flex-1 min-h-0">
-                                                    <KonvaSynteny
-                                                        referenceData={filteredData.referenceData}
-                                                        syntenyData={filteredData.syntenyData}
-                                                        alignmentFilter={alignmentFilter}
-                                                        setAlignmentFilter={setAlignmentFilter}
-                                                        onBack={() => setShowKonvaDemo(false)}
-                                                    />
-                                                </div>
-                                            ) : syntenyData.length > 0 && referenceData && !showWelcomeCard ? ( // Added referenceData check
-                                                <div className="flex-1 min-h-0">
-                                                    <ChromosomeSynteny
-                                                        referenceData={filteredData.referenceData}
-                                                        syntenyData={filteredData.syntenyData}
-                                                        referenceGenomeData={referenceData}
-                                                        selectedSynteny={selectedSynteny}
-                                                        onSyntenySelect={handleSyntenySelection}
-                                                        width="100%"
-                                                        height="100%"
-                                                        alignmentFilter={alignmentFilter}
-                                                        setAlignmentFilter={setAlignmentFilter}
-                                                        onZoomIn={handleZoomIn}
-                                                        onZoomOut={handleZoomOut}
-                                                        onReset={handleReset}
-                                                        onFullscreen={toggleFullscreen}
-                                                        isFullscreen={isFullscreen}
-                                                        svgRef={svgRef}
-                                                        containerRef={containerRef}
-                                                        zoomBehaviorRef={zoomBehaviorRef}
-                                                        showAnnotations={showAnnotations}
-                                                        setShowAnnotations={setShowAnnotations}
-                                                        selectedChromosomes={selectedChromosomes}
-                                                        showTooltips={showTooltips}
-                                                        setShowTooltips={setShowTooltips}
-                                                        selectedMutationTypes={selectedMutationTypes}
-                                                        onMutationTypeSelect={handleMutationTypeSelect}
-                                                        customSpeciesColors={customSpeciesColors}
-                                                        onSpeciesColorChange={handleSpeciesColorChange}
-                                                        onResetSpeciesColors={handleResetSpeciesColors}
-                                                        showConnectedOnly={showConnectedOnly}
-                                                        setShowConnectedOnly={setShowConnectedOnly}
-                                                        config={config}
-                                                        onConfigChange={handleConfigChange}
-                                                        onResetLayout={handleResetLayout}
-                                                    />
-                                                </div>
-                                            ) : (
-                                                <div className="h-full flex flex-col items-center justify-center p-8">
-                                                    <motion.div
-                                                        initial={{ opacity: 0, y: 20 }}
-                                                        animate={{ opacity: 1, y: 0 }}
-                                                        className="text-center space-y-12 max-w-4xl w-full"
-                                                    >
-                                                        {/* Header */}
-                                                        <div className="space-y-6">
-                                                            <div className="relative w-20 h-20 mx-auto">
-                                                                <div className="absolute inset-0 bg-blue-400/20 dark:bg-blue-500/20 blur-2xl rounded-full" />
-                                                                <div className="relative flex items-center justify-center w-full h-full 
-                                  bg-white/50 dark:bg-gray-900/50 backdrop-blur-sm rounded-full 
-                                  border border-blue-200 dark:border-blue-800 
-                                  shadow-lg shadow-blue-500/20"
                                                                 >
-                                                                    <MonitorUp className="h-10 w-10 text-blue-500 dark:text-blue-400" />
+                                                                    <ArrowLeft className="h-3.5 w-3.5 mr-1.5" />
+                                                                    <span className="hidden sm:inline">Go Back</span>
+                                                                </Button>
+                                                                <CardTitle className="text-lg font-medium">Linear Synteny Visualization</CardTitle>
+                                                                <div className="flex items-center gap-1.5 ml-auto">
+                                                                    <Switch
+                                                                        id="draggable-view"
+                                                                        checked={showKonvaDemo}
+                                                                        onCheckedChange={() => setShowKonvaDemo(!showKonvaDemo)}
+                                                                    />
+                                                                    <label htmlFor="draggable-view" className="text-xs text-muted-foreground whitespace-nowrap">
+                                                                        Draggable View
+                                                                    </label>
+                                                                    <Badge variant="outline" className="text-xs px-1.5 py-0.5">
+                                                                        Beta
+                                                                    </Badge>
                                                                 </div>
                                                             </div>
-
-                                                            <div className="space-y-2">
-                                                                <h3 className="text-2xl font-semibold text-gray-900 dark:text-gray-100">
-                                                                    Welcome to CHITRA
-                                                                </h3>
-                                                                <p className="text-xl text-gray-500 dark:text-gray-400">
-                                                                    <span className="font-semibold text-gray-900 dark:text-gray-100">C</span>hromosome{' '}
-                                                                    <span className="font-semibold text-gray-900 dark:text-gray-100">I</span>nteractive{' '}
-                                                                    <span className="font-semibold text-gray-900 dark:text-gray-100">T</span>ool for{' '}
-                                                                    <span className="font-semibold text-gray-900 dark:text-gray-100">R</span>earrangement{' '}
-                                                                    <span className="font-semibold text-gray-900 dark:text-gray-100">A</span>nalysis
-                                                                </p>
-                                                            </div>
-
-                                                            {/* Feature Tags */}
-                                                            <div className="flex flex-wrap justify-center gap-2">
-                                                                <Badge variant="secondary" className="bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400">
-                                                                    #Synteny
-                                                                </Badge>
-                                                                <Badge variant="secondary" className="bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400">
-                                                                    #Annotations
-                                                                </Badge>
-                                                                <Badge variant="secondary" className="bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400">
-                                                                    #Breakpoints
-                                                                </Badge>
-                                                                <Badge variant="secondary" className="bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400">
-                                                                    #Visualization
-                                                                </Badge>
-                                                                <Badge variant="secondary" className="bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400">
-                                                                    #Chromosomes
-                                                                </Badge>
-                                                            </div>
-
-                                                            {/* Get Started Section */}
-                                                            <div className="flex items-center gap-6 justify-center text-gray-700 dark:text-gray-300">
-                                                                <div className="flex items-center gap-3">
-                                                                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-500/10 text-blue-500">
-                                                                        1
-                                                                    </span>
-                                                                    <span>Explore example datasets</span>
-                                                                </div>
-                                                                <span className="text-gray-400">or</span>
-                                                                <div className="flex items-center gap-3">
-                                                                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-500/10 text-blue-500">
-                                                                        2
-                                                                    </span>
-                                                                    <span>Upload your files</span>
-                                                                </div>
+                                                            <div className="h-8 border-l pl-4">
+                                                                <TipsCarousel variant="compact" className="w-[300px]" />
                                                             </div>
                                                         </div>
+                                                    </CardHeader>
+                                                )}
 
-                                                        {/* Upload Button and More Examples - MOVED UP */}
-                                                        <div className="pt-4 flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6 p-4">
-                                                            <FileUploaderGroup
-                                                                onDataLoad={onDataLoad}
-                                                                user={user}
-                                                                trigger={
-                                                                    <LiquidButton
-                                                                        variant="default" // Assuming default variant aligns with a blue-ish theme
-                                                                        size="lg" // To match h-12, lg is typically 3rem (48px)
-                                                                        className="min-w-[190px]"
-                                                                    >
-                                                                        <Upload className="h-5 w-5" />
-                                                                        <span className="text-base">Upload Files</span>
-                                                                    </LiquidButton>
-                                                                }
-                                                            />
-
-                                                            <ExampleFilesDrawer onLoadExample={loadExampleData}>
-                                                                <FlipButton
-                                                                    frontText="Examples"
-                                                                    backText="View Sets"
-                                                                    className="min-w-[190px] h-12 text-base" // Added h-12 and text-base
-                                                                    frontClassName="bg-amber-100 text-amber-700 dark:bg-amber-700/30 dark:text-amber-300"
-                                                                    backClassName="bg-amber-500 text-white dark:bg-amber-600 dark:text-white"
-                                                                />
-                                                                {/* The FileText icon is omitted as FlipButton frontText/backText expect strings. */}
-                                                                {/* If icon is desired, FlipButton may need modification or icon placed externally. */}
-                                                            </ExampleFilesDrawer>
-                                                        </div>
-
-                                                        {/* Example Sets Grid - NOW BELOW BUTTONS */}
-                                                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                                                            {[
-                                                                {
-                                                                    id: 'set1',
-                                                                    name: 'Basic Synteny',
-                                                                    description: 'Simple synteny visualization between species',
-                                                                    color: 'bg-blue-400',
-                                                                    borderColor: 'border-blue-200 dark:border-blue-800',
-                                                                    hoverBg: 'hover:bg-blue-50/50 dark:hover:bg-blue-900/10',
-                                                                    groupHover: 'group-hover:text-blue-500 dark:group-hover:text-blue-400'
-                                                                },
-                                                                {
-                                                                    id: 'set2',
-                                                                    name: 'Multi-Species',
-                                                                    description: 'Complex synteny relationships across multiple species',
-                                                                    color: 'bg-emerald-400',
-                                                                    borderColor: 'border-emerald-200 dark:border-emerald-800',
-                                                                    hoverBg: 'hover:bg-emerald-50/50 dark:hover:bg-emerald-900/10',
-                                                                    groupHover: 'group-hover:text-emerald-500 dark:group-hover:text-emerald-400',
-                                                                },
-                                                                {
-                                                                    id: 'set3',
-                                                                    name: 'Annotated Genome',
-                                                                    description: 'Detailed genome annotations with gene information',
-                                                                    color: 'bg-purple-400',
-                                                                    borderColor: 'border-purple-200 dark:border-purple-800',
-                                                                    hoverBg: 'hover:bg-purple-50/50 dark:hover:bg-purple-900/10',
-                                                                    groupHover: 'group-hover:text-purple-500 dark:group-hover:text-purple-400',
-                                                                }
-                                                            ].map((set) => (
-                                                                <motion.button
-                                                                    key={set.id}
-                                                                    onClick={() => loadExampleData(`/example/${set.id}`)}
-                                                                    className={cn(
-                                                                        "w-full text-left p-4 rounded-lg transition-all border",
-                                                                        set.borderColor,
-                                                                        set.hoverBg,
-                                                                        "group"
-                                                                    )}
-                                                                    whileHover={{ scale: 1.02 }}
-                                                                    whileTap={{ scale: 0.98 }}
-                                                                >
-                                                                    <div className="flex items-start gap-3">
-                                                                        <div className={`w-2.5 h-2.5 rounded-full mt-1.5 flex-shrink-0 ${set.color}`} />
-                                                                        <div className="flex-1">
-                                                                            <div className={cn(
-                                                                                "font-medium text-base transition-colors",
-                                                                                set.groupHover
-                                                                            )}>
-                                                                                {set.name}
-                                                                            </div>
-                                                                            <div className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                                                                                {set.description}
-                                                                            </div>
-                                                                        </div>
-                                                                    </div>
-                                                                </motion.button>
-                                                            ))}
-                                                        </div>
-                                                    </motion.div>
-                                                </div>
-                                            )}
-                                        </Card>
-                                    </div>
-
-                                    {/* Detailed View Sidebar */}
-                                    {isDetailViewOpen && selectedSynteny.length > 0 && !showWelcomeCard && (
-                                        <div className="col-span-12 lg:col-span-4 h-full">
-                                            <Card className="h-full flex flex-col w-full">
-                                                <CardHeader className="p-4 border-b shrink-0">
-                                                    <CardTitle className="text-sm font-medium flex items-center gap-2">
-                                                        <MousePointerClick className="h-4 w-4" />
-                                                        Selected Block Details
-                                                        <Badge variant="secondary" className="ml-auto">
-                                                            {selectedSynteny.length} selected
-                                                        </Badge>
-                                                    </CardTitle>
-                                                </CardHeader>
-                                                <CardContent className="p-0 flex-1 overflow-hidden">
-                                                    <div className="h-full w-full">
-                                                        <ChordView
-                                                            selectedBlock={selectedSynteny[currentBlockIndex]}
-                                                            referenceData={filteredData.referenceData}
-                                                            onBlockClick={handleSyntenyToggle}
-                                                            selectedSynteny={selectedSynteny}
-                                                            onToggleSelection={handleSyntenyToggle}
-                                                            isFullscreen={isDetailedViewFullscreen}
-                                                            onFullscreen={setIsDetailedViewFullscreen}
-                                                            showTooltips={showTooltips}
-                                                            config={chordViewConfig}
-                                                            onConfigChange={setChordViewConfig}
+                                                {isLoading ? (
+                                                    <div className="p-4 flex-1">
+                                                        <LoadingSkeleton
+                                                            isSharedLink={isLoadingShare}
+                                                            downloadProgress={downloadProgress}
                                                         />
                                                     </div>
-                                                </CardContent>
+                                                ) : showKonvaDemo && syntenyData.length > 0 && referenceData && !showWelcomeCard ? ( // Added referenceData check for Konva
+                                                    <div className="flex-1 min-h-0">
+                                                        <KonvaSynteny
+                                                            referenceData={filteredData.referenceData}
+                                                            syntenyData={filteredData.syntenyData}
+                                                            alignmentFilter={alignmentFilter}
+                                                            setAlignmentFilter={setAlignmentFilter}
+                                                            onBack={() => setShowKonvaDemo(false)}
+                                                        />
+                                                    </div>
+                                                ) : syntenyData.length > 0 && referenceData && !showWelcomeCard ? ( // Added referenceData check
+                                                    <div className="flex-1 min-h-0">
+                                                        <ChromosomeSynteny
+                                                            referenceData={filteredData.referenceData}
+                                                            syntenyData={filteredData.syntenyData}
+                                                            referenceGenomeData={referenceData}
+                                                            selectedSynteny={selectedSynteny}
+                                                            onSyntenySelect={handleSyntenySelection}
+                                                            width="100%"
+                                                            height="100%"
+                                                            alignmentFilter={alignmentFilter}
+                                                            setAlignmentFilter={setAlignmentFilter}
+                                                            onZoomIn={handleZoomIn}
+                                                            onZoomOut={handleZoomOut}
+                                                            onReset={handleReset}
+                                                            onFullscreen={toggleFullscreen}
+                                                            isFullscreen={isFullscreen}
+                                                            svgRef={svgRef}
+                                                            containerRef={containerRef}
+                                                            zoomBehaviorRef={zoomBehaviorRef}
+                                                            showAnnotations={showAnnotations}
+                                                            setShowAnnotations={setShowAnnotations}
+                                                            selectedChromosomes={selectedChromosomes}
+                                                            showTooltips={showTooltips}
+                                                            setShowTooltips={setShowTooltips}
+                                                            selectedMutationTypes={selectedMutationTypes}
+                                                            onMutationTypeSelect={handleMutationTypeSelect}
+                                                            customSpeciesColors={customSpeciesColors}
+                                                            onSpeciesColorChange={handleSpeciesColorChange}
+                                                            onResetSpeciesColors={handleResetSpeciesColors}
+                                                            showConnectedOnly={showConnectedOnly}
+                                                            setShowConnectedOnly={setShowConnectedOnly}
+                                                            config={config}
+                                                            onConfigChange={handleConfigChange}
+                                                            onResetLayout={handleResetLayout}
+                                                        />
+                                                    </div>
+                                                ) : (
+                                                    <div className="h-full flex flex-col items-center justify-center p-4 sm:p-8">
+                                                        <motion.div
+                                                            initial={{ opacity: 0, y: 20 }}
+                                                            animate={{ opacity: 1, y: 0 }}
+                                                            className="text-center space-y-12 max-w-4xl w-full"
+                                                        >
+                                                            {/* Header */}
+                                                            <div className="space-y-6">
+                                                                <div className="relative w-20 h-20 mx-auto">
+                                                                    <div className="absolute inset-0 bg-blue-400/20 dark:bg-blue-500/20 blur-2xl rounded-full" />
+                                                                    <div className="relative flex items-center justify-center w-full h-full 
+                                  bg-white/50 dark:bg-gray-900/50 backdrop-blur-xs rounded-full 
+                                  border border-blue-200 dark:border-blue-800 
+                                  shadow-lg shadow-blue-500/20"
+                                                                    >
+                                                                        <MonitorUp className="h-10 w-10 text-blue-500 dark:text-blue-400" />
+                                                                    </div>
+                                                                </div>
+
+                                                                <div className="space-y-2">
+                                                                    <h3 className="text-2xl font-semibold text-gray-900 dark:text-gray-100">
+                                                                        Welcome to CHITRA
+                                                                    </h3>
+                                                                    <p className="text-xl text-gray-500 dark:text-gray-400">
+                                                                        <span className="font-semibold text-gray-900 dark:text-gray-100">C</span>hromosome{' '}
+                                                                        <span className="font-semibold text-gray-900 dark:text-gray-100">I</span>nteractive{' '}
+                                                                        <span className="font-semibold text-gray-900 dark:text-gray-100">T</span>ool for{' '}
+                                                                        <span className="font-semibold text-gray-900 dark:text-gray-100">R</span>earrangement{' '}
+                                                                        <span className="font-semibold text-gray-900 dark:text-gray-100">A</span>nalysis
+                                                                    </p>
+                                                                </div>
+
+                                                                {/* Feature Tags */}
+                                                                <div className="flex flex-wrap justify-center gap-2">
+                                                                    <Badge variant="secondary" className="bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400">
+                                                                        #Synteny
+                                                                    </Badge>
+                                                                    <Badge variant="secondary" className="bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400">
+                                                                        #Annotations
+                                                                    </Badge>
+                                                                    <Badge variant="secondary" className="bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400">
+                                                                        #Breakpoints
+                                                                    </Badge>
+                                                                    <Badge variant="secondary" className="bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400">
+                                                                        #Visualization
+                                                                    </Badge>
+                                                                    <Badge variant="secondary" className="bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400">
+                                                                        #Chromosomes
+                                                                    </Badge>
+                                                                </div>
+
+                                                                {/* Get Started Section */}
+                                                                <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6 justify-center text-gray-700 dark:text-gray-300">
+                                                                    <div className="flex items-center gap-3">
+                                                                        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-500/10 text-blue-500">
+                                                                            1
+                                                                        </span>
+                                                                        <span>Explore example datasets</span>
+                                                                    </div>
+                                                                    <span className="text-gray-400 hidden sm:inline">or</span>
+                                                                    <div className="flex items-center gap-3">
+                                                                        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-500/10 text-blue-500">
+                                                                            2
+                                                                        </span>
+                                                                        <span>Upload your files</span>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+
+                                                            {/* Upload Button and More Examples - MOVED UP */}
+                                                            <div className="pt-4 flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6 p-4">
+                                                                <FileUploaderGroup
+                                                                    onDataLoad={onDataLoad}
+                                                                    user={user}
+                                                                    trigger={
+                                                                        <LiquidButton
+                                                                            variant="default" // Assuming default variant aligns with a blue-ish theme
+                                                                            size="lg" // To match h-12, lg is typically 3rem (48px)
+                                                                            className="min-w-[190px]"
+                                                                        >
+                                                                            <Upload className="h-5 w-5" />
+                                                                            <span className="text-base">Upload Files</span>
+                                                                        </LiquidButton>
+                                                                    }
+                                                                />
+
+                                                                <ExampleFilesDrawer onLoadExample={loadExampleData}>
+                                                                    <FlipButton
+                                                                        frontText="Examples"
+                                                                        backText="View Sets"
+                                                                        className="min-w-[190px] h-12 text-base" // Added h-12 and text-base
+                                                                        frontClassName="bg-amber-100 text-amber-700 dark:bg-amber-700/30 dark:text-amber-300"
+                                                                        backClassName="bg-amber-500 text-white dark:bg-amber-600 dark:text-white"
+                                                                    />
+                                                                    {/* The FileText icon is omitted as FlipButton frontText/backText expect strings. */}
+                                                                    {/* If icon is desired, FlipButton may need modification or icon placed externally. */}
+                                                                </ExampleFilesDrawer>
+                                                            </div>
+
+                                                            {/* Example Sets Grid - NOW BELOW BUTTONS */}
+                                                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3 lg:gap-4">
+                                                                {[
+                                                                    {
+                                                                        id: 'set1',
+                                                                        name: 'Basic Synteny',
+                                                                        description: 'Simple synteny visualization between species',
+                                                                        color: 'bg-blue-400',
+                                                                        borderColor: 'border-blue-200 dark:border-blue-800',
+                                                                        hoverBg: 'hover:bg-blue-50/50 dark:hover:bg-blue-900/10',
+                                                                        groupHover: 'group-hover:text-blue-500 dark:group-hover:text-blue-400'
+                                                                    },
+                                                                    {
+                                                                        id: 'set2',
+                                                                        name: 'Multi-Species',
+                                                                        description: 'Complex synteny relationships across multiple species',
+                                                                        color: 'bg-emerald-400',
+                                                                        borderColor: 'border-emerald-200 dark:border-emerald-800',
+                                                                        hoverBg: 'hover:bg-emerald-50/50 dark:hover:bg-emerald-900/10',
+                                                                        groupHover: 'group-hover:text-emerald-500 dark:group-hover:text-emerald-400',
+                                                                    },
+                                                                    {
+                                                                        id: 'set3',
+                                                                        name: 'Annotated Genome',
+                                                                        description: 'Detailed genome annotations with gene information',
+                                                                        color: 'bg-purple-400',
+                                                                        borderColor: 'border-purple-200 dark:border-purple-800',
+                                                                        hoverBg: 'hover:bg-purple-50/50 dark:hover:bg-purple-900/10',
+                                                                        groupHover: 'group-hover:text-purple-500 dark:group-hover:text-purple-400',
+                                                                    }
+                                                                ].map((set) => (
+                                                                    <motion.button
+                                                                        key={set.id}
+                                                                        onClick={() => loadExampleData(`/example/${set.id}`)}
+                                                                        className={cn(
+                                                                            "w-full text-left p-3 sm:p-4 rounded-lg transition-all border overflow-hidden",
+                                                                            set.borderColor,
+                                                                            set.hoverBg,
+                                                                            "group"
+                                                                        )}
+                                                                        whileHover={{ scale: 1.02 }}
+                                                                        whileTap={{ scale: 0.98 }}
+                                                                    >
+                                                                        <div className="flex items-start gap-2 sm:gap-3 min-w-0">
+                                                                            <div className={`w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full mt-1 sm:mt-1.5 shrink-0 ${set.color}`} />
+                                                                            <div className="flex-1 min-w-0">
+                                                                                <div className={cn(
+                                                                                    "font-medium text-sm sm:text-base transition-colors wrap-break-word",
+                                                                                    set.groupHover
+                                                                                )}>
+                                                                                    {set.name}
+                                                                                </div>
+                                                                                <div className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mt-1 wrap-break-word line-clamp-2">
+                                                                                    {set.description}
+                                                                                </div>
+                                                                            </div>
+                                                                        </div>
+                                                                    </motion.button>
+                                                                ))}
+                                                            </div>
+                                                        </motion.div>
+                                                    </div>
+                                                )}
                                             </Card>
+                                        </div>
+
+                                        {/* Detailed View Sidebar */}
+                                        {isDetailViewOpen && selectedSynteny.length > 0 && !showWelcomeCard && (
+                                            <div className="col-span-12 lg:col-span-4 h-full">
+                                                <Card className="h-full flex flex-col w-full">
+                                                    <CardHeader className="p-4 border-b shrink-0">
+                                                        <CardTitle className="text-sm font-medium flex items-center gap-2">
+                                                            <MousePointerClick className="h-4 w-4" />
+                                                            Selected Block Details
+                                                            <Badge variant="secondary" className="ml-auto">
+                                                                {selectedSynteny.length} selected
+                                                            </Badge>
+                                                        </CardTitle>
+                                                    </CardHeader>
+                                                    <CardContent className="p-0 flex-1 overflow-hidden">
+                                                        <div className="h-full w-full">
+                                                            <ChordView
+                                                                selectedBlock={selectedSynteny[currentBlockIndex]}
+                                                                referenceData={filteredData.referenceData}
+                                                                onBlockClick={handleSyntenyToggle}
+                                                                selectedSynteny={selectedSynteny}
+                                                                onToggleSelection={handleSyntenyToggle}
+                                                                isFullscreen={isDetailedViewFullscreen}
+                                                                onFullscreen={setIsDetailedViewFullscreen}
+                                                                showTooltips={showTooltips}
+                                                                config={chordViewConfig}
+                                                                onConfigChange={setChordViewConfig}
+                                                            />
+                                                        </div>
+                                                    </CardContent>
+                                                </Card>
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    {/* Inline Tables Section - Below Visualization and Details */}
+                                    {!isFullScreen && !showWelcomeCard && (syntenyData.length > 0 || speciesData.length > 0 || referenceData) && (
+                                        <div className="col-span-12 mt-6 grid grid-cols-12 gap-6">
+                                            {/* Left Column: Raw Data Tables */}
+                                            <div className="col-span-12 md:col-span-8 lg:col-span-9">
+                                                <Card>
+                                                    <CardHeader className="p-3 border-b">
+                                                        <CardTitle className="text-base font-semibold flex items-center gap-2">
+                                                            <Database className="h-4 w-4 text-muted-foreground" />
+                                                            Raw Data Tables
+                                                        </CardTitle>
+                                                    </CardHeader>
+                                                    <CardContent className="p-3">
+                                                        <RawDataTablesDisplay
+                                                            syntenyData={syntenyData}
+                                                            speciesData={speciesData}
+                                                            referenceData={referenceData}
+                                                        />
+                                                    </CardContent>
+                                                </Card>
+                                            </div>
+
+                                            {/* Right Column: Compact Selected Blocks */}
+                                            <div className="col-span-12 md:col-span-4 lg:col-span-3">
+                                                <Card>
+                                                    <CardHeader className="p-3 border-b">
+                                                        <CardTitle className="text-base font-semibold flex items-center gap-2">
+                                                            <MousePointerClick className="h-4 w-4 text-muted-foreground" />
+                                                            Selected Blocks
+                                                        </CardTitle>
+                                                    </CardHeader>
+                                                    <CardContent className="p-0"> {/* Padding handled by InlineSyntenyDisplay with isCompact */}
+                                                        <InlineSyntenyDisplay
+                                                            selectedSynteny={selectedSynteny}
+                                                            onToggleSelection={handleSyntenyToggle}
+                                                            onSelectBlock={(block) => {
+                                                                const index = selectedSynteny.findIndex(b =>
+                                                                    b.ref_chr === block.ref_chr &&
+                                                                    b.query_chr === block.query_chr &&
+                                                                    b.ref_start === block.ref_start
+                                                                );
+                                                                if (index !== -1) {
+                                                                    setCurrentBlockIndex(index);
+                                                                }
+                                                            }}
+                                                            currentBlockIndex={currentBlockIndex}
+                                                            // No export button in compact view to save space, can be added if needed
+                                                            // onExport={(data) => downloadCSV(
+                                                            //   data,
+                                                            //   `synteny-blocks-${new Date().toISOString().split('T')[0]}.csv`
+                                                            // )}
+                                                            isCompact={true} // Enable compact mode
+                                                            className="w-full"
+                                                        />
+                                                    </CardContent>
+                                                </Card>
+                                            </div>
                                         </div>
                                     )}
-                                </div>
-
-                                {/* Inline Tables Section - Below Visualization and Details */}
-                                {!isFullScreen && !showWelcomeCard && (syntenyData.length > 0 || speciesData.length > 0 || referenceData) && (
-                                    <div className="col-span-12 mt-6 grid grid-cols-12 gap-6">
-                                        {/* Left Column: Raw Data Tables */}
-                                        <div className="col-span-12 md:col-span-8 lg:col-span-9">
-                                            <Card>
-                                                <CardHeader className="p-3 border-b">
-                                                    <CardTitle className="text-base font-semibold flex items-center gap-2">
-                                                        <Database className="h-4 w-4 text-muted-foreground" />
-                                                        Raw Data Tables
-                                                    </CardTitle>
-                                                </CardHeader>
-                                                <CardContent className="p-3">
-                                                    <RawDataTablesDisplay
-                                                        syntenyData={syntenyData}
-                                                        speciesData={speciesData}
-                                                        referenceData={referenceData}
-                                                    />
-                                                </CardContent>
-                                            </Card>
-                                        </div>
-
-                                        {/* Right Column: Compact Selected Blocks */}
-                                        <div className="col-span-12 md:col-span-4 lg:col-span-3">
-                                            <Card>
-                                                <CardHeader className="p-3 border-b">
-                                                    <CardTitle className="text-base font-semibold flex items-center gap-2">
-                                                        <MousePointerClick className="h-4 w-4 text-muted-foreground" />
-                                                        Selected Blocks
-                                                    </CardTitle>
-                                                </CardHeader>
-                                                <CardContent className="p-0"> {/* Padding handled by InlineSyntenyDisplay with isCompact */}
-                                                    <InlineSyntenyDisplay
-                                                        selectedSynteny={selectedSynteny}
-                                                        onToggleSelection={handleSyntenyToggle}
-                                                        onSelectBlock={(block) => {
-                                                            const index = selectedSynteny.findIndex(b =>
-                                                                b.ref_chr === block.ref_chr &&
-                                                                b.query_chr === block.query_chr &&
-                                                                b.ref_start === block.ref_start
-                                                            );
-                                                            if (index !== -1) {
-                                                                setCurrentBlockIndex(index);
-                                                            }
-                                                        }}
-                                                        currentBlockIndex={currentBlockIndex}
-                                                        // No export button in compact view to save space, can be added if needed
-                                                        // onExport={(data) => downloadCSV(
-                                                        //   data,
-                                                        //   `synteny-blocks-${new Date().toISOString().split('T')[0]}.csv`
-                                                        // )}
-                                                        isCompact={true} // Enable compact mode
-                                                        className="w-full"
-                                                    />
-                                                </CardContent>
-                                            </Card>
-                                        </div>
-                                    </div>
-                                )}
-                            </motion.div>
-                        </div>
-                    </motion.div>
+                                </motion.div>
+                            </div>
+                        </motion.div>
+                    </div>
                 </div>
-            </div>
-        </PageWrapper>
+            </PageWrapper>
+        </>
     );
 }
 
 function ChromoVizSuspenseWrapper() {
     const searchParams = useSearchParams();
     const shareId = searchParams.get('shareId');
-    
+
     return (
         <React.Suspense fallback={<LoadingSkeleton isSharedLink={Boolean(shareId)} />}>
             <ChromoVizContent />

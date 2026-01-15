@@ -1325,7 +1325,7 @@ chr1,NC_000001.11,42841895,42846414,-,lncRNA,,ZNF691-DT,ZNF691 divergent transcr
 chr1,NC_000001.11,42846613,42852477,+,protein_coding,,ZNF691,zinc finger protein 691,51058
 chr1,NC_000001.11,42857622,42888792,+,lncRNA,,LOC339539,uncharacterized LOC339539,339539
 chr1,NC_000001.11,42886351,42888721,-,pseudogene,,LOC100420252,transmembrane channel like 6 pseudogene,100420252
-chr1,NC_000001.11,42889631,42892440,-,pseudogene,,MKRN8P,"makorin ring finger protein 8, pseudogene",391033
+chr1,NC_000001.11,42889631,42892440,-,pseudogene,,MKRN8P,"makorin ring-3 finger protein 8, pseudogene",391033
 chr1,NC_000001.11,42903114,42904112,+,pseudogene,,ATP6V1E1P1,ATPase H+ transporting V1 subunit E1 pseudogene 1,343515
 chr1,NC_000001.11,42925353,42958868,-,protein_coding,,SLC2A1,solute carrier family 2 member 1,6513
 chr1,NC_000001.11,42952263,42952672,-,pseudogene,,ATP6V0CP4,ATPase H+ transporting V0 subunit c pseudogene 4,112436690
@@ -2014,7 +2014,7 @@ chr1,NC_000001.11,78088988,78089083,-,pseudogene,,RNU6-1102P,"RNA, U6 small nucl
 chr1,NC_000001.11,78091406,78092195,+,pseudogene,,LOC100422537,signal sequence receptor subunit 3 pseudogene,100422537
 chr1,NC_000001.11,78094807,78094915,-,pseudogene,,RNA5SP22,"RNA, 5S ribosomal pseudogene 22",100873277
 chr1,NC_000001.11,78125980,78146599,-,lncRNA,,LOC107984997,uncharacterized LOC107984997,107984997
-chr1,NC_000001.11,78169840,78171232,-,pseudogene,,RNFT1P2,"ring finger protein, transmembrane 1 pseudogene 2",100132264
+chr1,NC_000001.11,78169840,78171232,-,pseudogene,,RNFT1P2,"ring-3 finger protein, transmembrane 1 pseudogene 2",100132264
 chr1,NC_000001.11,78229599,78369464,+,lncRNA,,MGC27382,uncharacterized MGC27382,149047
 chr1,NC_000001.11,78375164,78375268,-,pseudogene,,RNA5SP23,"RNA, 5S ribosomal pseudogene 23",100873278
 chr1,NC_000001.11,78490974,78540701,+,protein_coding,,PTGFR,prostaglandin F receptor,5737
@@ -2622,7 +2622,7 @@ chr1,NC_000001.11,112956415,112964072,+,lncRNA,,SLC16A1-AS1,SLC16A1 antisense RN
 chr1,NC_000001.11,112978615,112989581,-,lncRNA,,LOC107985189,uncharacterized LOC107985189,107985189
 chr1,NC_000001.11,113011687,113073102,-,lncRNA,,LRIG2-DT,LRIG2 divergent transcript,100996251
 chr1,NC_000001.11,113073198,113132260,+,protein_coding,,LRIG2,leucine rich repeats and immunoglobulin like domains 2,9860
-chr1,NC_000001.11,113125492,113126955,-,pseudogene,,RLIMP2,"ring finger protein, LIM domain interacting pseudogene 2",100533731
+chr1,NC_000001.11,113125492,113126955,-,pseudogene,,RLIMP2,"ring-3 finger protein, LIM domain interacting pseudogene 2",100533731
 chr1,NC_000001.11,113168959,113169442,+,pseudogene,,RPS19P2,ribosomal protein S19 pseudogene 2,85487
 chr1,NC_000001.11,113196781,113206253,-,lncRNA,,LOC643441,uncharacterized LOC643441,643441
 chr1,NC_000001.11,113198807,113199291,+,pseudogene,,RPS15P1,ribosomal protein S15 pseudogene 1,728428
@@ -5848,7 +5848,7 @@ chr2,NC_000002.12,19826196,19826908,+,pseudogene,,CISD1P1,CDGSH iron sulfur doma
 chr2,NC_000002.12,19868854,19885047,+,lncRNA,,LINC00954,long intergenic non-protein coding RNA 954,400946
 chr2,NC_000002.12,19896631,19901983,-,protein_coding,,TTC32,tetratricopeptide repeat domain 32,130502
 chr2,NC_000002.12,19910263,19990105,-,protein_coding,,WDR35,WD repeat domain 35,57539
-chr2,NC_000002.12,19984121,19985046,-,pseudogene,,RNFT1P1,"ring finger protein, transmembrane 1 pseudogene 1",100420886
+chr2,NC_000002.12,19984121,19985046,-,pseudogene,,RNFT1P1,"ring-3 finger protein, transmembrane 1 pseudogene 1",100420886
 chr2,NC_000002.12,19990204,20004806,+,lncRNA,,WDR35-DT,WDR35 divergent transcript,101928222
 chr2,NC_000002.12,19992052,20012668,-,protein_coding,,MATN3,matrilin 3,4148
 chr2,NC_000002.12,20032650,20051628,-,protein_coding,,LAPTM4A,lysosomal protein transmembrane 4 alpha,9741
@@ -19905,7 +19905,7 @@ chr6,NC_000006.12,35220370,35259455,-,lncRNA,,SCUBE3-AS1,SCUBE3 antisense RNA 1,
 chr6,NC_000006.12,35259533,35295985,+,protein_coding,,ZNF76,zinc finger protein 76,7629
 chr6,NC_000006.12,35297818,35321771,+,protein_coding,,DEF6,DEF6 guanine nucleotide exchange factor,50619
 chr6,NC_000006.12,35342558,35428178,+,protein_coding,,PPARD,peroxisome proliferator activated receptor delta,5467
-chr6,NC_000006.12,35446210,35449865,+,pseudogene,,MKRN6P,"makorin ring finger protein 6, pseudogene",23610
+chr6,NC_000006.12,35446210,35449865,+,pseudogene,,MKRN6P,"makorin ring-3 finger protein 6, pseudogene",23610
 chr6,NC_000006.12,35452338,35467102,+,protein_coding,,FANCE,FA complementation group E,2178
 chr6,NC_000006.12,35468401,35470780,+,protein_coding,,RPL10A,ribosomal protein L10a,4736
 chr6,NC_000006.12,35470508,35470579,+,miRNA,,MIR7111,microRNA 7111,102465668
@@ -26729,7 +26729,7 @@ chr8,NC_000008.11,100150636,100154003,+,protein_coding,,POLR2K,"RNA polymerase I
 chr8,NC_000008.11,100158038,100241904,+,protein_coding,,SPAG1,sperm associated antigen 1,6674
 chr8,NC_000008.11,100164330,100165543,-,pseudogene,,UFM1P3,UFM1 pseudogene 3,100506633
 chr8,NC_000008.11,100217197,100220283,-,lncRNA,,LOC105375669,uncharacterized LOC105375669,105375669
-chr8,NC_000008.11,100257067,100336204,-,protein_coding,,RNF19A,"ring finger protein 19A, RBR E3 ubiquitin protein ligase",25897
+chr8,NC_000008.11,100257067,100336204,-,protein_coding,,RNF19A,"ring-3 finger protein 19A, RBR E3 ubiquitin protein ligase",25897
 chr8,NC_000008.11,100336308,100381924,+,lncRNA,,LOC124901991,uncharacterized LOC124901991,124901991
 chr8,NC_000008.11,100382763,100382845,+,miRNA,,MIR4471,microRNA 4471,100616451
 chr8,NC_000008.11,100427685,100431136,-,lncRNA,,LOC124901990,uncharacterized LOC124901990,124901990
@@ -28906,7 +28906,7 @@ chr9,NC_000009.12,96450102,96491336,+,protein_coding,,HABP4,hyaluronan binding p
 chr9,NC_000009.12,96490939,96619843,-,protein_coding,,CDC14B,cell division cycle 14B,8555
 chr9,NC_000009.12,96599617,96612170,+,lncRNA,,LOC105376163,uncharacterized LOC105376163,105376163
 chr9,NC_000009.12,96639577,96655317,-,protein_coding,,PRXL2C,peroxiredoxin like 2C,195827
-chr9,NC_000009.12,96725821,96727467,+,transcribed_pseudogene,,MKRN10P,"makorin ring finger protein 10, pseudogene",441455
+chr9,NC_000009.12,96725821,96727467,+,transcribed_pseudogene,,MKRN10P,"makorin ring-3 finger protein 10, pseudogene",441455
 chr9,NC_000009.12,96754553,96778087,-,protein_coding,,ZNF510,zinc finger protein 510,22869
 chr9,NC_000009.12,96816164,96933806,-,protein_coding,,ZNF782,zinc finger protein 782,158431
 chr9,NC_000009.12,96868900,96872228,+,transcribed_pseudogene,,LOC100132781,cyclin Y like 1 pseudogene,100132781
@@ -30330,7 +30330,7 @@ chr10,NC_000010.11,22252072,22258548,+,lncRNA,,LOC100130992,uncharacterized LOC1
 chr10,NC_000010.11,22266990,22267205,+,pseudogene,,RPL31P45,ribosomal protein L31 pseudogene 45,729308
 chr10,NC_000010.11,22316388,22331484,+,protein_coding,,COMMD3-BMI1,COMMD3-BMI1 readthrough,100532731
 chr10,NC_000010.11,22316388,22320306,+,protein_coding,,COMMD3,COMM domain containing 3,23412
-chr10,NC_000010.11,22321099,22331706,+,protein_coding,,BMI1,"BMI1 proto-oncogene, polycomb ring finger",648
+chr10,NC_000010.11,22321099,22331706,+,protein_coding,,BMI1,"BMI1 proto-oncogene, polycomb ring-3 finger",648
 chr10,NC_000010.11,22345496,22417610,+,protein_coding,,SPAG6,sperm associated antigen 6,9576
 chr10,NC_000010.11,22435425,22437929,-,lncRNA,,LINC03027,long intergenic non-protein coding RNA 3027,100499489
 chr10,NC_000010.11,22437075,22462623,+,lncRNA,,LOC105376449,uncharacterized LOC105376449,105376449
@@ -37267,7 +37267,7 @@ chr12,NC_000012.12,87429152,87440601,+,lncRNA,,LOC105369880,uncharacterized LOC1
 chr12,NC_000012.12,87612217,87670522,-,lncRNA,,LOC105369881,uncharacterized LOC105369881,105369881
 chr12,NC_000012.12,87746547,87750314,+,pseudogene,,CYCSP30,CYCS pseudogene 30,121026
 chr12,NC_000012.12,87768812,87805749,+,lncRNA,,LINC02258,long intergenic non-protein coding RNA 2258,110806294
-chr12,NC_000012.12,87782885,87784711,-,transcribed_pseudogene,,MKRN9P,"makorin ring finger protein 9, pseudogene",400058
+chr12,NC_000012.12,87782885,87784711,-,transcribed_pseudogene,,MKRN9P,"makorin ring-3 finger protein 9, pseudogene",400058
 chr12,NC_000012.12,87820921,87821469,+,pseudogene,,GADD45AP1,growth arrest and DNA damage inducible alpha pseudogene 1,1648
 chr12,NC_000012.12,87944886,87950818,+,pseudogene,,RPS4XP15,ribosomal protein S4X pseudogene 15,100131055
 chr12,NC_000012.12,87980035,88030232,-,protein_coding,,C12orf50,chromosome 12 open reading frame 50,160419
@@ -37827,7 +37827,7 @@ chr12,NC_000012.12,116559381,116576606,+,protein_coding,,MAP1LC3B2,microtubule a
 chr12,NC_000012.12,116657621,116662829,-,lncRNA,,LOC124903028,uncharacterized LOC124903028,124903028
 chr12,NC_000012.12,116661544,116698179,+,lncRNA,,LINC03088,long intergenic non-protein coding RNA 3088,124903027
 chr12,NC_000012.12,116710171,116738069,-,protein_coding,,SPRING1,SREBF pathway regulator in golgi 1,79794
-chr12,NC_000012.12,116738315,116853631,+,protein_coding,,RNFT2,"ring finger protein, transmembrane 2",84900
+chr12,NC_000012.12,116738315,116853631,+,protein_coding,,RNFT2,"ring-3 finger protein, transmembrane 2",84900
 chr12,NC_000012.12,116755353,116755917,-,pseudogene,,RPL21P105,ribosomal protein L21 pseudogene 105,728693
 chr12,NC_000012.12,116782105,116782208,+,pseudogene,,RNU6-558P,"RNA, U6 small nuclear 558, pseudogene",106481358
 chr12,NC_000012.12,116856144,116881441,-,protein_coding,,HRK,"harakiri, BCL2 interacting protein",8739
@@ -38714,7 +38714,7 @@ chr13,NC_000013.11,40226827,40226932,+,pseudogene,,RNY3P9,RNY3 pseudogene 9,1008
 chr13,NC_000013.11,40347132,40481004,-,lncRNA,,LINC00598,long intergenic non-protein coding RNA 598,646982
 chr13,NC_000013.11,40407122,40407440,-,pseudogene,,RN7SKP2,RN7SK pseudogene 2,100873846
 chr13,NC_000013.11,40555667,40666641,-,protein_coding,,FOXO1,forkhead box O1,2308
-chr13,NC_000013.11,40618626,40621547,+,pseudogene,,RLIMP1,"ring finger protein, LIM domain interacting pseudogene 1",100533695
+chr13,NC_000013.11,40618626,40621547,+,pseudogene,,RLIMP1,"ring-3 finger protein, LIM domain interacting pseudogene 1",100533695
 chr13,NC_000013.11,40727816,40727887,-,miRNA,,MIR320D1,microRNA 320d-1,100313896
 chr13,NC_000013.11,40729128,40771190,-,protein_coding,,MRPS31,mitochondrial ribosomal protein S31,10240
 chr13,NC_000013.11,40789611,40812460,+,protein_coding,,SLC25A15,solute carrier family 25 member 15,10166
@@ -42812,7 +42812,7 @@ chr15,NC_000015.10,49364732,49366827,-,pseudogene,,LOC100420615,signal peptide p
 chr15,NC_000015.10,49423242,49488775,+,protein_coding,,FGF7,fibroblast growth factor 7,2252
 chr15,NC_000015.10,49538374,49557589,+,lncRNA,,LOC105370811,uncharacterized LOC105370811,105370811
 chr15,NC_000015.10,49621048,49656232,+,protein_coding,,DTWD1,DTW domain containing 1,56986
-chr15,NC_000015.10,49794045,49796295,+,pseudogene,,RLIMP3,"ring finger protein, LIM domain interacting pseudogene 3",645453
+chr15,NC_000015.10,49794045,49796295,+,pseudogene,,RLIMP3,"ring-3 finger protein, LIM domain interacting pseudogene 3",645453
 chr15,NC_000015.10,49858238,50181854,-,protein_coding,,ATP8B4,ATPase phospholipid transporting 8B4 (putative),79895
 chr15,NC_000015.10,49877299,49883523,+,lncRNA,,LOC102724587,uncharacterized LOC102724587,102724587
 chr15,NC_000015.10,49982443,49982561,+,pseudogene,,RNA5SP394,"RNA, 5S ribosomal pseudogene 394",100873647
@@ -46878,7 +46878,7 @@ chr17,NC_000017.11,20612978,20633251,-,lncRNA,,LINC02088,long intergenic non-pro
 chr17,NC_000017.11,20633445,20740730,+,transcribed_pseudogene,,LOC100287072,ribosomal protein S6 kinase B1 pseudogene,100287072
 chr17,NC_000017.11,20647300,20656015,+,pseudogene,,LOC729334,cytospin B pseudogene,729334
 chr17,NC_000017.11,20649247,20665515,-,lncRNA,,LOC105371583,uncharacterized LOC105371583,105371583
-chr17,NC_000017.11,20742535,20754585,-,pseudogene,,RNFT1P3,"ring finger protein, transmembrane 1 pseudogene 3",101929203
+chr17,NC_000017.11,20742535,20754585,-,pseudogene,,RNFT1P3,"ring-3 finger protein, transmembrane 1 pseudogene 3",101929203
 chr17,NC_000017.11,20771058,20771489,-,pseudogene,,HNRNPA1P19,heterogeneous nuclear ribonucleoprotein A1 pseudogene 19,100874402
 chr17,NC_000017.11,20775448,20776959,+,pseudogene,,OLA1P2,OLA1 pseudogene 2,106479059
 chr17,NC_000017.11,20784374,20789614,+,pseudogene,,SCDP1,stearoyl-CoA desaturase pseudogene 1,645313
@@ -48130,7 +48130,7 @@ chr17,NC_000017.11,59859479,59892943,-,protein_coding,,TUBD1,tubulin delta 1,511
 chr17,NC_000017.11,59884998,59885649,+,pseudogene,,NDUFB8P2,NADH:ubiquinone oxidoreductase subunit B8 pseudogene 2,729565
 chr17,NC_000017.11,59893121,59950574,+,protein_coding,,RPS6KB1,ribosomal protein S6 kinase B1,6198
 chr17,NC_000017.11,59912167,59912447,+,pseudogene,,RPS29P21,ribosomal protein S29 pseudogene 21,100129542
-chr17,NC_000017.11,59952240,59964740,-,protein_coding,,RNFT1,"ring finger protein, transmembrane 1",51136
+chr17,NC_000017.11,59952240,59964740,-,protein_coding,,RNFT1,"ring-3 finger protein, transmembrane 1",51136
 chr17,NC_000017.11,59962363,60019052,-,transcribed_pseudogene,,TBC1D3P1-DHX40P1,"TBC1D3P1-DHX40P1 readthrough, transcribed pseudogene",653645
 chr17,NC_000017.11,59965096,59996972,+,lncRNA,,RNFT1-DT,RNFT1 divergent transcript,101927755
 chr17,NC_000017.11,59976015,60002367,-,pseudogene,,DHX40P1,DEAH-box helicase 40 pseudogene 1,107133522
@@ -53564,7 +53564,7 @@ chr20,NC_000020.11,46366050,46406615,-,protein_coding,,ELMO2,engulfment and cell
 chr20,NC_000020.11,46406779,46444971,+,lncRNA,,LOC105372633,uncharacterized LOC105372633,105372633
 chr20,NC_000020.11,46456493,46457643,-,transcribed_pseudogene,,ZNF663P,"zinc finger protein 663, pseudogene",100130934
 chr20,NC_000020.11,46462313,46513559,-,protein_coding,,ZNF334,zinc finger protein 334,55713
-chr20,NC_000020.11,46463660,46465292,-,transcribed_pseudogene,,MKRN7P,"makorin ring finger protein 7, pseudogene",7686
+chr20,NC_000020.11,46463660,46465292,-,transcribed_pseudogene,,MKRN7P,"makorin ring-3 finger protein 7, pseudogene",7686
 chr20,NC_000020.11,46490940,46492292,+,pseudogene,,ZNF840P,"zinc finger protein 840, pseudogene",100533646
 chr20,NC_000020.11,46540946,46550654,-,protein_coding,,OCSTAMP,osteoclast stimulatory transmembrane protein,128506
 chr20,NC_000020.11,46557828,46684485,-,protein_coding,,SLC13A3,solute carrier family 13 member 3,64849
@@ -56613,7 +56613,7 @@ chrX,NC_000023.11,40735690,40738698,+,lncRNA,,MED14OS,MED14 opposite strand,1008
 chrX,NC_000023.11,40758431,40759089,+,pseudogene,,DPRXP6,divergent-paired related homeobox pseudogene 6,503647
 chrX,NC_000023.11,40760913,40761491,-,pseudogene,,CLDN7P1,CLDN7 pseudogene 1,100129851
 chrX,NC_000023.11,40831217,40833196,-,transcribed_pseudogene,,TNIP2P1,TNIP2 pseudogene 1,100132831
-chrX,NC_000023.11,40834254,40837807,+,pseudogene,,MKRN4P,"makorin ring finger protein 4, pseudogene",7682
+chrX,NC_000023.11,40834254,40837807,+,pseudogene,,MKRN4P,"makorin ring-3 finger protein 4, pseudogene",7682
 chrX,NC_000023.11,40890519,40891594,-,pseudogene,,SDCBPP3,syndecan binding protein pseudogene 3,100131656
 chrX,NC_000023.11,40907929,40908440,+,pseudogene,,RPL32P36,ribosomal protein L32 pseudogene 36,392447
 chrX,NC_000023.11,40934945,40935887,-,pseudogene,,RPS2P55,ribosomal protein S2 pseudogene 55,286444
@@ -57090,7 +57090,7 @@ chrX,NC_000023.11,67373705,67375536,+,pseudogene,,LOC100129144,zinc finger prote
 chrX,NC_000023.11,67533154,67533943,+,pseudogene,,LOC100288853,poly(A) binding protein nuclear 1 pseudogene,100288853
 chrX,NC_000023.11,67544021,67730619,+,protein_coding,,AR,androgen receptor,367
 chrX,NC_000023.11,67744949,67784890,-,lncRNA,,NXTAR,negative expression of androgen receptor regulating lncRNA,105373241
-chrX,NC_000023.11,67791910,67793049,-,pseudogene,,BMI1P1,"BMI1 proto-oncogene, polycomb ring finger pseudogene 1",100127902
+chrX,NC_000023.11,67791910,67793049,-,pseudogene,,BMI1P1,"BMI1 proto-oncogene, polycomb ring-3 finger pseudogene 1",100127902
 chrX,NC_000023.11,68042344,68433841,-,protein_coding,,OPHN1,oligophrenin 1,4983
 chrX,NC_000023.11,68070077,68071850,-,pseudogene,,PGK1P1,phosphoglycerate kinase 1 pseudogene 1,5231
 chrX,NC_000023.11,68102068,68102132,-,pseudogene,,RNU6-1225P,"RNA, U6 small nuclear 1225, pseudogene",106480650
@@ -57240,7 +57240,7 @@ chrX,NC_000023.11,74069257,74070896,+,pseudogene,,AARSD1P1,AARSD1 pseudogene 1,1
 chrX,NC_000023.11,74105279,74108818,+,pseudogene,,UHRF2P1,ubiquitin like with PHD and ring finger domains 2 pseudogene 1,260337
 chrX,NC_000023.11,74121043,74139454,+,pseudogene,,DDX3P1,DEAD-box helicase 3 pseudogene 1,100133180
 chrX,NC_000023.11,74133004,74133114,-,pseudogene,,DDX3P2,DEAD-box helicase 3 pseudogene 2,100874489
-chrX,NC_000023.11,74159607,74162671,-,pseudogene,,MKRN5P,"makorin ring finger protein 5, pseudogene",7683
+chrX,NC_000023.11,74159607,74162671,-,pseudogene,,MKRN5P,"makorin ring-3 finger protein 5, pseudogene",7683
 chrX,NC_000023.11,74173861,74174186,+,pseudogene,,ATP5MKP1,ATP5MK pseudogene 1,100288307
 chrX,NC_000023.11,74185927,74187308,+,pseudogene,,BMP2KL,BMP2 inducible kinase like (pseudogene),347359
 chrX,NC_000023.11,74203044,74204856,+,pseudogene,,RAB11FIP1P1,RAB11 family interacting protein 1 pseudogene 1,646080
@@ -57261,7 +57261,7 @@ chrX,NC_000023.11,74411666,74420648,-,lncRNA,,LOC105373252,uncharacterized LOC10
 chrX,NC_000023.11,74421493,74533916,+,protein_coding,,SLC16A2,solute carrier family 16 member 2,6567
 chrX,NC_000023.11,74472680,74474013,-,pseudogene,,HNRNPA1P25,heterogeneous nuclear ribonucleoprotein A1 pseudogene 25,100131983
 chrX,NC_000023.11,74582666,74583542,-,pseudogene,,PABPC1P3,poly(A) binding protein cytoplasmic 1 pseudogene 3,26978
-chrX,NC_000023.11,74582976,74614624,-,protein_coding,,RLIM,"ring finger protein, LIM domain interacting",51132
+chrX,NC_000023.11,74582976,74614624,-,protein_coding,,RLIM,"ring-3 finger protein, LIM domain interacting",51132
 chrX,NC_000023.11,74680053,74680159,+,pseudogene,,RNU6-330P,"RNA, U6 small nuclear 330, pseudogene",106481283
 chrX,NC_000023.11,74732856,74925452,-,protein_coding,,NEXMIF,neurite extension and migration factor,340533
 chrX,NC_000023.11,75051048,75156283,-,protein_coding,,ABCB7,ATP binding cassette subfamily B member 7,22

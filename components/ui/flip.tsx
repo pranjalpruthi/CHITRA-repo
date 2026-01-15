@@ -68,7 +68,7 @@ function FlipButton({
       whileHover="hover"
       whileTap={{ scale: 0.95 }}
       className={cn(
-        'relative inline-block h-10 px-4 py-2 text-sm font-medium cursor-pointer perspective-[1000px] focus:outline-none',
+        'relative inline-block h-10 px-4 py-2 text-sm font-medium cursor-pointer perspective-[1000px] focus:outline-hidden',
         className,
       )}
       {...props}

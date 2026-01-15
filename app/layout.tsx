@@ -4,9 +4,9 @@ import { Toaster } from "@/components/ui/sonner"
 import AuthWrapper from '@/components/wrapper/auth-wrapper'
 import { Analytics } from "@vercel/analytics/react"
 import { GeistSans } from 'geist/font/sans'
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 import './globals.css'
-import { RootProvider } from 'fumadocs-ui/provider';
+import { RootProvider } from 'fumadocs-ui/provider/next';
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://chitra.bioinformaticsonline.com"),
@@ -27,6 +27,15 @@ export const metadata: Metadata = {
     description: 'Here, we present CHITRA, a web-based interactive tool designed to visualize synteny blocks, chromosomal rearrangements, and breakpoints in both linear and circular styles. CHITRA enables real-time exploration of genome structural variations with an intuitive graphical interface, customizable visualization options, and high-resolution export capabilities for publication-ready figures. The tool supports chromosome- and scaffold-level assemblies and allows users to filter, highlight, and interactively examine syntenic relationships.',
     images: ['/assets/Chitra-meta.png'],
   },
+}
+
+export const viewport: Viewport = {
+  themeColor: [
+    { media: '(prefers-color-scheme: light)', color: 'white' },
+    { media: '(prefers-color-scheme: dark)', color: 'black' },
+  ],
+  width: 'device-width',
+  initialScale: 1,
 }
 
 export default function RootLayout({

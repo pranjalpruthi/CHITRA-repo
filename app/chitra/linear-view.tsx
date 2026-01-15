@@ -13,14 +13,14 @@ import { MiniMap } from "@/components/chromoviz/mini-map";
 import { Tooltip } from "@/components/chromoviz/tooltip";
 import { renderChromosome } from "@/components/chromoviz/chromosome-view";
 import { renderSyntenyRibbon } from "@/components/chromoviz/synteny-ribbon";
-import { 
-  getChromosomeTooltip, 
+import {
+  getChromosomeTooltip,
   getSyntenyTooltip,
   GeneTooltipData,
   SelectionToast
 } from "@/components/chromoviz/tooltip";
 import React, { ReactElement } from "react";
-import { 
+import {
   CHROMOSOME_CONFIG,
   SYNTENY_COLORS,
   GENE_ANNOTATION_CONFIG,
@@ -193,20 +193,20 @@ export function ChromosomeSynteny({
 
   const handleFullscreenChange = useCallback(() => {
     const isFullscreenNow = Boolean(document.fullscreenElement);
-    
+
     if (isFullscreenNow && containerRef.current) {
       const screenWidth = window.innerWidth;
       const screenHeight = window.innerHeight;
-      
+
       const aspectRatio = viewport.width / viewport.height;
       let newWidth = screenWidth;
       let newHeight = screenWidth / aspectRatio;
-      
+
       if (newHeight > screenHeight) {
         newHeight = screenHeight;
         newWidth = screenHeight * aspectRatio;
       }
-      
+
       setDimensions({
         x: 0,
         y: 0,
@@ -231,9 +231,9 @@ export function ChromosomeSynteny({
     if (!svgRef.current || !zoomBehaviorRef.current || !containerRef.current) return;
 
     const svg = d3.select(svgRef.current);
-    
+
     const selection = svg as D3Selection;
-    
+
     if (currentTransformRef.current && zoomBehaviorRef.current) {
       zoomBehaviorRef.current.transform(
         selection,
@@ -317,7 +317,7 @@ export function ChromosomeSynteny({
 
   const handleMouseOver = (event: any, link: SyntenyData, maxSyntenySize: number) => {
     if (!showTooltips) return; // Early return if tooltips are disabled
-    
+
     setTooltipInfo({
       x: event.clientX,
       y: event.clientY,
@@ -336,14 +336,14 @@ export function ChromosomeSynteny({
         GeneID: link.GeneID
       }
     });
-    
+
     const svg = d3.select(svgRef.current);
-    const isSelected = selectedSynteny.some(s => 
-      s.ref_chr === link.ref_chr && 
-      s.query_chr === link.query_chr && 
+    const isSelected = selectedSynteny.some(s =>
+      s.ref_chr === link.ref_chr &&
+      s.query_chr === link.query_chr &&
       s.ref_start === link.ref_start
     );
-    
+
     // Only apply hover effects if not selected
     if (!isSelected) {
       svg.selectAll(`.synteny-ribbon[data-synteny-id="${link.ref_chr}-${link.query_chr}-${link.ref_start}-${link.query_start}"]`)
@@ -358,21 +358,21 @@ export function ChromosomeSynteny({
 
   const handleMouseOut = () => {
     handleElementLeave();
-    
+
     const svg = d3.select(svgRef.current);
-    
+
     // Reset ribbons based on selection state
-    svg.selectAll(".synteny-ribbon").each(function() {
+    svg.selectAll(".synteny-ribbon").each(function () {
       const ribbon = d3.select(this);
       const isSelected = ribbon.classed("selected");
-      ribbon.attr("opacity", isSelected ? 
-        SYNTENY_COLORS.OPACITY.ACTIVE : 
+      ribbon.attr("opacity", isSelected ?
+        SYNTENY_COLORS.OPACITY.ACTIVE :
         SYNTENY_COLORS.OPACITY.DEFAULT
       );
     });
-    
+
     // Reset blocks based on selection state
-    svg.selectAll(".matching-block").each(function() {
+    svg.selectAll(".matching-block").each(function () {
       const block = d3.select(this);
       const isSelected = block.classed("selected");
       block.attr("opacity", isSelected ? 1 : 0.8)
@@ -418,18 +418,18 @@ export function ChromosomeSynteny({
 
     // Get SVG content
     const svgElement = svgRef.current;
-    
+
     // Create a clone of the SVG to modify for export
     const clone = svgElement.cloneNode(true) as SVGSVGElement;
-    
+
     // Set the background color to match the current theme
     const isDarkMode = document.documentElement.classList.contains('dark');
     clone.style.backgroundColor = isDarkMode ? '#020817' : '#ffffff';
-    
+
     // Ensure viewBox is set correctly
     const bbox = svgElement.getBBox();
     clone.setAttribute('viewBox', `${bbox.x} ${bbox.y} ${bbox.width} ${bbox.height}`);
-    
+
     // Add any missing style elements
     const styleSheet = document.createElement('style');
     styleSheet.textContent = `
@@ -438,25 +438,25 @@ export function ChromosomeSynteny({
       text { fill: ${isDarkMode ? '#ffffff' : '#000000'}; }
     `;
     clone.insertBefore(styleSheet, clone.firstChild);
-    
+
     const svgContent = new XMLSerializer().serializeToString(clone);
-    
+
     // Add XML declaration and SVG namespace
     const svgBlob = new Blob([
       '<?xml version="1.0" standalone="no"?>\r\n',
       svgContent
     ], { type: 'image/svg+xml;charset=utf-8' });
-    
+
     // Create download link
     const downloadLink = document.createElement('a');
     downloadLink.href = URL.createObjectURL(svgBlob);
     downloadLink.download = `chromoviz-overview-${new Date().toISOString().split('T')[0]}.svg`;
-    
+
     // Trigger download
     document.body.appendChild(downloadLink);
     downloadLink.click();
     document.body.removeChild(downloadLink);
-    
+
     // Clean up
     URL.revokeObjectURL(downloadLink.href);
   }, [svgRef]);
@@ -467,10 +467,10 @@ export function ChromosomeSynteny({
 
     const currentTransform = d3.zoomTransform(svgRef.current);
     const panAmount = 50; // Reduced for smoother continuous movement
-    
+
     let newX = currentTransform.x;
     let newY = currentTransform.y;
-    
+
     switch (direction) {
       case 'up':
         newY += panAmount;
@@ -500,10 +500,10 @@ export function ChromosomeSynteny({
   // Add these handlers for continuous pan
   const startContinuousPan = useCallback((direction: 'up' | 'down' | 'left' | 'right') => {
     if (isPanningRef.current) return;
-    
+
     isPanningRef.current = true;
     handlePan(direction);
-    
+
     panIntervalRef.current = setInterval(() => {
       handlePan(direction);
     }, 50); // Adjust interval for smooth movement
@@ -586,7 +586,7 @@ export function ChromosomeSynteny({
       top: 20,
       right: 40,
       bottom: 120,
-      left: 120 
+      left: 120
     };
     const innerWidth = dimensions.width - margin.left - margin.right;
     const innerHeight = dimensions.height - margin.top - margin.bottom;
@@ -599,7 +599,7 @@ export function ChromosomeSynteny({
     const connectedChrIds = new Set<string>();
     syntenyData.forEach(link => {
       // Assuming query_name is the species name for the query chromosome
-      connectedChrIds.add(`${link.ref_species}:${link.ref_chr}`);
+      connectedChrIds.add(`${link.ref_name}:${link.ref_chr}`);
       connectedChrIds.add(`${link.query_name}:${link.query_chr}`);
     });
 
@@ -628,12 +628,12 @@ export function ChromosomeSynteny({
     // Modify the species color scale to use custom colors
     const speciesColorScale = d3.scaleOrdinal<string>()
       .domain(uniqueSpecies)
-      .range(uniqueSpecies.map(species => 
+      .range(uniqueSpecies.map(species =>
         customSpeciesColors?.get(species) || d3.schemePastel1[uniqueSpecies.indexOf(species) % d3.schemePastel1.length]
       ));
 
     // Get reference species from synteny data
-    const referenceSpecies = syntenyData.length > 0 ? syntenyData[0].ref_species : '';
+    const referenceSpecies = syntenyData.length > 0 ? syntenyData[0].ref_name : '';
 
     // Draw chromosomes for each species
     uniqueSpecies.forEach((species, speciesIndex) => {
@@ -644,7 +644,7 @@ export function ChromosomeSynteny({
       // Species label
       g.append("text")
         .attr("x", -10)
-        .attr("y", y + config.chromosomeHeight/2)
+        .attr("y", y + config.chromosomeHeight / 2)
         .attr("text-anchor", "end")
         .attr("dominant-baseline", "middle")
         .attr("font-size", "14px")
@@ -679,13 +679,13 @@ export function ChromosomeSynteny({
           },
           isReferenceChromosome: species === referenceSpecies,
         });
-        
+
         xOffset += xScale(chr.chr_size_bp) + config.chromosomeSpacing * 2;
       });
     });
 
     // Sort filtered data by block size (largest to smallest)
-    const sortedData = filteredSyntenyData.sort((a, b) => {
+    const sortedData = [...filteredSyntenyData].sort((a, b) => {
       const sizeA = (a.ref_end - a.ref_start) * (a.query_end - a.query_start);
       const sizeB = (b.ref_end - b.ref_start) * (b.query_end - b.query_start);
       return sizeB - sizeA; // Render largest blocks first (they'll be at the bottom)
@@ -693,14 +693,14 @@ export function ChromosomeSynteny({
 
     // Render filtered ribbons in sorted order
     sortedData.forEach(link => {
-      const sourceSpecies = link.ref_species;
+      const sourceSpecies = link.ref_name;
       const targetSpecies = link.query_name;
-      
+
       if (!sourceSpecies || !targetSpecies) return;
 
       const sourceIndex = uniqueSpecies.indexOf(sourceSpecies);
       const targetIndex = uniqueSpecies.indexOf(targetSpecies);
-      
+
       if (sourceIndex === -1 || targetIndex === -1) return;
 
       const sourceY = sourceIndex * speciesSpacing + speciesSpacing;
@@ -708,7 +708,7 @@ export function ChromosomeSynteny({
 
       const syntenyId = `${link.ref_chr}-${link.query_chr}-${link.ref_start}-${link.query_start}`;
       const mutationType = selectedMutationTypes.get(syntenyId);
-      
+
       renderSyntenyRibbon({
         link,
         sourceSpecies,
@@ -724,9 +724,9 @@ export function ChromosomeSynteny({
         onLeave: handleMouseOut,
         chromosomeSpacing: config.chromosomeSpacing,
         chromosomeHeight: config.chromosomeHeight,
-        isSelected: selectedSynteny.some(s => 
-          s.ref_chr === link.ref_chr && 
-          s.query_chr === link.query_chr && 
+        isSelected: selectedSynteny.some(s =>
+          s.ref_chr === link.ref_chr &&
+          s.query_chr === link.query_chr &&
           s.ref_start === link.ref_start
         ),
         onSelect: handleSyntenySelection,
@@ -742,9 +742,9 @@ export function ChromosomeSynteny({
     g.selectAll("path.chromosome-body")
       .on("mouseover", (event) => {
         if (!showTooltips) return; // Early return if tooltips are disabled
-        
-        const chr = referenceData.find(c => 
-          c.chr_id === event.target.dataset.chr && 
+
+        const chr = referenceData.find(c =>
+          c.chr_id === event.target.dataset.chr &&
           c.species_name === event.target.dataset.species
         );
         if (chr) {
@@ -793,14 +793,14 @@ export function ChromosomeSynteny({
     // Add labels for breakpoints and gene annotations if they exist
     if (referenceGenomeData?.breakpoints && referenceGenomeData.breakpoints.length > 0) {
       // Get reference species position (first species in the list)
-      const referenceSpecies = syntenyData.length > 0 ? syntenyData[0].ref_species : '';
+      const referenceSpecies = syntenyData.length > 0 ? syntenyData[0].ref_name : '';
       const refSpeciesIndex = uniqueSpecies.indexOf(referenceSpecies);
       const refY = refSpeciesIndex * speciesSpacing + speciesSpacing;
-      
+
       // Position the label to be vertically aligned with the mirrored chromosome
       const mirroredChrY = refY + config.chromosomeHeight + 10; // Position of the mirrored chromosome
       const labelY = mirroredChrY + (config.chromosomeHeight / 2); // Center of the mirrored chromosome
-      
+
       // Add "Breakpoints" label with count
       const totalBreakpoints = referenceGenomeData.breakpoints.length;
       g.append("text")
@@ -818,18 +818,18 @@ export function ChromosomeSynteny({
     // Add Gene Annotations label if annotations exist and are enabled
     if (showAnnotations && referenceGenomeData?.geneAnnotations && referenceGenomeData.geneAnnotations.length > 0) {
       // Get reference species position (first species in the list)
-      const referenceSpecies = syntenyData.length > 0 ? syntenyData[0].ref_species : '';
+      const referenceSpecies = syntenyData.length > 0 ? syntenyData[0].ref_name : '';
       const refSpeciesIndex = uniqueSpecies.indexOf(referenceSpecies);
       const refY = refSpeciesIndex * speciesSpacing + speciesSpacing;
-      
+
       // Calculate position for gene annotation label
       let annotationLabelY = refY + config.chromosomeHeight + 10 + (config.chromosomeHeight / 2); // Default position
-      
+
       // If breakpoints exist, position gene annotations label below the breakpoint track
       if (referenceGenomeData?.breakpoints && referenceGenomeData.breakpoints.length > 0) {
         annotationLabelY = refY + config.chromosomeHeight + 10 + config.chromosomeHeight + 15 + (config.chromosomeHeight / 2);
       }
-      
+
       // Add "Gene Annotations" label with count
       const totalGeneAnnotations = referenceGenomeData.geneAnnotations.length;
       g.append("text")
@@ -867,11 +867,11 @@ export function ChromosomeSynteny({
     if (!svgRef.current) return;
     const svg = d3.select(svgRef.current);
 
-    svg.selectAll<SVGGElement, SyntenyData>(".synteny-group").each(function(d) {
+    svg.selectAll<SVGGElement, SyntenyData>(".synteny-group").each(function (d) {
       const group = d3.select(this);
-      const isSelected = selectedSynteny.some(s => 
-        s.ref_chr === d.ref_chr && 
-        s.query_chr === d.query_chr && 
+      const isSelected = selectedSynteny.some(s =>
+        s.ref_chr === d.ref_chr &&
+        s.query_chr === d.query_chr &&
         s.ref_start === d.ref_start
       );
 
@@ -892,21 +892,21 @@ export function ChromosomeSynteny({
   useEffect(() => {
     const handleResize = () => {
       if (!containerRef.current) return;
-      
+
       // Update dimensions based on fullscreen state
       if (document.fullscreenElement) {
         const screenWidth = window.innerWidth;
         const screenHeight = window.innerHeight;
-        
+
         const aspectRatio = viewport.width / viewport.height;
         let newWidth = screenWidth;
         let newHeight = screenWidth / aspectRatio;
-        
+
         if (newHeight > screenHeight) {
           newHeight = screenHeight;
           newWidth = screenHeight * aspectRatio;
         }
-        
+
         setDimensions({
           x: 0,
           y: 0,
@@ -947,12 +947,12 @@ export function ChromosomeSynteny({
 
   // Update detail level based on zoom
   useEffect(() => {
-    const detailLevel = zoom < 1 ? 'overview' 
+    const detailLevel = zoom < 1 ? 'overview'
       : zoom < 2 ? 'chromosome'
-      : zoom < 3 ? 'region'
-      : zoom < 4 ? 'gene'
-      : 'sequence';
-    
+        : zoom < 3 ? 'region'
+          : zoom < 4 ? 'gene'
+            : 'sequence';
+
     // Adjust rendering detail accordingly
   }, [zoom]);
 
@@ -964,7 +964,7 @@ export function ChromosomeSynteny({
       const svgElement = svgRef.current;
       const clone = svgElement.cloneNode(true) as SVGSVGElement;
       const bbox = svgElement.getBBox();
-      
+
       // Add padding (reduced top padding)
       const padding = {
         top: 30,
@@ -974,19 +974,19 @@ export function ChromosomeSynteny({
       };
       const totalWidth = bbox.width + (padding.left + padding.right);
       const totalHeight = bbox.height + (padding.top + padding.bottom) + 30;
-      
+
       // Check dark mode once at the beginning
       const isDarkMode = document.documentElement.classList.contains('dark');
-      
+
       // Update clone dimensions with padding
       clone.setAttribute('width', `${totalWidth}`);
       clone.setAttribute('height', `${totalHeight}`);
       clone.setAttribute('viewBox', `${bbox.x - padding.left} ${bbox.y - padding.top} ${totalWidth} ${totalHeight}`);
-      
+
       // Resolve CSS custom properties for fonts
       const computedStyle = getComputedStyle(document.documentElement);
       const geistMono = computedStyle.getPropertyValue('--font-geist-mono').trim() || 'ui-monospace, "SF Mono", Monaco, "Cascadia Code", "Roboto Mono", Consolas, "Courier New", monospace';
-      
+
       // Inline styles
       const styles = document.styleSheets;
       let stylesText = '';
@@ -1000,7 +1000,7 @@ export function ChromosomeSynteny({
           console.warn('Could not read styles', e);
         }
       }
-      
+
       // Enhanced style resolution with proper font handling
       const styleElement = document.createElement('style');
       styleElement.textContent = `
@@ -1030,51 +1030,51 @@ export function ChromosomeSynteny({
         '<?xml version="1.0" standalone="no"?>\r\n',
         svgData
       ], { type: 'image/svg+xml;charset=utf-8' });
-      
+
       const canvas = document.createElement('canvas');
       const ctx = canvas.getContext('2d');
       if (!ctx) throw new Error('Could not get canvas context');
-      
+
       // Scale for reasonable quality (2x for crisp export without massive file sizes)
       const dpiScale = 2; // Good balance of quality and file size
       canvas.width = totalWidth * dpiScale;
       canvas.height = totalHeight * dpiScale;
-      
+
       // Use the same isDarkMode value for background
       ctx.fillStyle = isDarkMode ? '#020817' : '#ffffff';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
-      
+
       const url = URL.createObjectURL(svgBlob);
       const img = document.createElement('img') as HTMLImageElement;
-      
+
       await new Promise((resolve, reject) => {
         img.onload = () => {
           ctx.scale(dpiScale, dpiScale);
           ctx.drawImage(img, 0, 0, totalWidth, totalHeight);
-          
+
           // Add credits with same isDarkMode value
           ctx.scale(0.5, 0.5);
           ctx.fillStyle = isDarkMode ? '#a1a1aa' : '#94a3b8';
           ctx.font = '24px system-ui, sans-serif';
           ctx.textAlign = 'right';
           ctx.fillText('© 2025 CHITRA', totalWidth * 2 - 20, totalHeight * 2 - 20);
-          
+
           const mimeType = format === 'png' ? 'image/png' : 'image/jpeg';
           const quality = format === 'png' ? 1 : 0.95;
-          
+
           canvas.toBlob((blob) => {
             if (!blob) {
               reject(new Error('Failed to create image blob'));
               return;
             }
-            
+
             const downloadLink = document.createElement('a');
             downloadLink.href = URL.createObjectURL(blob);
             downloadLink.download = `chromoviz-full-${new Date().toISOString().split('T')[0]}.${format}`;
             document.body.appendChild(downloadLink);
             downloadLink.click();
             document.body.removeChild(downloadLink);
-            
+
             URL.revokeObjectURL(downloadLink.href);
             URL.revokeObjectURL(url);
             resolve(true);
@@ -1089,7 +1089,7 @@ export function ChromosomeSynteny({
   }, [svgRef]);
 
   return (
-    <div 
+    <div
       ref={containerRef}
       className="w-full h-full relative select-none"
       style={{
@@ -1113,7 +1113,7 @@ export function ChromosomeSynteny({
         <div className={cn(
           "absolute top-0 left-0 right-0 flex items-center justify-between gap-2 p-1",
           "border-b border-border/20",
-          "bg-background/10 z-[55]"
+          "bg-background/95 backdrop-blur-md z-50"
         )}>
           <ControlsMenu
             alignmentFilter={alignmentFilter}
@@ -1168,8 +1168,8 @@ export function ChromosomeSynteny({
               viewBox={`0 0 ${width} ${height}`}
               preserveAspectRatio="xMidYMid meet"
             />
-            
-            <div className="absolute bottom-16 right-4 z-20 hidden md:block scale-90">
+
+            <div className="absolute bottom-16 right-4 z-20 scale-90">
               <MiniMap
                 mainSvgRef={svgRef}
                 zoomBehaviorRef={zoomBehaviorRef}
@@ -1180,11 +1180,11 @@ export function ChromosomeSynteny({
               />
             </div>
 
-          {showTooltips && (
-            <Tooltip info={debouncedHoverInfo} />
-          )}
+            {showTooltips && (
+              <Tooltip info={debouncedHoverInfo} />
+            )}
 
-            <div className="absolute left-4 bottom-16 z-20 hidden md:block scale-90">
+            <div className="absolute left-4 bottom-16 z-20 scale-90">
               <div className="inline-grid w-fit grid-cols-3 gap-1">
                 <div></div>
                 <Button

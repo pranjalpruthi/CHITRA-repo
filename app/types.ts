@@ -7,7 +7,7 @@ export interface SyntenyData {
   ref_chr: string;
   ref_start: number;
   ref_end: number;
-  ref_species: string;
+  ref_name: string;
   qry_lvl: string;
   symbol: string;
   class: string;

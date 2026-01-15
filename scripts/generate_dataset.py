@@ -137,7 +137,7 @@ class ChitraDatasetGenerator:
         print("Generating synteny data...")
         
         synteny_data = []
-        ref_species = "Reference"
+        ref_name = "Reference"
         
         # Group species data by species
         species_groups = species_df.groupby('species_name')
@@ -226,7 +226,7 @@ class ChitraDatasetGenerator:
                         'ref_chr': query_chr,
                         'ref_start': ref_start,
                         'ref_end': ref_end,
-                        'ref_species': ref_species,
+                        'ref_name': ref_name,
                         'qry_lvl': 'chromosome'
                     })
         

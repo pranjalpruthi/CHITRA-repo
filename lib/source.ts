@@ -1,10 +1,18 @@
 import { loader } from 'fumadocs-core/source';
-import { createMDXSource } from 'fumadocs-mdx';
-import { docs, meta } from '@/.source';
- 
+import { docs, meta } from 'fumadocs-mdx:collections/server';
+import { toFumadocsSource } from 'fumadocs-mdx/runtime/server';
+import { icons } from 'lucide-react';
+import { createElement } from 'react';
+
 export const source = loader({
   baseUrl: '/docs',
-  source: createMDXSource(docs, meta),
+  source: toFumadocsSource(docs, meta),
+  icon(icon) {
+    if (!icon) return;
+    if (icon in icons) {
+      return createElement(icons[icon as keyof typeof icons]);
+    }
+  },
 });
 
 export const { getPage, getPages, pageTree } = source;

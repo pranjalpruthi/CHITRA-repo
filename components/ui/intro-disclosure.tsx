@@ -132,7 +132,7 @@ function StepPreview({ step, direction }: { step: Step; direction: 1 | -1 }) {
               />
             )}
           </motion.div>
-          <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
+          <div className="absolute inset-0 bg-linear-to-t from-black/80 to-transparent" />
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={controls}
@@ -574,7 +574,7 @@ export function IntroDisclosure({
                 ))}
               </div>
               {/* Preview */}
-              <div className="relative aspect-[16/9] ring-2 ring-border ring-offset-8 ring-offset-background rounded-lg overflow-hidden">
+              <div className="relative aspect-video ring-2 ring-border ring-offset-8 ring-offset-background rounded-lg overflow-hidden">
                 <StepPreview step={steps[currentStep]} direction={direction} />
               </div>
 

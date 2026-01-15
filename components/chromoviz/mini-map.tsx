@@ -46,11 +46,11 @@ export function MiniMap({
     // Calculate proper scaling that maintains aspect ratio
     const mainAspectRatio = dimensions.width / dimensions.height;
     const miniMapAspectRatio = width / height;
-    
+
     let scale: number;
     let translationX = 0;
     let translationY = 0;
-    
+
     if (mainAspectRatio > miniMapAspectRatio) {
       scale = width / dimensions.width;
       translationY = (height - dimensions.height * scale) / 2;
@@ -81,11 +81,11 @@ export function MiniMap({
     const mainContent = mainSvgRef.current.querySelector("g");
     if (mainContent) {
       const clone = mainContent.cloneNode(true) as SVGGElement;
-      
+
       d3.select(clone)
         .selectAll("text, .gene-annotation, .tooltip")
         .remove();
-      
+
       d3.select(clone)
         .selectAll(".synteny-ribbon")
         .attr("opacity", ribbonOpacity)
@@ -113,13 +113,13 @@ export function MiniMap({
     const dragBehavior = d3.drag<SVGSVGElement, unknown>()
       .on("drag", (event) => {
         if (!zoomBehaviorRef.current) return;
-        
+
         const x = (event.x - translationX) / scale;
         const y = (event.y - translationY) / scale;
-        
+
         const boundedX = Math.max(0, Math.min(x, dimensions.width - viewportRect.width));
         const boundedY = Math.max(0, Math.min(y, dimensions.height - viewportRect.height));
-        
+
         const transform = d3.zoomIdentity
           .translate(-boundedX * zoom, -boundedY * zoom)
           .scale(zoom);

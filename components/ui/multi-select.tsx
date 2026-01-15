@@ -32,7 +32,7 @@ import {
  * Uses class-variance-authority (cva) to define different styles based on "variant" prop.
  */
 const multiSelectVariants = cva(
-  "inline-flex items-center gap-1 px-2.5 py-0.5 text-xs font-medium transition-all focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 select-none group/badge",
+  "inline-flex items-center gap-1 px-2.5 py-0.5 text-xs font-medium transition-all focus:outline-hidden focus:ring-2 focus:ring-ring focus:ring-offset-2 select-none group/badge",
   {
     variants: {
       variant: {
@@ -200,7 +200,7 @@ export const MultiSelect = React.forwardRef<
               "px-3 py-1.5 text-sm",
               "bg-zinc-50/10 dark:bg-background/20",
               "hover:bg-zinc-100/20 dark:hover:bg-accent/20 hover:text-accent-foreground",
-              "border border-border/50 dark:border-border/30 shadow-sm",
+              "border border-border/50 dark:border-border/30 shadow-xs",
               "backdrop-blur-md",
               "focus-visible:ring-1 focus-visible:ring-offset-0",
               "disabled:cursor-not-allowed disabled:opacity-50",
@@ -235,7 +235,7 @@ export const MultiSelect = React.forwardRef<
                       <div
                         role="button"
                         tabIndex={0}
-                        className="ml-1 ring-offset-background rounded-full opacity-60 hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 cursor-pointer"
+                        className="ml-1 ring-offset-background rounded-full opacity-60 hover:opacity-100 focus:outline-hidden focus:ring-2 focus:ring-ring focus:ring-offset-2 cursor-pointer"
                         onMouseDown={(e) => {
                           e.preventDefault();
                           e.stopPropagation();
@@ -272,7 +272,7 @@ export const MultiSelect = React.forwardRef<
                     <div
                       role="button"
                       tabIndex={0}
-                      className="ml-1 ring-offset-background rounded-full opacity-60 hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 cursor-pointer"
+                      className="ml-1 ring-offset-background rounded-full opacity-60 hover:opacity-100 focus:outline-hidden focus:ring-2 focus:ring-ring focus:ring-offset-2 cursor-pointer"
                       onMouseDown={(e) => {
                         e.preventDefault();
                         e.stopPropagation();
@@ -306,7 +306,7 @@ export const MultiSelect = React.forwardRef<
                 <div
                   role="button"
                   tabIndex={0}
-                  className="ring-offset-background rounded-full opacity-60 hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 cursor-pointer"
+                  className="ring-offset-background rounded-full opacity-60 hover:opacity-100 focus:outline-hidden focus:ring-2 focus:ring-ring focus:ring-offset-2 cursor-pointer"
                   onMouseDown={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
@@ -332,7 +332,7 @@ export const MultiSelect = React.forwardRef<
           </Button>
         </PopoverTrigger>
         <PopoverContent
-          className="w-[var(--radix-popover-trigger-width)] p-0 overflow-hidden border border-border/50 dark:border-border/30 shadow-md bg-zinc-50/10 dark:bg-background/40 backdrop-blur-xl"
+          className="w-(--radix-popover-trigger-width) p-0 overflow-hidden border border-border/50 dark:border-border/30 shadow-md bg-zinc-50/10 dark:bg-background/40 backdrop-blur-xl"
           align="start"
           side="bottom"
           sideOffset={4}
@@ -355,7 +355,7 @@ export const MultiSelect = React.forwardRef<
                   <div
                     className={cn(
                       "flex h-3.5 w-3.5 shrink-0 items-center justify-center rounded-[3px] border border-primary/50 dark:border-primary/30",
-                      "transition-colors focus:outline-none focus:ring-1 focus:ring-ring focus:ring-offset-1",
+                      "transition-colors focus:outline-hidden focus:ring-1 focus:ring-ring focus:ring-offset-1",
                       value.length > 0 && value.length === options.length
                         ? "bg-primary/90 dark:bg-primary/80 text-primary-foreground"
                         : "opacity-50 [&_svg]:invisible"
@@ -380,7 +380,7 @@ export const MultiSelect = React.forwardRef<
                       <div
                         className={cn(
                           "flex h-3.5 w-3.5 shrink-0 items-center justify-center rounded-[3px] border border-primary/50 dark:border-primary/30",
-                          "transition-colors focus:outline-none focus:ring-1 focus:ring-ring focus:ring-offset-1",
+                          "transition-colors focus:outline-hidden focus:ring-1 focus:ring-ring focus:ring-offset-1",
                           isSelected
                             ? "bg-primary/90 dark:bg-primary/80 text-primary-foreground"
                             : "opacity-50 [&_svg]:invisible"

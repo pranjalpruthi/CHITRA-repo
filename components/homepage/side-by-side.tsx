@@ -21,7 +21,7 @@ export default function SideBySide() {
       value: "visualization",
       content: (
         <BackgroundGradient className="rounded-[22px] p-1 overflow-hidden" animate={false}>
-          <div className="w-full overflow-hidden relative h-full rounded-[20px] bg-white/[0.7] dark:bg-black/[0.7] backdrop-blur-xl border border-white/[0.2] dark:border-white/[0.1]">
+          <div className="w-full overflow-hidden relative h-full rounded-[20px] bg-white/70 dark:bg-black/70 backdrop-blur-xl border border-white/20 dark:border-white/10">
             <Image
               src="/media/i1.webp"
               alt="Chitra Chromosome Visualization"
@@ -41,7 +41,7 @@ export default function SideBySide() {
       value: "comparison",
       content: (
         <BackgroundGradient className="rounded-[22px] p-1 overflow-hidden">
-          <div className="w-full overflow-hidden relative h-full rounded-[20px] bg-white/[0.7] dark:bg-black/[0.7] backdrop-blur-xl border border-white/[0.2] dark:border-white/[0.1]">
+          <div className="w-full overflow-hidden relative h-full rounded-[20px] bg-white/70 dark:bg-black/70 backdrop-blur-xl border border-white/20 dark:border-white/10">
             <Image
               src="/media/i2.webp"
               alt="Chitra Multi-Species Comparison"
@@ -61,7 +61,7 @@ export default function SideBySide() {
       value: "synteny",
       content: (
         <BackgroundGradient className="rounded-[22px] p-1 overflow-hidden">
-          <div className="w-full overflow-hidden relative h-full rounded-[20px] bg-white/[0.7] dark:bg-black/[0.7] backdrop-blur-xl border border-white/[0.2] dark:border-white/[0.1]">
+          <div className="w-full overflow-hidden relative h-full rounded-[20px] bg-white/70 dark:bg-black/70 backdrop-blur-xl border border-white/20 dark:border-white/10">
             <Image
               src="/media/i3.webp"
               alt="Chitra Syntenic Relationships"
@@ -81,7 +81,7 @@ export default function SideBySide() {
       value: "analysis",
       content: (
         <BackgroundGradient className="rounded-[22px] p-1 overflow-hidden">
-          <div className="w-full overflow-hidden relative h-full rounded-[20px] bg-white/[0.7] dark:bg-black/[0.7] backdrop-blur-xl border border-white/[0.2] dark:border-white/[0.1]">
+          <div className="w-full overflow-hidden relative h-full rounded-[20px] bg-white/70 dark:bg-black/70 backdrop-blur-xl border border-white/20 dark:border-white/10">
             <Image
               src="/media/i4.webp"
               alt="Chitra Interactive Analysis"
@@ -158,7 +158,7 @@ export default function SideBySide() {
       
       <div className="relative max-w-7xl mx-auto">
         <div className="text-center max-w-3xl mx-auto mb-16">
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-gray-900 to-gray-600 dark:from-white dark:to-gray-400 mb-6">
+          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight bg-clip-text text-transparent bg-linear-to-r from-gray-900 to-gray-600 dark:from-white dark:to-gray-400 mb-6">
             Visualize Genomic Data with Precision
           </h1>
           <p className="text-xl text-gray-600 dark:text-gray-400 mb-8 max-w-2xl mx-auto">
@@ -168,7 +168,7 @@ export default function SideBySide() {
             <Link href="/docs" onClick={handleDocsClick}>
               <Button
                 variant="outline"
-                className="h-12 px-8 rounded-full border border-gray-200 dark:border-white/10 bg-white/50 dark:bg-white/5 backdrop-blur-sm hover:bg-white/80 dark:hover:bg-white/10 transition-colors"
+                className="h-12 px-8 rounded-full border border-gray-200 dark:border-white/10 bg-white/50 dark:bg-white/5 backdrop-blur-xs hover:bg-white/80 dark:hover:bg-white/10 transition-colors"
                 disabled={isDocsLoading}
               >
                 {isDocsLoading ? (
@@ -203,12 +203,12 @@ export default function SideBySide() {
                 relative p-4 rounded-xl text-left transition-colors duration-200
                 ${index === activeTab 
                   ? `${
-                      index === 0 ? "bg-indigo-50/80 dark:bg-indigo-500/[0.08]" :
-                      index === 1 ? "bg-rose-50/80 dark:bg-rose-500/[0.08]" :
-                      index === 2 ? "bg-teal-50/80 dark:bg-teal-500/[0.08]" :
-                      "bg-violet-50/80 dark:bg-violet-500/[0.08]"
-                    } shadow-sm` 
-                  : "hover:bg-gray-50/50 dark:hover:bg-white/[0.02] bg-white/20 dark:bg-white/[0.01]"
+                      index === 0 ? "bg-indigo-50/80 dark:bg-indigo-500/8" :
+                      index === 1 ? "bg-rose-50/80 dark:bg-rose-500/8" :
+                      index === 2 ? "bg-teal-50/80 dark:bg-teal-500/8" :
+                      "bg-violet-50/80 dark:bg-violet-500/8"
+                    } shadow-xs` 
+                  : "hover:bg-gray-50/50 dark:hover:bg-white/2 bg-white/20 dark:bg-white/1"
                 }
               `}
               whileHover={{ scale: 1.01 }}
@@ -251,7 +251,7 @@ export default function SideBySide() {
               
               {index === activeTab && (
                 <div className="absolute bottom-0 left-0 right-0 h-[2px]">
-                  <div className="h-full bg-gradient-to-r from-transparent via-current to-transparent opacity-20"/>
+                  <div className="h-full bg-linear-to-r from-transparent via-current to-transparent opacity-20"/>
                   <motion.div
                     className={`
                       absolute bottom-0 left-0 h-full

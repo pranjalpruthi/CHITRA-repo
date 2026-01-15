@@ -131,7 +131,7 @@ def generate_basic_synteny_set(output_dir="public/example/basic_set"):
                     'ref_chr': chr_name,
                     'ref_start': ref_start,
                     'ref_end': ref_end,
-                    'ref_species': 'Reference',
+                    'ref_name': 'Reference',
                     'qry_lvl': 'chromosome'
                 })
         
@@ -156,7 +156,7 @@ def generate_basic_synteny_set(output_dir="public/example/basic_set"):
                     'ref_chr': chr_name,
                     'ref_start': ref_start,
                     'ref_end': ref_end,
-                    'ref_species': 'Reference',
+                    'ref_name': 'Reference',
                     'qry_lvl': 'chromosome'
                 })
         
@@ -186,7 +186,7 @@ def generate_basic_synteny_set(output_dir="public/example/basic_set"):
                     'ref_chr': chr_name,
                     'ref_start': ref_start,
                     'ref_end': ref_end,
-                    'ref_species': 'Reference',
+                    'ref_name': 'Reference',
                     'qry_lvl': 'chromosome'
                 })
         
@@ -212,7 +212,7 @@ def generate_basic_synteny_set(output_dir="public/example/basic_set"):
                     'ref_chr': chr_name,
                     'ref_start': ref_start,
                     'ref_end': ref_end,
-                    'ref_species': 'Reference',
+                    'ref_name': 'Reference',
                     'qry_lvl': 'chromosome'
                 })
     

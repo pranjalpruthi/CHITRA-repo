@@ -31,7 +31,7 @@ const team: TeamMember[] = [
     name: "Pranjal Pruthi",
     role: "Core Web Developer & Research Scientist",
     bio: "Research Scientist at CSIR-IGIB: Exploring the frontiers of genomics | Skilled in IT, Full Stack Web development, Database Administration and Bioinformatics, Building innovative and user-friendly platforms",
-    avatar: "bg-gradient-to-br from-purple-500 to-pink-500",
+    avatar: "bg-linear-to-br from-purple-500 to-pink-500",
     image: "/people/pranjal.webp",
     links: {
       github: "https://github.com/pranjalpruthi",
@@ -45,7 +45,7 @@ const team: TeamMember[] = [
     name: "Dr. Jitendra Narayan",
     role: "Principal Investigator",
     bio: "Specializing in Comparative Genomics, Genome Evolution, Adaptation, Chromosome Rearrangements, HGT, Repeats",
-    avatar: "bg-gradient-to-br from-blue-500 to-green-500",
+    avatar: "bg-linear-to-br from-blue-500 to-green-500",
     image: "/people/jitendra.webp",
     links: {
       website: "https://bioinformaticsonline.com/profile/admin",
@@ -58,7 +58,7 @@ const team: TeamMember[] = [
     name: "Preeti Agarwal",
     role: "Documentation -PhD & Senior Research Fellow",
     bio: "Institute of Genomics and Integrative Biology | IGIB · Genome Informatics and Structural Biology Research Area (IGIB) | Bioinformatics and Big Data analysis #Pro in SSR analysis",
-    avatar: "bg-gradient-to-br from-rose-400 to-orange-500",
+    avatar: "bg-linear-to-br from-rose-400 to-orange-500",
     image: "/people/preeti.webp",
     links: {
       researchgate: "https://www.researchgate.net/profile/Preeti-Agarwal-16",
@@ -69,7 +69,7 @@ const team: TeamMember[] = [
     name: "Nityendra Shukla",
     role: "Research Scientist - I",
     bio: "Department of Medical Mycology, Vallabhbhai Patel Chest Institute, University of Delhi",
-    avatar: "bg-gradient-to-br from-emerald-500 to-teal-500",
+    avatar: "bg-linear-to-br from-emerald-500 to-teal-500",
     image: "/people/nitin.webp",
     links: {
       researchgate: "https://www.researchgate.net/profile/Nityendra-Shukla-2",
@@ -81,7 +81,7 @@ const team: TeamMember[] = [
     name: "Ajay Bhatia",
     role: "Data Analyst - PhD & Senior Research Fellow",
     bio: "PhD Student at Jitendra lab, Institute of Genomics and Integrative Biology | IGIB · Genome Informatics and Structural Biology Research Area (IGIB)",
-    avatar: "bg-gradient-to-br from-cyan-500 to-blue-500",
+    avatar: "bg-linear-to-br from-cyan-500 to-blue-500",
     image: "/people/ajay.webp",
     links: {
       researchgate: "https://www.researchgate.net/profile/Ajay-Bhatia-5",
@@ -92,7 +92,7 @@ const team: TeamMember[] = [
     name: "Dr. Lata Rani",
     role: "Scientist II, Genomics Facility | Hematological malignancies",
     bio: "Centralized Core Research Facility (CCRF), AIIMS, New Delhi | Specializing in genomics and molecular biology research",
-    avatar: "bg-gradient-to-br from-violet-500 to-indigo-500",
+    avatar: "bg-linear-to-br from-violet-500 to-indigo-500",
     image: "/people/lata.webp",
     links: {
       scholar: "https://scholar.google.com/citations?user=oyhfOq4AAAAJ&hl=en",
@@ -206,7 +206,7 @@ export function AboutSheet({ children }: { children?: React.ReactNode }) {
             <motion.div variants={fadeIn}>
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-semibold">Our Team</h3>
-                <Badge variant="secondary" className="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white border-0">
+                <Badge variant="secondary" className="bg-linear-to-r from-indigo-500 via-purple-500 to-pink-500 text-white border-0">
                   Lab of Bioinformatics and Big Data
                 </Badge>
               </div>

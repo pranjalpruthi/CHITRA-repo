@@ -8,7 +8,7 @@ import { ChromosomeData, SyntenyData, GeneAnnotation, ChromosomeBreakpoint } fro
 import React, { ReactElement } from "react";
 
 const glassEffect = cn(
-  "bg-gradient-to-br from-white/90 to-white/80 dark:from-gray-950/90 dark:to-gray-950/80",
+  "bg-linear-to-br from-white/90 to-white/80 dark:from-gray-950/90 dark:to-gray-950/80",
   "backdrop-blur-md",
   "border border-white/20 dark:border-gray-800/20",
   "shadow-lg shadow-black/5",
@@ -31,7 +31,7 @@ export function getChromosomeTooltip(chr: ChromosomeData, maxChrSizeMb: number):
         <div className="flex items-center gap-2">
           <Badge
             variant="outline"
-            className="bg-gradient-to-r from-indigo-50 to-blue-50 text-gray-800 dark:from-indigo-950/30 dark:to-blue-950/30 dark:text-gray-100 dark:border-blue-800/30"
+            className="bg-linear-to-r from-indigo-50 to-blue-50 text-gray-800 dark:from-indigo-950/30 dark:to-blue-950/30 dark:text-gray-100 dark:border-blue-800/30"
           >
             Chromosome
           </Badge>
@@ -150,7 +150,7 @@ export function getChromosomeTooltip(chr: ChromosomeData, maxChrSizeMb: number):
         {/* Size Visualization */}
         <div className="w-full bg-gray-100 dark:bg-gray-800 h-1.5 rounded-full overflow-hidden">
           <div
-            className="h-full bg-gradient-to-r from-blue-500 to-indigo-500 dark:from-blue-600 dark:to-indigo-600"
+            className="h-full bg-linear-to-r from-blue-500 to-indigo-500 dark:from-blue-600 dark:to-indigo-600"
             style={{
               width: `${(Number(mbSize) / Math.max(maxChrSizeMb, Number(mbSize))) * 100}%`,
               transition: 'width 0.3s ease-in-out'
@@ -199,13 +199,13 @@ export function SelectionToast({ message, show }: { message: string; show: boole
           animate="visible"
           exit="exit"
           className={cn(
-            "fixed top-6 left-6 z-[100]",
+            "fixed top-6 left-6 z-100",
             "px-8 py-4 rounded-2xl text-base font-bold text-white shadow-2xl",
             "border border-white/30 backdrop-blur-md",
             "ring-2 ring-white/20",
             isSelected
-              ? "bg-gradient-to-br from-emerald-500 via-green-500 to-teal-500"
-              : "bg-gradient-to-br from-red-500 via-rose-500 to-pink-500"
+              ? "bg-linear-to-br from-emerald-500 via-green-500 to-teal-500"
+              : "bg-linear-to-br from-red-500 via-rose-500 to-pink-500"
           )}
         >
           <div className="flex items-center gap-3">
@@ -232,7 +232,7 @@ export function getBreakpointTooltip(breakpoint: ChromosomeBreakpoint): ReactEle
         <div className="flex items-center gap-3">
           <Badge
             variant="outline"
-            className="bg-gradient-to-r from-orange-50 to-red-50 text-orange-800 border-orange-200 px-3 py-1.5 font-semibold dark:from-orange-950/40 dark:to-red-950/40 dark:text-orange-100 dark:border-orange-800/50"
+            className="bg-linear-to-r from-orange-50 to-red-50 text-orange-800 border-orange-200 px-3 py-1.5 font-semibold dark:from-orange-950/40 dark:to-red-950/40 dark:text-orange-100 dark:border-orange-800/50"
           >
             <AlertTriangle className="h-4 w-4 mr-2 text-orange-600 dark:text-orange-400" />
             Breakpoint
@@ -261,7 +261,7 @@ export function getBreakpointTooltip(breakpoint: ChromosomeBreakpoint): ReactEle
         </div>
 
         {/* Position info */}
-        <div className="flex items-center justify-between p-3 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 rounded-lg border border-blue-200 dark:border-blue-800/30">
+        <div className="flex items-center justify-between p-3 bg-linear-to-r from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 rounded-lg border border-blue-200 dark:border-blue-800/30">
           <span className="text-sm font-semibold text-blue-900 dark:text-blue-100 uppercase tracking-wide">
             Position
           </span>
@@ -274,7 +274,7 @@ export function getBreakpointTooltip(breakpoint: ChromosomeBreakpoint): ReactEle
         </div>
 
         {/* Size information */}
-        <div className="flex items-center justify-between p-3 bg-gradient-to-r from-emerald-50 to-green-50 dark:from-emerald-950/30 dark:to-green-950/30 rounded-lg border border-emerald-200 dark:border-emerald-800/30">
+        <div className="flex items-center justify-between p-3 bg-linear-to-r from-emerald-50 to-green-50 dark:from-emerald-950/30 dark:to-green-950/30 rounded-lg border border-emerald-200 dark:border-emerald-800/30">
           <span className="text-sm font-semibold text-emerald-900 dark:text-emerald-100 uppercase tracking-wide">
             Size
           </span>
@@ -306,7 +306,7 @@ export function getSyntenyTooltip(link: SyntenyData, maxSyntenySizeMb: number): 
     <div className="space-y-4 p-1">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <Badge variant="outline" className="bg-gradient-to-r from-blue-50 to-purple-50 text-gray-800 dark:from-blue-950/30 dark:to-purple-950/30 dark:text-gray-100 dark:border-blue-800/30">
+        <Badge variant="outline" className="bg-linear-to-r from-blue-50 to-purple-50 text-gray-800 dark:from-blue-950/30 dark:to-purple-950/30 dark:text-gray-100 dark:border-blue-800/30">
           Syntenic Block
         </Badge>
         <Badge
@@ -332,7 +332,7 @@ export function getSyntenyTooltip(link: SyntenyData, maxSyntenySizeMb: number): 
           <Badge variant="outline" className="bg-blue-50 text-blue-900 dark:bg-blue-950/50 dark:text-blue-100 dark:border-blue-800/30">
             Reference Range
           </Badge>
-          <span className="text-sm text-muted-foreground">{link.ref_species}</span>
+          <span className="text-sm text-muted-foreground">{link.ref_name}</span>
         </div>
         <div className="flex items-center justify-between px-2">
           <span className="text-sm font-medium dark:text-gray-200">{link.ref_chr}</span>
@@ -388,7 +388,7 @@ export function getSyntenyTooltip(link: SyntenyData, maxSyntenySizeMb: number): 
       {/* Progress Bar */}
       <div className="w-full bg-gray-100 dark:bg-gray-800 h-1.5 rounded-full overflow-hidden">
         <div
-          className="h-full bg-gradient-to-r from-blue-500 to-purple-500 dark:from-blue-600 dark:to-purple-600"
+          className="h-full bg-linear-to-r from-blue-500 to-purple-500 dark:from-blue-600 dark:to-purple-600"
           style={{
             width: `${percentage}%`,
             transition: 'width 0.3s ease-in-out'
@@ -470,15 +470,15 @@ export function Tooltip({
           animate="visible"
           exit="exit"
           className={cn(
-            "fixed z-[90]",
+            "fixed z-90",
             "right-4 top-20",
             "w-[calc(100vw-2rem)] sm:w-auto",
             "min-w-[280px] max-w-[350px]",
             glassEffect,
             "rounded-lg",
             "before:absolute before:inset-0 before:rounded-lg",
-            "before:bg-gradient-to-br before:from-blue-500/10 before:to-purple-500/10",
-            "before:dark:from-blue-500/5 before:dark:to-purple-500/5",
+            "before:bg-linear-to-br before:from-blue-500/10 before:to-purple-500/10",
+            "dark:before:from-blue-500/5 dark:before:to-purple-500/5",
             "transition-transform hover:scale-[1.02] active:scale-[0.98]"
           )}
         >
@@ -614,7 +614,7 @@ export function HoverTooltip({
             animate="visible"
             exit="hidden"
             className={cn(
-              "fixed top-20 left-1/2 -translate-x-1/2 z-[90]",
+              "fixed top-20 left-1/2 -translate-x-1/2 z-90",
               "w-auto max-w-4xl",
               "bg-white/95 dark:bg-gray-900/95",
               "backdrop-blur-md",
@@ -626,7 +626,7 @@ export function HoverTooltip({
           >
             <div className="flex items-center h-12 px-3 space-x-4">
               <div className="flex items-center gap-2 pr-2">
-                <div className="w-2.5 h-2.5 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 shadow-lg" />
+                <div className="w-2.5 h-2.5 rounded-full bg-linear-to-br from-blue-400 to-purple-500 shadow-lg" />
                 <span className="text-sm font-bold text-gray-800 dark:text-white tracking-wide">Synteny</span>
               </div>
               <Divider />
@@ -666,14 +666,14 @@ export function HoverTooltip({
             animate="visible"
             exit="hidden"
             className={cn(
-              "fixed right-4 top-20 z-[90]",
+              "fixed right-4 top-20 z-90",
               "w-[calc(100vw-2rem)] sm:w-auto",
               "min-w-[280px] max-w-[350px]",
               glassEffect,
               "rounded-lg",
               "before:absolute before:inset-0 before:rounded-lg",
-              "before:bg-gradient-to-br before:from-blue-500/10 before:to-purple-500/10",
-              "before:dark:from-blue-500/5 before:dark:to-purple-500/5",
+              "before:bg-linear-to-br before:from-blue-500/10 before:to-purple-500/10",
+              "dark:before:from-blue-500/5 dark:before:to-purple-500/5",
               "transition-transform hover:scale-[1.02] active:scale-[0.98]",
               className
             )}
@@ -683,7 +683,7 @@ export function HoverTooltip({
               <div className="flex items-center justify-between group">
                 <Badge
                   variant="outline"
-                  className="bg-gradient-to-r from-indigo-50 to-blue-50 text-gray-800 dark:from-indigo-950/30 dark:to-blue-950/30 dark:text-gray-100 dark:border-blue-800/30 transition-all group-hover:from-indigo-100 group-hover:to-blue-100"
+                  className="bg-linear-to-r from-indigo-50 to-blue-50 text-gray-800 dark:from-indigo-950/30 dark:to-blue-950/30 dark:text-gray-100 dark:border-blue-800/30 transition-all group-hover:from-indigo-100 group-hover:to-blue-100"
                 >
                   {hoveredChromosome.isRef ? 'Reference Position' : `Query: ${queryChromosome?.species_name} ${queryChromosome?.chr_id}`}
                 </Badge>

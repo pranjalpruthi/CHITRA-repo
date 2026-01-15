@@ -348,7 +348,7 @@ export const KonvaSynteny: React.FC<KonvaSyntenyProps> = ({ referenceData: initi
             );
           })}
           {filteredSyntenyData.map((link, i) => {
-            const sourcePos = getChromosomePosition(link.ref_chr, link.ref_species);
+            const sourcePos = getChromosomePosition(link.ref_chr, link.ref_name);
             const targetPos = getChromosomePosition(link.query_chr, link.query_name);
 
             if (!sourcePos || !targetPos) {
@@ -408,7 +408,7 @@ export const KonvaSynteny: React.FC<KonvaSyntenyProps> = ({ referenceData: initi
                   }}
                   fillLinearGradientStartPoint={{ x: sourceX, y: sourcePos.y }}
                   fillLinearGradientEndPoint={{ x: targetX, y: targetPos.y }}
-                  fillLinearGradientColorStops={[0, speciesColorScale(link.query_name), 1, speciesColorScale(link.ref_species)]}
+                  fillLinearGradientColorStops={[0, speciesColorScale(link.query_name), 1, speciesColorScale(link.ref_name)]}
                   stroke={link.query_strand === '+' ? '#2563eb' : '#dc2626'}
                   strokeWidth={0.5}
                   opacity={0.7}

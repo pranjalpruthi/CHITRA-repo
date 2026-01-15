@@ -387,7 +387,7 @@ export function ChordView({
   }, [svgRef]);
 
   const refChromosome = selectedBlock ? referenceData.find(d =>
-    d.species_name === selectedBlock.ref_species && d.chr_id === selectedBlock.ref_chr
+    d.species_name === selectedBlock.ref_name && d.chr_id === selectedBlock.ref_chr
   ) : null;
 
   const queryChromosome = selectedBlock ? referenceData.find(d =>
@@ -1110,13 +1110,13 @@ export function ChordView({
       ref={containerRef}
       className={cn(
         "relative w-full h-full flex flex-col",
-        isFullscreen && "fixed inset-0 bg-background/95 backdrop-blur-sm z-50"
+        isFullscreen && "fixed inset-0 bg-background/95 backdrop-blur-xs z-50"
       )}
     >
       {/* Controls Header - Updated to take full width in fullscreen */}
       <div className={cn(
         "flex items-center justify-between p-2 border-b shrink-0",
-        isFullscreen && "w-full z-[100]"
+        isFullscreen && "w-full z-100"
       )}>
         <div className="flex items-center gap-2">
           <Button
@@ -1250,7 +1250,7 @@ export function ChordView({
                       Ref
                     </Badge>
                     <span className="font-medium text-gray-900 dark:text-gray-100">
-                      {selectedBlock?.ref_species} Chr: {selectedBlock?.ref_chr} ({refChromosome && (refChromosome.chr_size_bp / 1_000_000).toFixed(1)} Mb)
+                      {selectedBlock?.ref_name} Chr: {selectedBlock?.ref_chr} ({refChromosome && (refChromosome.chr_size_bp / 1_000_000).toFixed(1)} Mb)
                     </span>
                   </div>
                   <div className="flex items-center gap-2">
@@ -1847,7 +1847,7 @@ export function ChordView({
 
         {/* SVG Container - Updated to take full width in fullscreen */}
         <div className="w-full h-full flex flex-col">
-          <div className="flex-grow relative">
+          <div className="grow relative">
             <svg
               ref={svgRef}
               width="100%"
@@ -1986,7 +1986,7 @@ function PersistentProgressBar({
         >
           <div className="absolute top-0 w-full h-2 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
             <motion.div
-              className="absolute h-full bg-gradient-to-r from-blue-500 to-purple-500 dark:from-blue-600 dark:to-purple-600"
+              className="absolute h-full bg-linear-to-r from-blue-500 to-purple-500 dark:from-blue-600 dark:to-purple-600"
               style={{
                 left: `${startPercent}%`,
                 width: `${widthPercent}%`,
@@ -1998,7 +1998,7 @@ function PersistentProgressBar({
               }}
               transition={{ type: "spring", stiffness: 300, damping: 30 }}
             />
-            <div className="absolute inset-0 bg-gradient-to-r from-white/10 to-transparent dark:from-white/5" />
+            <div className="absolute inset-0 bg-linear-to-r from-white/10 to-transparent dark:from-white/5" />
           </div>
           {showLabels && (
             <div className="absolute top-3 w-full text-xs text-muted-foreground">
@@ -2018,7 +2018,7 @@ function PersistentProgressBar({
                   {widthPercent < 15 ? (
                     // For small blocks, show combined label
                     <motion.span
-                      className="absolute whitespace-nowrap bg-background/80 backdrop-blur-sm px-2 py-1 rounded border text-xs"
+                      className="absolute whitespace-nowrap bg-background/80 backdrop-blur-xs px-2 py-1 rounded border text-xs"
                       style={{
                         left: `${startPercent + widthPercent / 2}%`,
                         transform: 'translateX(-50%)',

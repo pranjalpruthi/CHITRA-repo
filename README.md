@@ -71,7 +71,7 @@ This file contains the pairwise synteny blocks between the query and reference s
 | `ref_chr` | Reference chromosome ID |
 | `ref_start` | Start position in reference |
 | `ref_end` | End position in reference |
-| `ref_species` | Reference species name |
+| `ref_name` | Reference species name |
 | `qry_lvl` | Query level |
 
 ### 2. Species Data (`species_data.csv`)

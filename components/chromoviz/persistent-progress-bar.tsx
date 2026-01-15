@@ -74,7 +74,7 @@ export function PersistentProgressBar({
             >
             <div className="absolute top-0 w-full h-2 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
                 <motion.div
-                className="absolute h-full bg-gradient-to-r from-blue-500 to-purple-500 dark:from-blue-600 dark:to-purple-600"
+                className="absolute h-full bg-linear-to-r from-blue-500 to-purple-500 dark:from-blue-600 dark:to-purple-600"
                 style={{
                     left: `${startPercent}%`,
                     width: `${widthPercent}%`,
@@ -86,7 +86,7 @@ export function PersistentProgressBar({
                 }}
                 transition={{ type: "spring", stiffness: 300, damping: 30 }}
                 />
-                <div className="absolute inset-0 bg-gradient-to-r from-white/10 to-transparent dark:from-white/5" />
+                <div className="absolute inset-0 bg-linear-to-r from-white/10 to-transparent dark:from-white/5" />
             </div>
             {showLabels && (
                 <div className="absolute top-3 w-full text-xs text-muted-foreground">

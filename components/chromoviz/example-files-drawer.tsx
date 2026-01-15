@@ -2,8 +2,8 @@
 
 import { motion } from "motion/react";
 import React, { useState, useMemo } from "react";
-import { 
-  ArrowRight, 
+import {
+  ArrowRight,
   FileText,
   Loader2,
   TableProperties,
@@ -11,12 +11,12 @@ import {
   X
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { parse } from 'csv-parse/browser/esm/sync';
-import { 
-  Drawer, 
-  DrawerTrigger, 
-  DrawerContent, 
-  DrawerHeader, 
+import { parse } from 'csv-parse/sync';
+import {
+  Drawer,
+  DrawerTrigger,
+  DrawerContent,
+  DrawerHeader,
   DrawerTitle,
   DrawerClose
 } from "@/components/ui/drawer";
@@ -62,13 +62,16 @@ const getExampleFiles = (setId: string): ExampleFile[] => {
       description: "Contains information about syntenic blocks between genomes",
       downloadUrl: `${basePath}/synteny_data.csv`,
       format: [
-        { field: "ref_chr", desc: "Reference chromosome ID" },
-        { field: "ref_start", desc: "Start position in reference" },
-        { field: "ref_end", desc: "End position in reference" },
+        { field: "query_name", desc: "Name of query species" },
         { field: "query_chr", desc: "Query chromosome ID" },
         { field: "query_start", desc: "Start position in query" },
         { field: "query_end", desc: "End position in query" },
-        { field: "query_strand", desc: "Orientation (+/-)" }
+        { field: "query_strand", desc: "Orientation (+/-)" },
+        { field: "ref_chr", desc: "Reference chromosome ID" },
+        { field: "ref_start", desc: "Start position in reference" },
+        { field: "ref_end", desc: "End position in reference" },
+        { field: "ref_name", desc: "Reference species name" },
+        { field: "qry_lvl", desc: "Query assembly level" }
       ],
       required: true,
       colorClass: 'from-blue-500/5 to-indigo-500/10'
@@ -79,8 +82,11 @@ const getExampleFiles = (setId: string): ExampleFile[] => {
       downloadUrl: `${basePath}/species_data.csv`,
       format: [
         { field: "species_name", desc: "Name of the species" },
-        { field: "chromosome_id", desc: "Chromosome identifier" },
-        { field: "chromosome_size", desc: "Size of the chromosome" }
+        { field: "chr_id", desc: "Chromosome identifier" },
+        { field: "chr_type", desc: "Type of chromosome" },
+        { field: "chr_size_bp", desc: "Size of the chromosome in bp" },
+        { field: "centromere_start", desc: "Centromere start position", optional: true },
+        { field: "centromere_end", desc: "Centromere end position", optional: true }
       ],
       required: true,
       colorClass: 'from-emerald-500/5 to-teal-500/10'
@@ -90,8 +96,10 @@ const getExampleFiles = (setId: string): ExampleFile[] => {
       description: "Contains chromosome sizes for the reference genome",
       downloadUrl: `${basePath}/ref_chromosome_sizes.csv`,
       format: [
-        { field: "chromosome_id", desc: "Chromosome identifier" },
-        { field: "size", desc: "Size of the chromosome" }
+        { field: "chromosome", desc: "Chromosome identifier" },
+        { field: "size", desc: "Total size of the chromosome" },
+        { field: "centromere_start", desc: "Centromere start position", optional: true },
+        { field: "centromere_end", desc: "Centromere end position", optional: true }
       ],
       required: true,
       colorClass: 'from-violet-500/5 to-purple-500/10'
@@ -104,9 +112,10 @@ const getExampleFiles = (setId: string): ExampleFile[] => {
       description: "Contains breakpoint information for genome analysis",
       downloadUrl: `${basePath}/bp.csv`,
       format: [
-        { field: "chromosome_id", desc: "Chromosome identifier" },
-        { field: "position", desc: "Breakpoint position" },
-        { field: "type", desc: "Type of breakpoint" }
+        { field: "ref_chr", desc: "Reference chromosome" },
+        { field: "ref_start", desc: "Start position" },
+        { field: "ref_end", desc: "End position" },
+        { field: "breakpoint", desc: "Breakpoint name/annotation" }
       ],
       required: false,
       colorClass: 'from-amber-500/5 to-orange-500/10'
@@ -158,8 +167,8 @@ export function ExampleFilesDrawer({ onLoadExample, children, open, onOpenChange
   const [isTableDrawerOpen, setIsTableDrawerOpen] = useState(false);
   const [isLoadingExample, setIsLoadingExample] = useState(false);
 
-  const exampleFiles = useMemo(() => 
-    getExampleFiles(selectedSet.id), 
+  const exampleFiles = useMemo(() =>
+    getExampleFiles(selectedSet.id),
     [selectedSet]
   );
 
@@ -211,12 +220,12 @@ export function ExampleFilesDrawer({ onLoadExample, children, open, onOpenChange
   };
 
   return (
-    <Drawer open={isOpen} onOpenChange={setIsOpen}>
+    <Drawer direction="right" open={isOpen} onOpenChange={setIsOpen}>
       <DrawerTrigger asChild>
         {children}
       </DrawerTrigger>
-      
-      <DrawerContent className="h-[85vh] max-h-[85vh] md:h-[90vh] md:max-h-[90vh] overflow-hidden">
+
+      <DrawerContent className="h-full overflow-hidden">
         <DrawerHeader className="pb-2 border-b border-gray-200 dark:border-gray-800">
           <div className="flex items-center justify-between">
             <div>
@@ -232,30 +241,28 @@ export function ExampleFilesDrawer({ onLoadExample, children, open, onOpenChange
           </div>
         </DrawerHeader>
 
-        <div className="flex flex-col md:flex-row h-[calc(100%-5rem)] overflow-hidden">
+        <div className="flex flex-row h-[calc(100%-5rem)] overflow-hidden">
           {/* Left Column - Example Sets */}
-          <div className="w-full md:w-[320px] lg:w-[380px] border-b md:border-b-0 md:border-r border-gray-200 dark:border-gray-800 overflow-auto">
+          <div className="w-[320px] lg:w-[380px] border-r border-gray-200 dark:border-gray-800 overflow-auto flex-shrink-0">
             <div className="p-4 space-y-2">
               {EXAMPLE_SETS.map((set) => (
                 <motion.button
                   key={set.id}
                   onClick={() => handleSetChange(set)}
-                  className={`w-full text-left p-4 rounded-lg transition-all ${
-                    selectedSet.id === set.id
-                      ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 ring-1 ring-blue-500/20'
-                      : 'hover:bg-gray-50 dark:hover:bg-gray-800/50'
-                  }`}
+                  className={`w-full text-left p-4 rounded-lg transition-all ${selectedSet.id === set.id
+                    ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 ring-1 ring-blue-500/20'
+                    : 'hover:bg-gray-50 dark:hover:bg-gray-800/50'
+                    }`}
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                 >
                   <div className="flex items-start gap-3">
-                    <div className={`w-2.5 h-2.5 rounded-full mt-1.5 flex-shrink-0 ${
-                      set.id === 'set1' ? 'bg-blue-400' :
+                    <div className={`w-2.5 h-2.5 rounded-full mt-1.5 flex-shrink-0 ${set.id === 'set1' ? 'bg-blue-400' :
                       set.id === 'set2' ? 'bg-emerald-400' :
-                      set.id === 'set3' ? 'bg-purple-400' :
-                      set.id === 'set4' ? 'bg-amber-400' :
-                      'bg-rose-400'
-                    }`} />
+                        set.id === 'set3' ? 'bg-purple-400' :
+                          set.id === 'set4' ? 'bg-amber-400' :
+                            'bg-rose-400'
+                      }`} />
                     <div className="flex-1">
                       <div className="font-medium text-base">{set.name}</div>
                       <div className="text-sm text-gray-500 dark:text-gray-400 mt-1">
@@ -322,21 +329,19 @@ export function ExampleFilesDrawer({ onLoadExample, children, open, onOpenChange
                 {exampleFiles.map((file, index) => (
                   <div
                     key={index}
-                    className={`rounded-lg border transition-all ${
-                      activeFile?.name === file.name
-                        ? 'border-blue-200 dark:border-blue-800 bg-blue-50/50 dark:bg-blue-900/10'
-                        : 'border-gray-200 dark:border-gray-800 hover:border-gray-300 dark:hover:border-gray-700'
-                    }`}
+                    className={`rounded-lg border transition-all ${activeFile?.name === file.name
+                      ? 'border-blue-200 dark:border-blue-800 bg-blue-50/50 dark:bg-blue-900/10'
+                      : 'border-gray-200 dark:border-gray-800 hover:border-gray-300 dark:hover:border-gray-700'
+                      }`}
                   >
                     <button
                       onClick={() => handleFileClick(file)}
                       className="w-full text-left p-4 flex items-start gap-3"
                     >
-                      <FileText className={`w-5 h-5 mt-0.5 ${
-                        activeFile?.name === file.name
-                          ? 'text-blue-500'
-                          : 'text-gray-400'
-                      }`} />
+                      <FileText className={`w-5 h-5 mt-0.5 ${activeFile?.name === file.name
+                        ? 'text-blue-500'
+                        : 'text-gray-400'
+                        }`} />
                       <div className="flex-1">
                         <div className="font-medium">{file.name}</div>
                         <div className="text-sm text-gray-500 dark:text-gray-400 mt-1">
